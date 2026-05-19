@@ -1,0 +1,23 @@
+node_modules/
+.expo/
+dist/
+npm-debug.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# OS cache
+.DS_Store
+Thumbs.db
+
+# native compilation folders
+android/
+ios/
+
+# environment variables
+.env
+.env.*

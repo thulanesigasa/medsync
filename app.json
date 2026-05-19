@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "MedSync",
+    "slug": "medsync",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/images/hokmatech_logo_padded.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#162A4A",
+    "splash": {
+      "image": "./src/images/hokmatech_logo_padded.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#162A4A"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./src/images/hokmatech_logo_padded.png",
+        "backgroundColor": "#162A4A"
+      }
+    },
+    "web": {
+      "favicon": "./src/images/hokmatech_logo_padded.png"
+    }
+  }
+}
