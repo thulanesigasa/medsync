@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
   },
   content: { 
     padding: SIZES.margin,
+    paddingBottom: 110,
     gap: SIZES.gutter,
   },
   sectionTitle: { 

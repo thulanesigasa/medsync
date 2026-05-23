@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
  */
 export const COLORS = {
   // 60% Dominant Canvas (Light System Backgrounds)
-  background: '#F5F8FA', // Screen backgrounds
+  background: '#F3F2FA', // Screen backgrounds
   surface: '#FFFFFF',    // Primary card surfaces
 
   // 30% Secondary Branding (Deep Structural Elements)
@@ -29,7 +29,7 @@ export const SIZES = {
 export const LAYOUT = {
   statusBarHeight: Platform.OS === 'ios' ? 54 : 24,
   headerHeight: Platform.OS === 'ios' ? 96 : 56,
-  tabBarHeight: 56,
+  tabBarHeight: 64,
   bottomPadding: Platform.OS === 'ios' ? 34 : 0,
 };
 
