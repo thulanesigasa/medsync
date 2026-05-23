@@ -5,34 +5,82 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
+
+import * as Calendar from "expo-calendar";
+
 import {
   Ionicons,
   FontAwesome5,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
+
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 import BottomTabBar from "../components/BottomTabBar";
 
 export default function ConfirmationScreen({ navigation, route }) {
-  const { doctor, selectedTime, date } = route.params || {};
+  // ✅ receive booking data from Booking screen
+  const { doctor, date, time } = route.params || {};
 
-  const appointmentDate = date ? new Date(date) : new Date();
+  const getCalendarPermission = async () => {
+    const { status } = await Calendar.requestCalendarPermissionsAsync();
+    return status === "granted";
+  };
 
-  const weekday = appointmentDate.toLocaleDateString("en-US", {
-    weekday: "short",
-  });
+  const getDefaultCalendarSource = async () => {
+    const calendars = await Calendar.getCalendarsAsync(
+      Calendar.EntityTypes.EVENT,
+    );
 
-  const day = appointmentDate.getDate();
-  const month = appointmentDate
-    .toLocaleDateString("en-US", { month: "short" })
-    .toUpperCase();
+    const defaultCalendar = calendars.find((cal) => cal.allowsModifications);
 
-  const timeDisplay = selectedTime || "Not set";
+    return defaultCalendar ? defaultCalendar.source : undefined;
+  };
+
+  const addToCalendar = async () => {
+    try {
+      const hasPermission = await getCalendarPermission();
+
+      if (!hasPermission) {
+        Alert.alert("Permission required", "Calendar access is needed.");
+        return;
+      }
+
+      const calendarSource = await getDefaultCalendarSource();
+
+      const calendarId = await Calendar.createCalendarAsync({
+        title: "MedSync Appointments",
+        color: "#4F46E5",
+        entityType: Calendar.EntityTypes.EVENT,
+        sourceId: calendarSource?.id,
+        source: calendarSource,
+        name: "MedSync Calendar",
+        ownerAccount: "personal",
+        accessLevel: Calendar.CalendarAccessLevel.OWNER,
+      });
+
+      const startDate = new Date(`${date} ${time}`);
+      const endDate = new Date(startDate.getTime() + 30 * 60000);
+
+      await Calendar.createEventAsync(calendarId, {
+        title: `Doctor Appointment - ${doctor?.name}`,
+        location: doctor?.clinic,
+        startDate,
+        endDate,
+        notes: `Appointment with ${doctor?.name} (${doctor?.specialty})`,
+      });
+
+      Alert.alert("Success", "Added to calendar!");
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error", "Could not add to calendar");
+    }
+  };
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
@@ -43,76 +91,36 @@ export default function ConfirmationScreen({ navigation, route }) {
             />
             <Text style={styles.headerTitle}>MedSync</Text>
           </View>
-
-          <Ionicons
-            name="chatbubble-ellipses-outline"
-            size={28}
-            color="#FFFFFF"
-          />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* SUCCESS */}
+        {/* Success */}
         <View style={styles.successHeader}>
-          <Ionicons name="checkmark-circle" size={30} color={COLORS.primary} />
+          <Ionicons name="checkmark-circle" size={28} color={COLORS.success} />
           <Text style={styles.successTitle}>Appointment Confirmed!</Text>
         </View>
 
-        <Text style={styles.successSubtitle}>
-          Your appointment has been successfully booked.
-        </Text>
-
-        <View style={styles.divider} />
-
-        {/* TICKET */}
+        {/* Ticket */}
         <View style={styles.ticketCard}>
-          {/* DATE */}
-          <View style={styles.dateBlock}>
-            <Text style={styles.dateWeekday}>{weekday}</Text>
-            <Text style={styles.dateDay}>{day}</Text>
-            <Text style={styles.dateMonth}>{month}</Text>
-          </View>
-
-          {/* DETAILS */}
           <View style={styles.detailsBlock}>
-            <Text style={styles.patientName}>Patient</Text>
-
-            <Text style={styles.doctorName}>
-              {doctor?.name || "Doctor not found"}
-            </Text>
-
-            <Text style={styles.clinicName}>
-              {doctor?.clinic || "Clinic not available"}
-            </Text>
+            <Text style={styles.patientName}>Kiddo</Text>
+            <Text style={styles.doctorName}>{doctor?.name || "Doctor"}</Text>
+            <Text style={styles.clinicName}>{doctor?.clinic || "Clinic"}</Text>
 
             <View style={styles.detailRow}>
-              <Ionicons
-                name="time-outline"
-                size={18}
-                color={COLORS.primary}
-                style={styles.detailIcon}
-              />
-              <Text style={styles.detailText}>{timeDisplay}</Text>
-            </View>
-
-            <View style={styles.detailRow}>
-              <FontAwesome5
-                name="stethoscope"
-                size={16}
-                color={COLORS.primary}
-                style={styles.detailIcon}
-              />
-              <Text style={styles.detailText}>
-                {doctor?.specialty || "Appointment"}
-              </Text>
+              <Ionicons name="time-outline" size={18} color={COLORS.primary} />
+              <Text style={styles.detailText}>{time || "Not set"}</Text>
             </View>
           </View>
         </View>
 
-        {/* ACTIONS */}
+        {/* Buttons */}
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.outlineButton}>
+          <TouchableOpacity
+            style={styles.outlineButton}
+            onPress={addToCalendar}
+          >
             <Ionicons
               name="calendar-outline"
               size={18}
@@ -120,43 +128,6 @@ export default function ConfirmationScreen({ navigation, route }) {
             />
             <Text style={styles.outlineButtonText}>Add to Calendar</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.outlineButton}>
-            <Ionicons
-              name="notifications-outline"
-              size={18}
-              color={COLORS.primary}
-            />
-            <Text style={styles.outlineButtonText}>Set Reminder</Text>
-          </TouchableOpacity>
-        </View>
-
-        <TouchableOpacity style={styles.fullOutlineButton}>
-          <Ionicons name="location" size={18} color="#EF4444" />
-          <Text style={styles.outlineButtonText}>Get Directions</Text>
-        </TouchableOpacity>
-
-        {/* INFO */}
-        <View style={styles.complianceBox}>
-          <Text style={styles.complianceTitle}>Appointment Tips</Text>
-
-          <View style={styles.listItem}>
-            <Text style={styles.bulletPoint}>•</Text>
-            <Text style={styles.listText}>
-              Please arrive{" "}
-              <Text style={{ fontWeight: "bold" }}>10 minutes early</Text>.
-            </Text>
-          </View>
-
-          <View style={styles.listItem}>
-            <Text style={styles.bulletPoint}>•</Text>
-            <Text style={styles.listText}>Bring your ID or medical card.</Text>
-          </View>
-
-          <View style={styles.listItem}>
-            <Text style={styles.bulletPoint}>•</Text>
-            <Text style={styles.listText}>Wear a mask if unwell.</Text>
-          </View>
         </View>
       </ScrollView>
 
@@ -164,7 +135,6 @@ export default function ConfirmationScreen({ navigation, route }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

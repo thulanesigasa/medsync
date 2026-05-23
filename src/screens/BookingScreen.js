@@ -7,10 +7,15 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { Calendar } from "react-native-calendars";
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 
 export default function BookingScreen({ navigation, route }) {
   const doctor = route?.params?.doctor;
+
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
 
   const [selectedTime, setSelectedTime] = useState("10:00");
 
@@ -30,28 +35,30 @@ export default function BookingScreen({ navigation, route }) {
         <Text style={{ textAlign: "center", marginTop: 20 }}>
           No doctor selected
         </Text>
-
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text
-            style={{
-              textAlign: "center",
-              marginTop: 10,
-              color: COLORS.primary,
-            }}
-          >
-            Go back
-          </Text>
-        </TouchableOpacity>
       </View>
     );
   }
 
+  // 🚫 disable past times (simple logic)
+  const now = new Date();
+  const currentHour = now.getHours();
+
+  const isPastTime = (time) => {
+    if (selectedDate !== now.toISOString().split("T")[0]) return false;
+
+    const hour = parseInt(time.split(":")[0], 10);
+    return hour < currentHour;
+  };
+
   const handleConfirm = () => {
-    navigation.navigate("Confirmation", {
+    const appointment = {
+      id: Date.now().toString(),
       doctor,
-      selectedTime,
-      date: new Date().toDateString(),
-    });
+      date: selectedDate,
+      time: selectedTime,
+    };
+
+    navigation.navigate("Confirmation", appointment);
   };
 
   return (
@@ -68,25 +75,49 @@ export default function BookingScreen({ navigation, route }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
+        {/* DOCTOR */}
         <Text style={styles.doctorName}>{doctor.name}</Text>
         <Text style={styles.specialty}>{doctor.specialty}</Text>
+        <Text style={styles.clinic}>{doctor.clinic}</Text>
 
+        {/* CALENDAR PICKER */}
+        <Text style={styles.sectionTitle}>Select Date</Text>
+
+        <Calendar
+          onDayPress={(day) => setSelectedDate(day.dateString)}
+          markedDates={{
+            [selectedDate]: {
+              selected: true,
+              selectedColor: COLORS.primary,
+            },
+          }}
+          minDate={new Date().toISOString().split("T")[0]}
+        />
+
+        {/* TIME */}
         <Text style={styles.sectionTitle}>Select Time</Text>
 
         <View style={styles.timeGrid}>
           {timeSlots.map((time) => {
+            const disabled = isPastTime(time);
             const active = selectedTime === time;
 
             return (
               <TouchableOpacity
                 key={time}
+                disabled={disabled}
                 onPress={() => setSelectedTime(time)}
                 style={[
                   styles.timeBox,
                   active && { backgroundColor: COLORS.primary },
+                  disabled && { opacity: 0.3 },
                 ]}
               >
-                <Text style={{ color: active ? "#fff" : COLORS.primary }}>
+                <Text
+                  style={{
+                    color: active ? "#fff" : COLORS.primary,
+                  }}
+                >
                   {time}
                 </Text>
               </TouchableOpacity>
@@ -94,6 +125,7 @@ export default function BookingScreen({ navigation, route }) {
           })}
         </View>
 
+        {/* CONFIRM */}
         <TouchableOpacity style={styles.button} onPress={handleConfirm}>
           <Text style={styles.buttonText}>CONFIRM APPOINTMENT</Text>
         </TouchableOpacity>
@@ -103,16 +135,16 @@ export default function BookingScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: COLORS.background },
 
   header: {
-    backgroundColor: COLORS.primary,
-    paddingTop: LAYOUT.statusBarHeight,
-    height: LAYOUT.headerHeight + LAYOUT.statusBarHeight,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    backgroundColor: COLORS.primary,
+    paddingTop: LAYOUT.statusBarHeight,
+    height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
+    paddingHorizontal: SIZES.margin,
   },
 
   headerTitle: {
@@ -122,7 +154,8 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    padding: 20,
+    padding: SIZES.margin,
+    paddingBottom: 100,
   },
 
   doctorName: {
@@ -133,13 +166,18 @@ const styles = StyleSheet.create({
 
   specialty: {
     color: "#64748B",
-    marginBottom: 20,
+  },
+
+  clinic: {
+    color: "#94A3B8",
+    marginBottom: 10,
   },
 
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+    marginTop: 15,
     marginBottom: 10,
+    fontWeight: "bold",
+    color: COLORS.primary,
   },
 
   timeGrid: {
@@ -149,16 +187,14 @@ const styles = StyleSheet.create({
   },
 
   timeBox: {
+    padding: 10,
     borderWidth: 1,
     borderColor: COLORS.primary,
-    padding: 12,
     borderRadius: 10,
-    width: "30%",
-    alignItems: "center",
   },
 
   button: {
-    marginTop: 30,
+    marginTop: 20,
     backgroundColor: COLORS.primary,
     padding: 15,
     borderRadius: 12,
