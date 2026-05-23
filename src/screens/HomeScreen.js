@@ -1,173 +1,146 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
-import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import BottomTabBar from '../components/BottomTabBar';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+} from "react-native";
+
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  FontAwesome5,
+} from "@expo/vector-icons";
+
+import { COLORS, SIZES, LAYOUT } from "../constants/theme";
+import BottomTabBar from "../components/BottomTabBar";
+import { doctors } from "../data/doctors";
 
 export default function HomeScreen({ navigation }) {
   const [isDark, setIsDark] = useState(false);
-  
-  const handleBookAppointment = () => {
-    navigation.navigate('Booking');
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleBookAppointment = (doctor) => {
+    navigation.navigate("Booking", { doctor });
   };
+
+  const filteredDoctors = doctors.filter((doctor) => {
+    const query = searchQuery.toLowerCase();
+
+    return (
+      doctor.name.toLowerCase().includes(query) ||
+      doctor.specialty.toLowerCase().includes(query) ||
+      doctor.clinic.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <View style={styles.container}>
-      {/* Dynamic Header */}
+      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
-            <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
+            <MaterialCommunityIcons
+              name="shield-plus"
+              size={28}
+              color="#FFFFFF"
+            />
             <Text style={styles.appTitle}>MedSync</Text>
           </View>
+
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
-              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
+            <TouchableOpacity
+              onPress={() => setIsDark(!isDark)}
+              style={styles.actionButton}
+            >
+              <Ionicons
+                name={isDark ? "sunny-outline" : "moon-outline"}
+                size={24}
+                color="#FFFFFF"
+              />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.bellIconContainer} onPress={() => navigation.navigate('Notifications')}>
-              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-              <View style={styles.badge} />
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                color="#FFFFFF"
+              />
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* GREETING */}
         <View style={styles.greetingContainer}>
           <Text style={styles.greetingTitle}>Hello, Kiddo!</Text>
-          <Text style={styles.greetingSubline}>Find your local doctor easily</Text>
+          <Text style={styles.greetingSubline}>
+            Find your local doctor easily
+          </Text>
         </View>
 
-        {/* Search Bar */}
+        {/* SEARCH */}
         <View style={styles.searchBar}>
           <Ionicons name="search-outline" size={20} color="#94A3B8" />
-          <TextInput 
-            placeholder="Search doctor, clinic or specialty..." 
+
+          <TextInput
+            placeholder="Search doctor, clinic or specialty..."
             style={styles.searchInput}
-            placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
           />
-          <Ionicons name="options-outline" size={20} color={COLORS.primary} />
         </View>
 
-        {/* Specialties Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Specialties</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Clinics')}>
-            <Text style={styles.seeAllText}>See all</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.specialtiesScroll}>
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
-            <View style={styles.specialtyIconBox}>
-              <FontAwesome5 name="stethoscope" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.specialtyLabel}>General</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
-            <View style={styles.specialtyIconBox}>
-              <FontAwesome5 name="tooth" size={18} color={COLORS.primary} />
-            </View>
-            <Text style={styles.specialtyLabel}>Dentistry</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
-            <View style={styles.specialtyIconBox}>
-              <FontAwesome5 name="heartbeat" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.specialtyLabel}>Cardiology</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
-            <View style={styles.specialtyIconBox}>
-              <FontAwesome5 name="baby" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.specialtyLabel}>Pediatrics</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
-            <View style={styles.specialtyIconBox}>
-              <FontAwesome5 name="brain" size={18} color={COLORS.primary} />
-            </View>
-            <Text style={styles.specialtyLabel}>Neurology</Text>
-          </TouchableOpacity>
-        </ScrollView>
-
-        {/* Upcoming Visit Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Schedule</Text>
-        </View>
-        
-        <View style={styles.scheduleCard}>
-          <View style={styles.scheduleHeader}>
-            <View style={styles.scheduleDoctor}>
-              <View style={styles.doctorAvatarMini}>
-                <Text style={styles.doctorAvatarMiniText}>L</Text>
-              </View>
-              <View>
-                <Text style={styles.scheduleDoctorName}>Dr. Lerato Mokoena</Text>
-                <Text style={styles.scheduleDoctorTitle}>General Practitioner • Dawn Park Clinic</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.scheduleVideoBtn}>
-              <Ionicons name="videocam" size={18} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.scheduleTimeRow}>
-            <View style={styles.scheduleTimeDetail}>
-              <Ionicons name="calendar-outline" size={15} color="#EAE8FC" />
-              <Text style={styles.scheduleTimeText}>Monday, Jan 12</Text>
-            </View>
-            <View style={styles.scheduleTimeDetail}>
-              <Ionicons name="time-outline" size={15} color="#EAE8FC" />
-              <Text style={styles.scheduleTimeText}>10:00 AM</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Top Doctors Section */}
+        {/* TOP DOCTORS */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Top Doctors</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Clinics')}>
-            <Text style={styles.seeAllText}>See all</Text>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.doctorsList}>
-          <TouchableOpacity style={styles.doctorCard} onPress={handleBookAppointment}>
-            <View style={styles.doctorAvatarLarge}>
-              <Text style={styles.doctorAvatarTextLarge}>P</Text>
-            </View>
-            <View style={styles.doctorInfo}>
-              <Text style={styles.doctorName}>Dr. Pieter Naude</Text>
-              <Text style={styles.doctorTitle}>Senior Surgeon</Text>
-              <View style={styles.doctorStats}>
-                <Ionicons name="star" size={14} color="#F59E0B" />
-                <Text style={styles.doctorRating}>4.9 (96 reviews)</Text>
-              </View>
-            </View>
-            <View style={styles.doctorAction}>
-              <Ionicons name="arrow-forward-circle" size={32} color={COLORS.primary} />
-            </View>
-          </TouchableOpacity>
+          {filteredDoctors.length > 0 ? (
+            filteredDoctors.map((doctor) => (
+              <TouchableOpacity
+                key={doctor.id}
+                style={styles.doctorCard}
+                onPress={() => handleBookAppointment(doctor)}
+              >
+                {/* Avatar */}
+                <View style={styles.doctorAvatarLarge}>
+                  <Text style={styles.doctorAvatarTextLarge}>
+                    {doctor.name.charAt(0)}
+                  </Text>
+                </View>
 
-          <TouchableOpacity style={styles.doctorCard} onPress={handleBookAppointment}>
-            <View style={styles.doctorAvatarLarge}>
-              <Text style={styles.doctorAvatarTextLarge}>S</Text>
-            </View>
-            <View style={styles.doctorInfo}>
-              <Text style={styles.doctorName}>Dr. Sipho Gumede</Text>
-              <Text style={styles.doctorTitle}>Senior Cardiologist</Text>
-              <View style={styles.doctorStats}>
-                <Ionicons name="star" size={14} color="#F59E0B" />
-                <Text style={styles.doctorRating}>5.0 (120 reviews)</Text>
-              </View>
-            </View>
-            <View style={styles.doctorAction}>
-              <Ionicons name="arrow-forward-circle" size={32} color={COLORS.primary} />
-            </View>
-          </TouchableOpacity>
+                {/* Info */}
+                <View style={styles.doctorInfo}>
+                  <Text style={styles.doctorName}>{doctor.name}</Text>
+                  <Text style={styles.doctorTitle}>{doctor.specialty}</Text>
+
+                  <View style={styles.doctorStats}>
+                    <Ionicons name="star" size={14} color="#F59E0B" />
+                    <Text style={styles.doctorRating}>
+                      {doctor.rating} ({doctor.reviews} reviews)
+                    </Text>
+                  </View>
+                </View>
+
+                <Ionicons
+                  name="arrow-forward-circle"
+                  size={32}
+                  color={COLORS.primary}
+                />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={{ textAlign: "center", marginTop: 20 }}>
+              No doctors found
+            </Text>
+          )}
         </View>
       </ScrollView>
 
@@ -175,8 +148,6 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 }
-
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -189,39 +160,39 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     height: LAYOUT.headerHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SIZES.margin,
   },
   headerBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   appTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 10,
   },
   headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
   },
   actionButton: {
     padding: 4,
   },
   bellIconContainer: {
-    position: 'relative',
+    position: "relative",
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     right: -2,
     width: 8,
     height: 8,
-    backgroundColor: '#EF4444',
+    backgroundColor: "#EF4444",
     borderRadius: 4,
   },
   scrollContent: {
@@ -233,25 +204,25 @@ const styles = StyleSheet.create({
   },
   greetingTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
   },
   greetingSubline: {
     fontSize: 15,
-    color: '#64748B',
+    color: "#64748B",
     marginTop: 4,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.surface,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#EAE8FC',
+    borderColor: "#EAE8FC",
     marginBottom: 20,
-    shadowColor: '#0F2C59',
+    shadowColor: "#0F2C59",
     shadowOpacity: 0.02,
     shadowRadius: 5,
     elevation: 1,
@@ -263,28 +234,28 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
     marginTop: 8,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
   },
   seeAllText: {
     fontSize: 14,
     color: COLORS.accent,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   specialtiesScroll: {
     paddingBottom: 8,
     gap: 16,
   },
   specialtyItem: {
-    alignItems: 'center',
+    alignItems: "center",
     width: 72,
   },
   specialtyIconBox: {
@@ -293,20 +264,20 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#EAE8FC',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#0F2C59',
+    borderColor: "#EAE8FC",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#0F2C59",
     shadowOpacity: 0.02,
     shadowRadius: 5,
     elevation: 1,
   },
   specialtyLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.primary,
     marginTop: 6,
-    textAlign: 'center',
+    textAlign: "center",
   },
   scheduleCard: {
     backgroundColor: COLORS.primary,
@@ -320,75 +291,75 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   scheduleHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.15)',
+    borderBottomColor: "rgba(255, 255, 255, 0.15)",
     paddingBottom: 14,
     marginBottom: 14,
   },
   scheduleDoctor: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   doctorAvatarMini: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   doctorAvatarMiniText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   scheduleDoctorName: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   scheduleDoctorTitle: {
-    color: '#EAE8FC',
+    color: "#EAE8FC",
     fontSize: 12,
   },
   scheduleVideoBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   scheduleTimeRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 20,
   },
   scheduleTimeDetail: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   scheduleTimeText: {
-    color: '#EAE8FC',
+    color: "#EAE8FC",
     fontSize: 13,
     marginLeft: 6,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   doctorsList: {
     gap: 12,
   },
   doctorCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#EAE8FC',
-    alignItems: 'center',
-    shadowColor: '#0F2C59',
+    borderColor: "#EAE8FC",
+    alignItems: "center",
+    shadowColor: "#0F2C59",
     shadowOpacity: 0.02,
     shadowRadius: 5,
     elevation: 1,
@@ -397,42 +368,41 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 16,
   },
   doctorAvatarTextLarge: {
     color: COLORS.primary,
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   doctorInfo: {
     flex: 1,
   },
   doctorName: {
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
   },
   doctorTitle: {
     fontSize: 13,
-    color: '#64748B',
+    color: "#64748B",
     marginTop: 2,
   },
   doctorStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 6,
   },
   doctorRating: {
     fontSize: 12,
-    color: '#64748B',
+    color: "#64748B",
     marginLeft: 4,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   doctorAction: {
     paddingLeft: 8,
   },
 });
-

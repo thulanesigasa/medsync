@@ -1,53 +1,86 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { COLORS, SIZES, LAYOUT } from '../constants/theme';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 
-export default function BookingScreen({ navigation }) {
-  const [selectedTime, setSelectedTime] = useState('12:00');
+export default function BookingScreen({ navigation, route }) {
+  const doctor = route?.params?.doctor;
+
+  if (!doctor) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: "center", marginTop: 20 }}>
+          No doctor selected
+        </Text>
+
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text
+            style={{
+              textAlign: "center",
+              marginTop: 10,
+              color: COLORS.primary,
+            }}
+          >
+            Go back
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const [selectedTime, setSelectedTime] = useState("12:00");
   const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"];
 
   const handleConfirm = () => {
-    navigation.navigate('Confirmation');
+    navigation.navigate("Confirmation", { doctor, selectedTime });
   };
 
   return (
     <View style={styles.container}>
-      {/* Header with platform heights */}
+      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
+
           <Text style={styles.headerTitle}>Book Appointment</Text>
+
           <View style={{ width: 24 }} />
         </View>
       </View>
 
+      {/* CONTENT */}
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionLabel}>Select clinic</Text>
-        <View style={styles.inputBox}>
-          <Text style={styles.inputText}>Dawn Park Clinic</Text>
-          <Feather name="chevron-down" size={20} color={COLORS.primary} />
-        </View>
+        <Text style={styles.sectionLabel}>
+          {doctor?.name || "Select Doctor"}
+        </Text>
 
-        <Text style={styles.sectionLabel}>Select date</Text>
-        <View style={styles.inputBox}>
-          <Text style={styles.inputText}>2026-01-15</Text>
-          <Feather name="calendar" size={20} color={COLORS.primary} />
-        </View>
+        <Text style={{ color: "#64748B", marginBottom: 20 }}>
+          {doctor?.specialty}
+        </Text>
 
-        <Text style={styles.sectionLabel}>Select time</Text>
+        <Text style={styles.sectionLabel}>Select Time</Text>
+
         <View style={styles.matrixContainer}>
-          {timeSlots.map((time, index) => {
+          {timeSlots.map((time) => {
             const isActive = selectedTime === time;
+
             return (
               <TouchableOpacity
-                key={index}
+                key={time}
                 style={[styles.timeSlot, isActive && styles.timeSlotActive]}
                 onPress={() => setSelectedTime(time)}
               >
-                <Text style={[styles.timeText, isActive && styles.timeTextActive]}>
+                <Text
+                  style={[styles.timeText, isActive && styles.timeTextActive]}
+                >
                   {time}
                 </Text>
               </TouchableOpacity>
@@ -60,6 +93,7 @@ export default function BookingScreen({ navigation }) {
         </TouchableOpacity>
       </ScrollView>
 
+      {/* FOOTER */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>Powered by Hokma Tech</Text>
       </View>
@@ -72,6 +106,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   header: {
     backgroundColor: COLORS.primary,
     paddingTop: LAYOUT.statusBarHeight,
@@ -79,57 +114,39 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     height: LAYOUT.headerHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SIZES.margin,
   },
-  backButton: {
-    padding: 4,
-  },
   headerTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   content: {
     padding: SIZES.margin,
   },
   sectionLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.primary,
     marginBottom: 8,
   },
-  inputBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: SIZES.radius,
-    padding: 16,
-    marginBottom: 20,
-    backgroundColor: COLORS.surface,
-  },
-  inputText: {
-    fontSize: 16,
-    color: COLORS.primary,
-  },
   matrixContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     marginBottom: 20,
-    gap: 8, // space slots
+    gap: 8,
   },
   timeSlot: {
-    width: '31%',
+    width: "31%",
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: SIZES.radius,
     paddingVertical: 14,
-    alignItems: 'center',
+    alignItems: "center",
     backgroundColor: COLORS.surface,
   },
   timeSlotActive: {
@@ -142,28 +159,27 @@ const styles = StyleSheet.create({
   },
   timeTextActive: {
     color: COLORS.surface,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   confirmButton: {
     backgroundColor: COLORS.primary,
     borderRadius: SIZES.radius,
     paddingVertical: 18,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
   },
   confirmButtonText: {
     color: COLORS.surface,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     letterSpacing: 1,
   },
   footer: {
     paddingBottom: 30,
-    alignItems: 'center',
+    alignItems: "center",
   },
   footerText: {
-    color: '#64748B',
+    color: "#64748B",
     fontSize: 14,
   },
 });
-
