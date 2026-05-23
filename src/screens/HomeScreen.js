@@ -103,11 +103,11 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.scheduleHeader}>
             <View style={styles.scheduleDoctor}>
               <View style={styles.doctorAvatarMini}>
-                <Text style={styles.doctorAvatarMiniText}>S</Text>
+                <Text style={styles.doctorAvatarMiniText}>L</Text>
               </View>
               <View>
-                <Text style={styles.scheduleDoctorName}>Dr. Smith</Text>
-                <Text style={styles.scheduleDoctorTitle}>General Practitioner</Text>
+                <Text style={styles.scheduleDoctorName}>Dr. Lerato Mokoena</Text>
+                <Text style={styles.scheduleDoctorTitle}>General Practitioner • Dawn Park Clinic</Text>
               </View>
             </View>
             <TouchableOpacity style={styles.scheduleVideoBtn}>
@@ -137,10 +137,10 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.doctorsList}>
           <TouchableOpacity style={styles.doctorCard} onPress={handleBookAppointment}>
             <View style={styles.doctorAvatarLarge}>
-              <Text style={styles.doctorAvatarTextLarge}>H</Text>
+              <Text style={styles.doctorAvatarTextLarge}>P</Text>
             </View>
             <View style={styles.doctorInfo}>
-              <Text style={styles.doctorName}>Dr. Hamza Tariq</Text>
+              <Text style={styles.doctorName}>Dr. Pieter Naude</Text>
               <Text style={styles.doctorTitle}>Senior Surgeon</Text>
               <View style={styles.doctorStats}>
                 <Ionicons name="star" size={14} color="#F59E0B" />
@@ -154,10 +154,10 @@ export default function HomeScreen({ navigation }) {
 
           <TouchableOpacity style={styles.doctorCard} onPress={handleBookAppointment}>
             <View style={styles.doctorAvatarLarge}>
-              <Text style={styles.doctorAvatarTextLarge}>A</Text>
+              <Text style={styles.doctorAvatarTextLarge}>S</Text>
             </View>
             <View style={styles.doctorInfo}>
-              <Text style={styles.doctorName}>Dr. Alina Fatima</Text>
+              <Text style={styles.doctorName}>Dr. Sipho Gumede</Text>
               <Text style={styles.doctorTitle}>Senior Cardiologist</Text>
               <View style={styles.doctorStats}>
                 <Ionicons name="star" size={14} color="#F59E0B" />
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: SIZES.margin,
-    paddingBottom: 110,
+    paddingBottom: 120,
   },
   greetingContainer: {
     marginVertical: 12,

@@ -27,7 +27,7 @@ export default function BookingScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.sectionLabel}>Select clinic</Text>
         <View style={styles.inputBox}>
-          <Text style={styles.inputText}>Cape Town Family Clinic</Text>
+          <Text style={styles.inputText}>Dawn Park Clinic</Text>
           <Feather name="chevron-down" size={20} color={COLORS.primary} />
         </View>
 

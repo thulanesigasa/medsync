@@ -26,9 +26,9 @@ export default function ConfirmationScreen({ navigation }) {
           <Text style={styles.successTitle}>Appointment Confirmed!</Text>
         </View>
         <Text style={styles.successSubtitle}>Your appointment has been successfully booked.</Text>
-
+ 
         <View style={styles.divider} />
-
+ 
         {/* Ticket Card */}
         <View style={styles.ticketCard}>
           <View style={styles.dateBlock}>
@@ -36,10 +36,11 @@ export default function ConfirmationScreen({ navigation }) {
             <Text style={styles.dateDay}>27</Text>
             <Text style={styles.dateMonth}>MAY</Text>
           </View>
-
+ 
           <View style={styles.detailsBlock}>
-            <Text style={styles.patientName}>Chris Nkwanyana</Text>
-            <Text style={styles.clinicName}>Dawn Park Clinic</Text>
+            <Text style={styles.patientName}>Kiddo</Text>
+            <Text style={styles.doctorName}>Dr. Chris Nkwanyana</Text>
+            <Text style={styles.clinicName}>Dawn Park Clinic, Boksburg</Text>
             
             <View style={styles.detailRow}>
               <Ionicons name="time-outline" size={18} color={COLORS.primary} style={styles.detailIcon} />
@@ -123,6 +124,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: SIZES.margin,
+    paddingBottom: 120,
     gap: SIZES.gutter,
   },
   successHeader: {
@@ -194,10 +196,16 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     marginBottom: 2,
   },
-  clinicName: {
+  doctorName: {
     fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.primary,
+    marginBottom: 2,
+  },
+  clinicName: {
+    fontSize: 13,
     color: '#64748B',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   detailRow: {
     flexDirection: 'row',

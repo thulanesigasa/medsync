@@ -28,8 +28,8 @@ export default function ClinicsScreen({ navigation }) {
             <Ionicons name="medical" size={32} color={COLORS.primary} />
           </View>
           <View style={styles.clinicInfo}>
-            <Text style={styles.clinicName}>Cape Town Family Clinic</Text>
-            <Text style={styles.clinicType}>General Practice • 2.4 km</Text>
+            <Text style={styles.clinicName}>Dawn Park Clinic</Text>
+            <Text style={styles.clinicType}>General Practice • Boksburg • Cason Road</Text>
             <View style={styles.ratingRow}>
               <Ionicons name="star" size={14} color="#F59E0B" />
               <Text style={styles.ratingText}>4.8 (120 reviews)</Text>
@@ -42,11 +42,25 @@ export default function ClinicsScreen({ navigation }) {
             <Ionicons name="heart" size={32} color={COLORS.primary} />
           </View>
           <View style={styles.clinicInfo}>
-            <Text style={styles.clinicName}>Dawn Park Dental</Text>
-            <Text style={styles.clinicType}>Dentistry • 3.1 km</Text>
+            <Text style={styles.clinicName}>Benoni Health Centre</Text>
+            <Text style={styles.clinicType}>Dentistry • Benoni • 54 Harpur Ave</Text>
             <View style={styles.ratingRow}>
               <Ionicons name="star" size={14} color="#F59E0B" />
               <Text style={styles.ratingText}>4.9 (85 reviews)</Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.clinicCard} onPress={() => navigation.navigate('Booking')}>
+          <View style={styles.clinicImagePlaceholder}>
+            <Ionicons name="pulse" size={32} color={COLORS.primary} />
+          </View>
+          <View style={styles.clinicInfo}>
+            <Text style={styles.clinicName}>Unjani Clinic Germiston</Text>
+            <Text style={styles.clinicType}>Cardiology • Germiston • 250 Victoria St</Text>
+            <View style={styles.ratingRow}>
+              <Ionicons name="star" size={14} color="#F59E0B" />
+              <Text style={styles.ratingText}>4.7 (95 reviews)</Text>
             </View>
           </View>
         </TouchableOpacity>

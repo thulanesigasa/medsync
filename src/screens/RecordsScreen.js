@@ -6,10 +6,13 @@ import BottomTabBar from '../components/BottomTabBar';
 
 export default function RecordsScreen({ navigation }) {
   const [isDark, setIsDark] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All');
+
+  const categories = ['All', 'Schedules', 'Vaccines', 'Campaigns'];
 
   return (
     <View style={styles.container}>
-      {/* Header with platform heights */}
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
@@ -24,55 +27,90 @@ export default function RecordsScreen({ navigation }) {
         </View>
       </View>
       
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#94A3B8" />
           <Text style={styles.searchText}>Search clinic updates...</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Clinic Bulletins & News</Text>
+        {/* Featured Announcement Card */}
+        <View style={styles.featuredCard}>
+          <View style={styles.featuredBadge}>
+            <Text style={styles.featuredBadgeText}>Featured</Text>
+          </View>
+          <Text style={styles.featuredTitle}>Free Flu Vaccine Drive 2026</Text>
+          <Text style={styles.featuredDesc}>
+            Walk-ins are now welcome at Unjani Clinic Germiston for the annual influenza vaccine. Protect your family this winter season.
+          </Text>
+          <TouchableOpacity style={styles.featuredBtn}>
+            <Text style={styles.featuredBtnText}>Learn More</Text>
+            <Ionicons name="arrow-forward" size={16} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Categories Scroll */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesScroll}>
+          {categories.map((cat, index) => {
+            const isActive = activeCategory === cat;
+            return (
+              <TouchableOpacity 
+                key={index} 
+                style={[styles.categoryBtn, isActive && styles.categoryBtnActive]}
+                onPress={() => setActiveCategory(cat)}
+              >
+                <Text style={[styles.categoryBtnText, isActive && styles.categoryBtnTextActive]}>
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        <Text style={styles.sectionTitle}>Local Clinic Bulletins</Text>
         
-        <View style={styles.updateCard}>
-          <View style={[styles.iconBox, { backgroundColor: '#EFF6FF' }]}>
-            <Ionicons name="time" size={22} color={COLORS.primary} />
+        <View style={styles.bulletinsContainer}>
+          <View style={styles.updateCard}>
+            <View style={styles.iconBox}>
+              <Ionicons name="time" size={22} color={COLORS.primary} />
+            </View>
+            <View style={styles.updateInfo}>
+              <Text style={styles.updateTitle}>Dr. Lerato Mokoena's Saturday Shift</Text>
+              <Text style={styles.updateDesc}>GP checkups will be available on Saturdays from 8:00 AM - 12:00 PM at Dawn Park Clinic, Boksburg.</Text>
+              <Text style={styles.updateDate}>Posted today • Dawn Park Clinic</Text>
+            </View>
           </View>
-          <View style={styles.updateInfo}>
-            <Text style={styles.updateTitle}>Dr. Smith's Saturday Shifts</Text>
-            <Text style={styles.updateDesc}>General checkups will be available on Saturdays from 8:00 AM - 12:00 PM starting next week.</Text>
-            <Text style={styles.updateDate}>Posted today • Scheduling</Text>
-          </View>
-        </View>
 
-        <View style={styles.updateCard}>
-          <View style={[styles.iconBox, { backgroundColor: '#F0FDF4' }]}>
-            <Ionicons name="megaphone" size={22} color={COLORS.success} />
+          <View style={styles.updateCard}>
+            <View style={styles.iconBox}>
+              <Ionicons name="medical" size={22} color={COLORS.primary} />
+            </View>
+            <View style={styles.updateInfo}>
+              <Text style={styles.updateTitle}>Benoni Health Centre Dental Wing</Text>
+              <Text style={styles.updateDesc}>Our expanded dental wing opens next Monday. Specialized care for all family members at 54 Harpur Ave, Benoni.</Text>
+              <Text style={styles.updateDate}>Posted yesterday • Benoni Centre</Text>
+            </View>
           </View>
-          <View style={styles.updateInfo}>
-            <Text style={styles.updateTitle}>New Pediatrics Wing Launch</Text>
-            <Text style={styles.updateDesc}>Our brand new Pediatrics Department opens on June 1st, featuring state-of-the-art care for children.</Text>
-            <Text style={styles.updateDate}>Posted yesterday • Announcement</Text>
-          </View>
-        </View>
 
-        <View style={styles.updateCard}>
-          <View style={[styles.iconBox, { backgroundColor: '#FFFBEB' }]}>
-            <Ionicons name="shield-checkmark" size={22} color="#D97706" />
+          <View style={styles.updateCard}>
+            <View style={styles.iconBox}>
+              <Ionicons name="pulse" size={22} color={COLORS.primary} />
+            </View>
+            <View style={styles.updateInfo}>
+              <Text style={styles.updateTitle}>Dr. Sipho Gumede Summit Notice</Text>
+              <Text style={styles.updateDesc}>Dr. Gumede will be away at the South African Cardiology Summit (28 May - 2 Jun). Appointments during this period will be rescheduled.</Text>
+              <Text style={styles.updateDate}>Posted 4 days ago • Cardiology</Text>
+            </View>
           </View>
-          <View style={styles.updateInfo}>
-            <Text style={styles.updateTitle}>Free Flu Vaccine Drive</Text>
-            <Text style={styles.updateDesc}>Annual flu shots are now available for all clinic members. Walk-ins welcome daily between 9 AM and 4 PM.</Text>
-            <Text style={styles.updateDate}>Posted 3 days ago • Campaign</Text>
-          </View>
-        </View>
 
-        <View style={styles.updateCard}>
-          <View style={[styles.iconBox, { backgroundColor: '#FEF2F2' }]}>
-            <Ionicons name="warning" size={22} color="#EF4444" />
-          </View>
-          <View style={styles.updateInfo}>
-            <Text style={styles.updateTitle}>Cardiology Clinic Adjustments</Text>
-            <Text style={styles.updateDesc}>Dr. Chris Nkwanyana will be away attending a medical summit from May 28 to June 2. Normal schedules resume June 3.</Text>
-            <Text style={styles.updateDate}>Posted 4 days ago • Clinic Notice</Text>
+          <View style={styles.updateCard}>
+            <View style={styles.iconBox}>
+              <Ionicons name="megaphone" size={22} color={COLORS.primary} />
+            </View>
+            <View style={styles.updateInfo}>
+              <Text style={styles.updateTitle}>Germiston Vaccine Drive Extended</Text>
+              <Text style={styles.updateDesc}>Free winter immunization drive at Unjani Clinic Germiston is extended until the end of next week. Walk-ins welcome.</Text>
+              <Text style={styles.updateDate}>Posted 5 days ago • Unjani Clinic</Text>
+            </View>
           </View>
         </View>
         
@@ -120,7 +158,7 @@ const styles = StyleSheet.create({
   },
   content: { 
     padding: SIZES.margin,
-    paddingBottom: 110,
+    paddingBottom: 120,
     gap: SIZES.gutter,
   },
   searchBar: { 
@@ -137,12 +175,90 @@ const styles = StyleSheet.create({
     color: '#94A3B8', 
     fontSize: 15 
   },
+  featuredCard: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 20,
+    padding: 16,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  featuredBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+  },
+  featuredBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  featuredTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 6,
+  },
+  featuredDesc: {
+    color: '#EAE8FC',
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 14,
+  },
+  featuredBtn: {
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    gap: 6,
+  },
+  featuredBtnText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  categoriesScroll: {
+    paddingVertical: 4,
+    gap: 8,
+  },
+  categoryBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: '#EAE8FC',
+  },
+  categoryBtnActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  categoryBtnText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  categoryBtnTextActive: {
+    color: '#FFFFFF',
+  },
   sectionTitle: { 
     fontSize: 18, 
     fontWeight: 'bold', 
     color: COLORS.primary, 
     marginTop: 8,
     marginBottom: -4,
+  },
+  bulletinsContainer: {
+    gap: 12,
   },
   updateCard: { 
     flexDirection: 'row', 
@@ -160,7 +276,8 @@ const styles = StyleSheet.create({
   iconBox: { 
     width: 48, 
     height: 48, 
-    borderRadius: 8, 
+    borderRadius: 24, 
+    backgroundColor: '#EFF6FF', 
     alignItems: 'center', 
     justifyContent: 'center', 
     marginRight: 15 
@@ -169,22 +286,20 @@ const styles = StyleSheet.create({
     flex: 1 
   },
   updateTitle: { 
-    fontSize: 16, 
-    fontWeight: '600', 
+    fontSize: 15, 
+    fontWeight: 'bold', 
     color: COLORS.primary, 
     marginBottom: 4 
   },
   updateDesc: { 
-    fontSize: 14, 
+    fontSize: 13, 
     color: '#475569',
-    lineHeight: 20,
+    lineHeight: 18,
     marginBottom: 6,
   },
   updateDate: { 
-    fontSize: 12, 
+    fontSize: 11, 
     color: '#94A3B8',
     fontWeight: '500',
   }
 });
-
-

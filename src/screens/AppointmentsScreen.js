@@ -24,49 +24,84 @@ export default function AppointmentsScreen({ navigation }) {
         </View>
       </View>
       
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>Upcoming</Text>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Calendar Strip */}
+        <View style={styles.calendarStrip}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.calendarStripContent}>
+            {[
+              { day: '24', weekday: 'Sun' },
+              { day: '25', weekday: 'Mon' },
+              { day: '26', weekday: 'Tue' },
+              { day: '27', weekday: 'Wed', active: true },
+              { day: '28', weekday: 'Thu' },
+              { day: '29', weekday: 'Fri' },
+              { day: '30', weekday: 'Sat' },
+            ].map((item, index) => (
+              <TouchableOpacity key={index} style={[styles.calendarDayBtn, item.active && styles.calendarDayBtnActive]}>
+                <Text style={[styles.calendarDayText, item.active && styles.calendarDayTextActive]}>{item.day}</Text>
+                <Text style={[styles.calendarWeekdayText, item.active && styles.calendarWeekdayTextActive]}>{item.weekday}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <Text style={styles.sectionTitle}>Upcoming Appointment</Text>
         
-        {/* Ticket Card */}
-        <View style={styles.ticketCard}>
-          <View style={styles.dateBlock}>
-            <Text style={styles.dateWeekday}>Mon</Text>
-            <Text style={styles.dateDay}>27</Text>
-            <Text style={styles.dateMonth}>MAY</Text>
+        {/* Redesigned Premium Card */}
+        <View style={styles.premiumCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.doctorBadge}>
+              <Text style={styles.doctorBadgeText}>CN</Text>
+            </View>
+            <View style={styles.doctorMeta}>
+              <Text style={styles.doctorNameText}>Dr. Chris Nkwanyana</Text>
+              <Text style={styles.doctorSpecText}>Dentist Specialist</Text>
+            </View>
+            <View style={styles.statusBadge}>
+              <Text style={styles.statusBadgeText}>Confirmed</Text>
+            </View>
           </View>
-          <View style={styles.detailsBlock}>
-            <Text style={styles.clinicName}>Dawn Park Clinic</Text>
-            <View style={styles.detailRow}>
-              <Ionicons name="time-outline" size={16} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>10:00 AM</Text>
+          
+          <View style={styles.cardDivider} />
+
+          <View style={styles.infoRow}>
+            <View style={styles.infoCol}>
+              <Ionicons name="location-sharp" size={16} color={COLORS.primary} />
+              <Text style={styles.infoColText}>Dawn Park Clinic, Boksburg</Text>
             </View>
-            <View style={styles.detailRow}>
-              <FontAwesome5 name="tooth" size={14} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>Dentist Appointment</Text>
+            <View style={styles.infoCol}>
+              <Ionicons name="time" size={16} color={COLORS.primary} />
+              <Text style={styles.infoColText}>10:00 AM</Text>
             </View>
-            <TouchableOpacity style={styles.rescheduleBtn}>
-              <Text style={styles.rescheduleText}>Reschedule</Text>
+          </View>
+
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={styles.outlineActionBtn}>
+              <Text style={styles.outlineActionText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.primaryActionBtn}>
+              <Text style={styles.primaryActionText}>Reschedule</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         <Text style={styles.sectionTitle}>Past Appointments</Text>
         
-        <View style={[styles.ticketCard, { opacity: 0.7 }]}>
+        <View style={[styles.ticketCard, { opacity: 0.75 }]}>
           <View style={[styles.dateBlock, { backgroundColor: '#64748B' }]}>
             <Text style={styles.dateWeekday}>Fri</Text>
             <Text style={styles.dateDay}>12</Text>
             <Text style={styles.dateMonth}>APR</Text>
           </View>
           <View style={styles.detailsBlock}>
-            <Text style={styles.clinicName}>City General Hospital</Text>
+            <Text style={styles.clinicName}>Unjani Clinic Germiston</Text>
             <View style={styles.detailRow}>
               <Ionicons name="time-outline" size={16} color={COLORS.primary} style={styles.detailIcon} />
               <Text style={styles.detailText}>02:30 PM</Text>
             </View>
             <View style={styles.detailRow}>
               <FontAwesome5 name="stethoscope" size={14} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>General Checkup</Text>
+              <Text style={styles.detailText}>Dr. Lerato Mokoena - General Checkup</Text>
             </View>
           </View>
         </View>
@@ -114,15 +149,160 @@ const styles = StyleSheet.create({
   },
   content: { 
     padding: SIZES.margin,
-    paddingBottom: 110,
+    paddingBottom: 120,
     gap: SIZES.gutter,
+  },
+  calendarStrip: {
+    marginVertical: 4,
+  },
+  calendarStripContent: {
+    gap: 12,
+  },
+  calendarDayBtn: {
+    width: 54,
+    height: 68,
+    borderRadius: 16,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: '#EAE8FC',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0F2C59',
+    shadowOpacity: 0.02,
+    shadowRadius: 5,
+    elevation: 1,
+  },
+  calendarDayBtnActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  calendarDayText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  calendarDayTextActive: {
+    color: '#FFFFFF',
+  },
+  calendarWeekdayText: {
+    fontSize: 10,
+    color: '#94A3B8',
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  calendarWeekdayTextActive: {
+    color: '#EAE8FC',
   },
   sectionTitle: { 
     fontSize: 18, 
     fontWeight: 'bold', 
     color: COLORS.primary, 
-    marginTop: 8,
+    marginTop: 12,
     marginBottom: -4,
+  },
+  premiumCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#EAE8FC',
+    shadowColor: '#0F2C59',
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  doctorBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  doctorBadgeText: {
+    color: COLORS.primary,
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  doctorMeta: {
+    flex: 1,
+  },
+  doctorNameText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  doctorSpecText: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  statusBadge: {
+    backgroundColor: '#F0FDF4',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusBadgeText: {
+    color: COLORS.success,
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#EAE8FC',
+    marginVertical: 14,
+  },
+  infoRow: {
+    gap: 8,
+    marginBottom: 16,
+  },
+  infoCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  infoColText: {
+    fontSize: 14,
+    color: '#475569',
+    fontWeight: '500',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  outlineActionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#FFFFFF',
+  },
+  outlineActionText: {
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  primaryActionBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary,
+  },
+  primaryActionText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   ticketCard: { 
     backgroundColor: COLORS.surface, 
@@ -132,7 +312,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, 
     borderColor: COLORS.border, 
     shadowColor: '#000', 
-    shadowOpacity: 0.03, 
+    shadowOpacity: 0.02, 
     shadowRadius: 5, 
     elevation: 1,
   },
@@ -164,10 +344,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center' 
   },
   clinicName: { 
-    fontSize: 16, 
+    fontSize: 15, 
     fontWeight: 'bold', 
     color: COLORS.primary, 
-    marginBottom: 10 
+    marginBottom: 8 
   },
   detailRow: { 
     flexDirection: 'row', 
@@ -180,22 +360,8 @@ const styles = StyleSheet.create({
     textAlign: 'center' 
   },
   detailText: { 
-    fontSize: 14, 
+    fontSize: 13, 
     color: '#64748B' 
-  },
-  rescheduleBtn: { 
-    marginTop: 10, 
-    alignSelf: 'flex-start', 
-    paddingVertical: 6, 
-    paddingHorizontal: 12, 
-    borderRadius: 20, 
-    borderWidth: 1, 
-    borderColor: COLORS.primary 
-  },
-  rescheduleText: { 
-    color: COLORS.primary, 
-    fontSize: 12, 
-    fontWeight: '600' 
   }
 });
 
