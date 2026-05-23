@@ -1,67 +1,132 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import BottomTabBar from '../components/BottomTabBar';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import {
+  Ionicons,
+  FontAwesome5,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
+import { COLORS, SIZES, LAYOUT } from "../constants/theme";
+import BottomTabBar from "../components/BottomTabBar";
 
-export default function ConfirmationScreen({ navigation }) {
+export default function ConfirmationScreen({ navigation, route }) {
+  const { doctor, selectedTime, date } = route.params || {};
+
+  const appointmentDate = date ? new Date(date) : new Date();
+
+  const weekday = appointmentDate.toLocaleDateString("en-US", {
+    weekday: "short",
+  });
+
+  const day = appointmentDate.getDate();
+  const month = appointmentDate
+    .toLocaleDateString("en-US", { month: "short" })
+    .toUpperCase();
+
+  const timeDisplay = selectedTime || "Not set";
+
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
-            <MaterialCommunityIcons name="shield-plus" size={32} color="#FFFFFF" />
+            <MaterialCommunityIcons
+              name="shield-plus"
+              size={32}
+              color="#FFFFFF"
+            />
             <Text style={styles.headerTitle}>MedSync</Text>
           </View>
-          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#FFFFFF" />
+
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={28}
+            color="#FFFFFF"
+          />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        
-        {/* Success Header */}
+        {/* SUCCESS */}
         <View style={styles.successHeader}>
-          <Ionicons name="checkmark-circle" size={28} color={COLORS.success} />
+          <Ionicons name="checkmark-circle" size={30} color={COLORS.primary} />
           <Text style={styles.successTitle}>Appointment Confirmed!</Text>
         </View>
-        <Text style={styles.successSubtitle}>Your appointment has been successfully booked.</Text>
- 
+
+        <Text style={styles.successSubtitle}>
+          Your appointment has been successfully booked.
+        </Text>
+
         <View style={styles.divider} />
- 
-        {/* Ticket Card */}
+
+        {/* TICKET */}
         <View style={styles.ticketCard}>
+          {/* DATE */}
           <View style={styles.dateBlock}>
-            <Text style={styles.dateWeekday}>Mon</Text>
-            <Text style={styles.dateDay}>27</Text>
-            <Text style={styles.dateMonth}>MAY</Text>
+            <Text style={styles.dateWeekday}>{weekday}</Text>
+            <Text style={styles.dateDay}>{day}</Text>
+            <Text style={styles.dateMonth}>{month}</Text>
           </View>
- 
+
+          {/* DETAILS */}
           <View style={styles.detailsBlock}>
-            <Text style={styles.patientName}>Kiddo</Text>
-            <Text style={styles.doctorName}>Dr. Chris Nkwanyana</Text>
-            <Text style={styles.clinicName}>Dawn Park Clinic, Boksburg</Text>
-            
+            <Text style={styles.patientName}>Patient</Text>
+
+            <Text style={styles.doctorName}>
+              {doctor?.name || "Doctor not found"}
+            </Text>
+
+            <Text style={styles.clinicName}>
+              {doctor?.clinic || "Clinic not available"}
+            </Text>
+
             <View style={styles.detailRow}>
-              <Ionicons name="time-outline" size={18} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>10:00 AM</Text>
+              <Ionicons
+                name="time-outline"
+                size={18}
+                color={COLORS.primary}
+                style={styles.detailIcon}
+              />
+              <Text style={styles.detailText}>{timeDisplay}</Text>
             </View>
-            
+
             <View style={styles.detailRow}>
-              <FontAwesome5 name="tooth" size={16} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>Dentist Appointment</Text>
+              <FontAwesome5
+                name="stethoscope"
+                size={16}
+                color={COLORS.primary}
+                style={styles.detailIcon}
+              />
+              <Text style={styles.detailText}>
+                {doctor?.specialty || "Appointment"}
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Action Buttons */}
+        {/* ACTIONS */}
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.outlineButton}>
-            <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
+            <Ionicons
+              name="calendar-outline"
+              size={18}
+              color={COLORS.primary}
+            />
             <Text style={styles.outlineButtonText}>Add to Calendar</Text>
           </TouchableOpacity>
+
           <TouchableOpacity style={styles.outlineButton}>
-            <Ionicons name="notifications-outline" size={18} color={COLORS.primary} />
+            <Ionicons
+              name="notifications-outline"
+              size={18}
+              color={COLORS.primary}
+            />
             <Text style={styles.outlineButtonText}>Set Reminder</Text>
           </TouchableOpacity>
         </View>
@@ -71,23 +136,28 @@ export default function ConfirmationScreen({ navigation }) {
           <Text style={styles.outlineButtonText}>Get Directions</Text>
         </TouchableOpacity>
 
-        {/* Compliance Box */}
+        {/* INFO */}
         <View style={styles.complianceBox}>
           <Text style={styles.complianceTitle}>Appointment Tips</Text>
+
           <View style={styles.listItem}>
             <Text style={styles.bulletPoint}>•</Text>
-            <Text style={styles.listText}>Please arrive <Text style={{fontWeight: 'bold'}}>10 minutes early</Text>.</Text>
+            <Text style={styles.listText}>
+              Please arrive{" "}
+              <Text style={{ fontWeight: "bold" }}>10 minutes early</Text>.
+            </Text>
           </View>
+
           <View style={styles.listItem}>
             <Text style={styles.bulletPoint}>•</Text>
             <Text style={styles.listText}>Bring your ID or medical card.</Text>
           </View>
+
           <View style={styles.listItem}>
             <Text style={styles.bulletPoint}>•</Text>
             <Text style={styles.listText}>Wear a mask if unwell.</Text>
           </View>
         </View>
-
       </ScrollView>
 
       <BottomTabBar navigation={navigation} activeTab="Appointments" />
@@ -107,19 +177,19 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     height: LAYOUT.headerHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SIZES.margin,
   },
   headerBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   headerTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 10,
   },
   content: {
@@ -128,21 +198,21 @@ const styles = StyleSheet.create({
     gap: SIZES.gutter,
   },
   successHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 10,
     marginBottom: 5,
   },
   successTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
     marginLeft: 8,
   },
   successSubtitle: {
-    textAlign: 'center',
-    color: '#64748B',
+    textAlign: "center",
+    color: "#64748B",
     fontSize: 14,
     marginBottom: 8,
   },
@@ -155,10 +225,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius,
     padding: 16,
-    flexDirection: 'row',
+    flexDirection: "row",
     borderWidth: 1,
     borderColor: COLORS.border,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.03,
     shadowRadius: 5,
     elevation: 1,
@@ -167,72 +237,72 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderRadius: 8,
     padding: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 20,
     width: 80,
   },
   dateWeekday: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   dateDay: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    fontWeight: "bold",
+    color: "#FFFFFF",
     marginVertical: 2,
   },
   dateMonth: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   detailsBlock: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   patientName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
     marginBottom: 2,
   },
   doctorName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.primary,
     marginBottom: 2,
   },
   clinicName: {
     fontSize: 13,
-    color: '#64748B',
+    color: "#64748B",
     marginBottom: 10,
   },
   detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
+    borderTopColor: "#F1F5F9",
     paddingTop: 8,
   },
   detailIcon: {
     marginRight: 10,
     width: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   detailText: {
     fontSize: 15,
     color: COLORS.primary,
   },
   actionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   outlineButton: {
     flex: 0.48,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 20,
@@ -240,9 +310,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   fullOutlineButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 20,
@@ -251,11 +321,11 @@ const styles = StyleSheet.create({
   },
   outlineButtonText: {
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 8,
   },
   complianceBox: {
-    backgroundColor: '#F0F4F8',
+    backgroundColor: "#F0F4F8",
     borderRadius: 8,
     padding: 16,
     borderWidth: 1,
@@ -263,14 +333,14 @@ const styles = StyleSheet.create({
   },
   complianceTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
     marginBottom: 10,
   },
   listItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 8,
-    alignItems: 'flex-start',
+    alignItems: "flex-start",
   },
   bulletPoint: {
     fontSize: 16,
@@ -285,4 +355,3 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
-

@@ -6,11 +6,23 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import { Feather, Ionicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 
 export default function BookingScreen({ navigation, route }) {
   const doctor = route?.params?.doctor;
+
+  const [selectedTime, setSelectedTime] = useState("10:00");
+
+  const timeSlots = [
+    "08:00",
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+  ];
 
   if (!doctor) {
     return (
@@ -34,53 +46,47 @@ export default function BookingScreen({ navigation, route }) {
     );
   }
 
-  const [selectedTime, setSelectedTime] = useState("12:00");
-  const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"];
-
   const handleConfirm = () => {
-    navigation.navigate("Confirmation", { doctor, selectedTime });
+    navigation.navigate("Confirmation", {
+      doctor,
+      selectedTime,
+      date: new Date().toDateString(),
+    });
   };
 
   return (
     <View style={styles.container}>
       {/* HEADER */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Book Appointment</Text>
+        <Text style={styles.headerTitle}>Book Appointment</Text>
 
-          <View style={{ width: 24 }} />
-        </View>
+        <View style={{ width: 24 }} />
       </View>
 
-      {/* CONTENT */}
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionLabel}>
-          {doctor?.name || "Select Doctor"}
-        </Text>
+        <Text style={styles.doctorName}>{doctor.name}</Text>
+        <Text style={styles.specialty}>{doctor.specialty}</Text>
 
-        <Text style={{ color: "#64748B", marginBottom: 20 }}>
-          {doctor?.specialty}
-        </Text>
+        <Text style={styles.sectionTitle}>Select Time</Text>
 
-        <Text style={styles.sectionLabel}>Select Time</Text>
-
-        <View style={styles.matrixContainer}>
+        <View style={styles.timeGrid}>
           {timeSlots.map((time) => {
-            const isActive = selectedTime === time;
+            const active = selectedTime === time;
 
             return (
               <TouchableOpacity
                 key={time}
-                style={[styles.timeSlot, isActive && styles.timeSlotActive]}
                 onPress={() => setSelectedTime(time)}
+                style={[
+                  styles.timeBox,
+                  active && { backgroundColor: COLORS.primary },
+                ]}
               >
-                <Text
-                  style={[styles.timeText, isActive && styles.timeTextActive]}
-                >
+                <Text style={{ color: active ? "#fff" : COLORS.primary }}>
                   {time}
                 </Text>
               </TouchableOpacity>
@@ -88,98 +94,79 @@ export default function BookingScreen({ navigation, route }) {
           })}
         </View>
 
-        <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-          <Text style={styles.confirmButtonText}>CONFIRM</Text>
+        <TouchableOpacity style={styles.button} onPress={handleConfirm}>
+          <Text style={styles.buttonText}>CONFIRM APPOINTMENT</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {/* FOOTER */}
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Powered by Hokma Tech</Text>
-      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+  container: { flex: 1, backgroundColor: "#fff" },
 
   header: {
     backgroundColor: COLORS.primary,
     paddingTop: LAYOUT.statusBarHeight,
-    height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
-  },
-  headerContent: {
-    height: LAYOUT.headerHeight,
+    height: LAYOUT.headerHeight + LAYOUT.statusBarHeight,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: SIZES.margin,
+    paddingHorizontal: 16,
   },
+
   headerTitle: {
-    color: "#FFFFFF",
-    fontSize: 20,
+    color: "#fff",
+    fontSize: 18,
     fontWeight: "bold",
   },
+
   content: {
-    padding: SIZES.margin,
+    padding: 20,
   },
-  sectionLabel: {
+
+  doctorName: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: COLORS.primary,
+  },
+
+  specialty: {
+    color: "#64748B",
+    marginBottom: 20,
+  },
+
+  sectionTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: COLORS.primary,
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  matrixContainer: {
+
+  timeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginBottom: 20,
-    gap: 8,
+    gap: 10,
   },
-  timeSlot: {
-    width: "31%",
+
+  timeBox: {
     borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: SIZES.radius,
-    paddingVertical: 14,
-    alignItems: "center",
-    backgroundColor: COLORS.surface,
-  },
-  timeSlotActive: {
-    backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
+    padding: 12,
+    borderRadius: 10,
+    width: "30%",
+    alignItems: "center",
   },
-  timeText: {
-    fontSize: 15,
-    color: COLORS.primary,
-  },
-  timeTextActive: {
-    color: COLORS.surface,
-    fontWeight: "600",
-  },
-  confirmButton: {
+
+  button: {
+    marginTop: 30,
     backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radius,
-    paddingVertical: 18,
+    padding: 15,
+    borderRadius: 12,
     alignItems: "center",
-    marginTop: 10,
   },
-  confirmButtonText: {
-    color: COLORS.surface,
-    fontSize: 16,
+
+  buttonText: {
+    color: "#fff",
     fontWeight: "bold",
-    letterSpacing: 1,
-  },
-  footer: {
-    paddingBottom: 30,
-    alignItems: "center",
-  },
-  footerText: {
-    color: "#64748B",
-    fontSize: 14,
   },
 });
