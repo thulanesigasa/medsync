@@ -1,8 +1,53 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Platform } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platform } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
+
+const CustomSwitch = ({ value, onValueChange }) => {
+  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(animatedValue, {
+      toValue: value ? 1 : 0,
+      friction: 8,
+      tension: 55,
+      useNativeDriver: false,
+    }).start();
+  }, [value]);
+
+  const translateX = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: [2, 20] // adjusted to fit track width 44 and thumb width 20 inside 1px borders
+  });
+
+  const backgroundColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#F1F5F9', '#EFF6FF']
+  });
+
+  const thumbColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#94A3B8', COLORS.primary]
+  });
+
+  const borderColor = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#CBD5E1', '#D3E2F2']
+  });
+
+  return (
+    <TouchableOpacity 
+      activeOpacity={0.9} 
+      onPress={() => onValueChange(!value)}
+      style={styles.switchContainer}
+    >
+      <Animated.View style={[styles.switchTrack, { backgroundColor, borderColor, borderWidth: 1 }]}>
+        <Animated.View style={[styles.switchThumb, { transform: [{ translateX }], backgroundColor: thumbColor }]} />
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
 
 export default function ProfileScreen({ navigation }) {
   const [isDark, setIsDark] = useState(false);
@@ -92,11 +137,9 @@ export default function ProfileScreen({ navigation }) {
               <Ionicons name="notifications-outline" size={20} color={COLORS.primary} />
             </View>
             <Text style={styles.menuText}>Push Notifications</Text>
-            <Switch 
+            <CustomSwitch 
               value={notificationsEnabled} 
               onValueChange={setNotificationsEnabled} 
-              trackColor={{ false: '#CBD5E1', true: '#BFDBFE' }}
-              thumbColor={notificationsEnabled ? COLORS.primary : '#F1F5F9'}
             />
           </View>
           
@@ -359,5 +402,26 @@ const styles = StyleSheet.create({
     color: '#EF4444', 
     fontSize: 15, 
     fontWeight: 'bold', 
+  },
+  switchContainer: {
+    width: 44,
+    height: 24,
+    justifyContent: 'center',
+  },
+  switchTrack: {
+    width: 44,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+  },
+  switchThumb: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    shadowColor: '#0F2C59',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   }
 });
