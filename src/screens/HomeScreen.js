@@ -22,13 +22,30 @@ export default function HomeScreen({ navigation }) {
   const [isDark, setIsDark] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const theme = isDark
+    ? {
+        background: "#0F172A",
+        surface: "#1E293B",
+        text: "#F8FAFC",
+        subtext: "#94A3B8",
+        border: "#334155",
+        primary: COLORS.primary,
+      }
+    : {
+        background: COLORS.background,
+        surface: COLORS.surface,
+        text: COLORS.primary,
+        subtext: "#64748B",
+        border: "#EAE8FC",
+        primary: COLORS.primary,
+      };
+
   const handleBookAppointment = (doctor) => {
     navigation.navigate("Booking", { doctor });
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
     const query = searchQuery.toLowerCase();
-
     return (
       doctor.name.toLowerCase().includes(query) ||
       doctor.specialty.toLowerCase().includes(query) ||
@@ -37,7 +54,7 @@ export default function HomeScreen({ navigation }) {
   });
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* HEADER */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -51,10 +68,7 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           <View style={styles.headerActions}>
-            <TouchableOpacity
-              onPress={() => setIsDark(!isDark)}
-              style={styles.actionButton}
-            >
+            <TouchableOpacity onPress={() => setIsDark(!isDark)}>
               <Ionicons
                 name={isDark ? "sunny-outline" : "moon-outline"}
                 size={24}
@@ -78,19 +92,27 @@ export default function HomeScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* GREETING */}
         <View style={styles.greetingContainer}>
-          <Text style={styles.greetingTitle}>Hello, Kiddo!</Text>
-          <Text style={styles.greetingSubline}>
+          <Text style={[styles.greetingTitle, { color: theme.text }]}>
+            Hello, Kiddo!
+          </Text>
+          <Text style={[styles.greetingSubline, { color: theme.subtext }]}>
             Find your local doctor easily
           </Text>
         </View>
 
         {/* SEARCH */}
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={20} color="#94A3B8" />
+        <View
+          style={[
+            styles.searchBar,
+            { backgroundColor: theme.surface, borderColor: theme.border },
+          ]}
+        >
+          <Ionicons name="search-outline" size={20} color={theme.subtext} />
 
           <TextInput
             placeholder="Search doctor, clinic or specialty..."
-            style={styles.searchInput}
+            placeholderTextColor={theme.subtext}
+            style={[styles.searchInput, { color: theme.text }]}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -98,7 +120,9 @@ export default function HomeScreen({ navigation }) {
 
         {/* TOP DOCTORS */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Top Doctors</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>
+            Top Doctors
+          </Text>
         </View>
 
         <View style={styles.doctorsList}>
@@ -106,20 +130,26 @@ export default function HomeScreen({ navigation }) {
             filteredDoctors.map((doctor) => (
               <TouchableOpacity
                 key={doctor.id}
-                style={styles.doctorCard}
+                style={[
+                  styles.doctorCard,
+                  { backgroundColor: theme.surface, borderColor: theme.border },
+                ]}
                 onPress={() => handleBookAppointment(doctor)}
               >
-                {/* Avatar */}
                 <View style={styles.doctorAvatarLarge}>
                   <Text style={styles.doctorAvatarTextLarge}>
                     {doctor.name.charAt(0)}
                   </Text>
                 </View>
 
-                {/* Info */}
                 <View style={styles.doctorInfo}>
-                  <Text style={styles.doctorName}>{doctor.name}</Text>
-                  <Text style={styles.doctorTitle}>{doctor.specialty}</Text>
+                  <Text style={[styles.doctorName, { color: theme.text }]}>
+                    {doctor.name}
+                  </Text>
+
+                  <Text style={{ color: theme.subtext, fontSize: 13 }}>
+                    {doctor.specialty}
+                  </Text>
 
                   <View style={styles.doctorStats}>
                     <Ionicons name="star" size={14} color="#F59E0B" />
@@ -131,13 +161,13 @@ export default function HomeScreen({ navigation }) {
 
                 <Ionicons
                   name="arrow-forward-circle"
-                  size={32}
+                  size={30}
                   color={COLORS.primary}
                 />
               </TouchableOpacity>
             ))
           ) : (
-            <Text style={{ textAlign: "center", marginTop: 20 }}>
+            <Text style={{ textAlign: "center", color: theme.subtext }}>
               No doctors found
             </Text>
           )}
