@@ -1,80 +1,174 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 
 export default function RecordsScreen({ navigation }) {
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      {/* Header with platform heights */}
       <View style={styles.header}>
-        <View style={styles.headerBrand}>
-          <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
-          <Text style={styles.appTitle}>MedSync</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerBrand}>
+            <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
+            <Text style={styles.appTitle}>MedSync</Text>
+          </View>
         </View>
       </View>
       
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#94A3B8" />
-          <Text style={styles.searchText}>Search records...</Text>
+          <Text style={styles.searchText}>Search clinic updates...</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Recent Lab Results</Text>
+        <Text style={styles.sectionTitle}>Clinic Bulletins & News</Text>
         
-        <TouchableOpacity style={styles.recordCard}>
-          <View style={styles.iconBox}>
-            <FontAwesome5 name="file-medical-alt" size={20} color="#12418B" />
+        <View style={styles.updateCard}>
+          <View style={[styles.iconBox, { backgroundColor: '#EFF6FF' }]}>
+            <Ionicons name="time" size={22} color={COLORS.primary} />
           </View>
-          <View style={styles.recordInfo}>
-            <Text style={styles.recordTitle}>Complete Blood Count</Text>
-            <Text style={styles.recordDate}>May 10, 2026 • PathCare Labs</Text>
+          <View style={styles.updateInfo}>
+            <Text style={styles.updateTitle}>Dr. Smith's Saturday Shifts</Text>
+            <Text style={styles.updateDesc}>General checkups will be available on Saturdays from 8:00 AM - 12:00 PM starting next week.</Text>
+            <Text style={styles.updateDate}>Posted today • Scheduling</Text>
           </View>
-          <Ionicons name="download-outline" size={24} color="#12418B" />
-        </TouchableOpacity>
+        </View>
 
-        <TouchableOpacity style={styles.recordCard}>
-          <View style={styles.iconBox}>
-            <FontAwesome5 name="x-ray" size={18} color="#12418B" />
+        <View style={styles.updateCard}>
+          <View style={[styles.iconBox, { backgroundColor: '#F0FDF4' }]}>
+            <Ionicons name="megaphone" size={22} color={COLORS.success} />
           </View>
-          <View style={styles.recordInfo}>
-            <Text style={styles.recordTitle}>Chest X-Ray</Text>
-            <Text style={styles.recordDate}>Feb 14, 2026 • City Hospital</Text>
+          <View style={styles.updateInfo}>
+            <Text style={styles.updateTitle}>New Pediatrics Wing Launch</Text>
+            <Text style={styles.updateDesc}>Our brand new Pediatrics Department opens on June 1st, featuring state-of-the-art care for children.</Text>
+            <Text style={styles.updateDate}>Posted yesterday • Announcement</Text>
           </View>
-          <Ionicons name="download-outline" size={24} color="#12418B" />
-        </TouchableOpacity>
-        
-        <Text style={styles.sectionTitle}>Prescriptions</Text>
-        
-        <TouchableOpacity style={styles.recordCard}>
+        </View>
+
+        <View style={styles.updateCard}>
+          <View style={[styles.iconBox, { backgroundColor: '#FFFBEB' }]}>
+            <Ionicons name="shield-checkmark" size={22} color="#D97706" />
+          </View>
+          <View style={styles.updateInfo}>
+            <Text style={styles.updateTitle}>Free Flu Vaccine Drive</Text>
+            <Text style={styles.updateDesc}>Annual flu shots are now available for all clinic members. Walk-ins welcome daily between 9 AM and 4 PM.</Text>
+            <Text style={styles.updateDate}>Posted 3 days ago • Campaign</Text>
+          </View>
+        </View>
+
+        <View style={styles.updateCard}>
           <View style={[styles.iconBox, { backgroundColor: '#FEF2F2' }]}>
-            <MaterialCommunityIcons name="pill" size={24} color="#EF4444" />
+            <Ionicons name="warning" size={22} color="#EF4444" />
           </View>
-          <View style={styles.recordInfo}>
-            <Text style={styles.recordTitle}>Amoxicillin 500mg</Text>
-            <Text style={styles.recordDate}>Valid until Jun 01, 2026</Text>
+          <View style={styles.updateInfo}>
+            <Text style={styles.updateTitle}>Cardiology Clinic Adjustments</Text>
+            <Text style={styles.updateDesc}>Dr. Chris Nkwanyana will be away attending a medical summit from May 28 to June 2. Normal schedules resume June 3.</Text>
+            <Text style={styles.updateDate}>Posted 4 days ago • Clinic Notice</Text>
           </View>
-          <Ionicons name="chevron-forward" size={24} color="#CBD5E1" />
-        </TouchableOpacity>
+        </View>
         
       </ScrollView>
       
       <BottomTabBar navigation={navigation} activeTab="Records" />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: { backgroundColor: '#12418B', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15 },
-  headerBrand: { flexDirection: 'row', alignItems: 'center' },
-  appTitle: { color: '#FFFFFF', fontSize: 22, fontWeight: 'bold', marginLeft: 10 },
-  content: { padding: 20 },
-  searchBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 12, borderRadius: 8, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 20 },
-  searchText: { marginLeft: 10, color: '#94A3B8', fontSize: 15 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#162A4A', marginBottom: 15, marginTop: 10 },
-  recordCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 12 },
-  iconBox: { width: 48, height: 48, borderRadius: 8, backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center', marginRight: 15 },
-  recordInfo: { flex: 1 },
-  recordTitle: { fontSize: 16, fontWeight: '600', color: '#162A4A', marginBottom: 4 },
-  recordDate: { fontSize: 13, color: '#64748B' }
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background 
+  },
+  header: { 
+    backgroundColor: COLORS.primary,
+    paddingTop: LAYOUT.statusBarHeight,
+    height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
+  },
+  headerContent: {
+    height: LAYOUT.headerHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SIZES.margin,
+  },
+  headerBrand: { 
+    flexDirection: 'row', 
+    alignItems: 'center' 
+  },
+  appTitle: { 
+    color: '#FFFFFF', 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    marginLeft: 10 
+  },
+  content: { 
+    padding: SIZES.margin,
+    gap: SIZES.gutter,
+  },
+  searchBar: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: COLORS.surface, 
+    padding: 12, 
+    borderRadius: SIZES.radius, 
+    borderWidth: 1, 
+    borderColor: COLORS.border,
+  },
+  searchText: { 
+    marginLeft: 10, 
+    color: '#94A3B8', 
+    fontSize: 15 
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: COLORS.primary, 
+    marginTop: 8,
+    marginBottom: -4,
+  },
+  updateCard: { 
+    flexDirection: 'row', 
+    backgroundColor: COLORS.surface, 
+    padding: 16, 
+    borderRadius: SIZES.radius, 
+    borderWidth: 1, 
+    borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOpacity: 0.02,
+    shadowRadius: 5,
+    elevation: 1,
+    alignItems: 'flex-start',
+  },
+  iconBox: { 
+    width: 48, 
+    height: 48, 
+    borderRadius: 8, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginRight: 15 
+  },
+  updateInfo: { 
+    flex: 1 
+  },
+  updateTitle: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    color: COLORS.primary, 
+    marginBottom: 4 
+  },
+  updateDesc: { 
+    fontSize: 14, 
+    color: '#475569',
+    lineHeight: 20,
+    marginBottom: 6,
+  },
+  updateDate: { 
+    fontSize: 12, 
+    color: '#94A3B8',
+    fontWeight: '500',
+  }
 });
+
+

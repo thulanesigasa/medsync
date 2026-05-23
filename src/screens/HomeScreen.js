@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { COLORS, SIZES } from '../constants/theme';
+import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 
 export default function HomeScreen({ navigation }) {
@@ -11,16 +11,19 @@ export default function HomeScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
+      {/* Dynamic Header */}
       <View style={styles.header}>
-        <View style={styles.headerBrand}>
-          <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
-          <Text style={styles.appTitle}>MedSync</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerBrand}>
+            <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
+            <Text style={styles.appTitle}>MedSync</Text>
+          </View>
+          <TouchableOpacity style={styles.bellIconContainer} onPress={() => navigation.navigate('Notifications')}>
+            <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+            <View style={styles.badge} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.bellIconContainer} onPress={() => navigation.navigate('Notifications')}>
-          <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-          <View style={styles.badge} />
-        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -69,7 +72,7 @@ export default function HomeScreen({ navigation }) {
       </ScrollView>
 
       <BottomTabBar navigation={navigation} activeTab="Home" />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -79,12 +82,16 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    backgroundColor: '#12418B',
+    backgroundColor: COLORS.primary,
+    paddingTop: LAYOUT.statusBarHeight,
+    height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
+  },
+  headerContent: {
+    height: LAYOUT.headerHeight,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: SIZES.margin,
   },
   headerBrand: {
     flexDirection: 'row',
@@ -109,10 +116,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   scrollContent: {
-    padding: SIZES.padding,
+    padding: SIZES.margin,
   },
   greetingContainer: {
-    marginVertical: 20,
+    marginVertical: 16,
   },
   greetingTitle: {
     fontSize: 24,
@@ -127,30 +134,32 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   gridContainer: {
-    marginBottom: 20,
+    marginBottom: 16,
   },
   gridRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
+    gap: SIZES.gutter,
+    marginBottom: SIZES.gutter,
   },
   gridTile: {
-    width: '48%',
+    flex: 1,
     padding: SIZES.padding,
     borderRadius: SIZES.radius,
     alignItems: 'flex-start',
     justifyContent: 'center',
     height: 120,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.03,
     shadowRadius: 5,
-    elevation: 2,
+    elevation: 1,
   },
   tileNavy: {
     backgroundColor: COLORS.primary,
   },
   tileWhite: {
     backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   tileIcon: {
     marginBottom: 10,
@@ -158,18 +167,18 @@ const styles = StyleSheet.create({
   tileTextLight: {
     color: COLORS.surface,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 15,
   },
   tileTextDark: {
     color: COLORS.primary,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 15,
   },
   notificationBadgeContainer: {
     flexDirection: 'row',
   },
   numericBadge: {
-    backgroundColor: 'red',
+    backgroundColor: '#EF4444',
     borderRadius: 10,
     width: 20,
     height: 20,
@@ -191,10 +200,12 @@ const styles = StyleSheet.create({
     borderLeftColor: COLORS.accent,
     padding: SIZES.padding,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.03,
     shadowRadius: 5,
-    elevation: 2,
-    marginBottom: 20,
+    elevation: 1,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   reminderContent: {
     flexDirection: 'column',
@@ -210,30 +221,5 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     opacity: 0.8,
   },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    justifyContent: 'space-between',
-  },
-  tabItem: {
-    alignItems: 'center',
-  },
-  activeTabIcon: {
-    position: 'relative',
-  },
-  tabText: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  tabTextActive: {
-    fontSize: 11,
-    color: '#12418B',
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
 });
+

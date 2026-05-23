@@ -1,25 +1,28 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 
 export default function ConfirmationScreen({ navigation }) {
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerBrand}>
-          <MaterialCommunityIcons name="shield-plus" size={32} color="#FFFFFF" />
-          <Text style={styles.headerTitle}>MedSync</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerBrand}>
+            <MaterialCommunityIcons name="shield-plus" size={32} color="#FFFFFF" />
+            <Text style={styles.headerTitle}>MedSync</Text>
+          </View>
+          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#FFFFFF" />
         </View>
-        <Ionicons name="chatbubble-ellipses-outline" size={28} color="#FFFFFF" />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
         
         {/* Success Header */}
         <View style={styles.successHeader}>
-          <Ionicons name="checkmark-circle" size={28} color="#22C55E" />
+          <Ionicons name="checkmark-circle" size={28} color={COLORS.success} />
           <Text style={styles.successTitle}>Appointment Confirmed!</Text>
         </View>
         <Text style={styles.successSubtitle}>Your appointment has been successfully booked.</Text>
@@ -39,12 +42,12 @@ export default function ConfirmationScreen({ navigation }) {
             <Text style={styles.clinicName}>Dawn Park Clinic</Text>
             
             <View style={styles.detailRow}>
-              <Ionicons name="time-outline" size={18} color="#162A4A" style={styles.detailIcon} />
+              <Ionicons name="time-outline" size={18} color={COLORS.primary} style={styles.detailIcon} />
               <Text style={styles.detailText}>10:00 AM</Text>
             </View>
             
             <View style={styles.detailRow}>
-              <FontAwesome5 name="tooth" size={16} color="#162A4A" style={styles.detailIcon} />
+              <FontAwesome5 name="tooth" size={16} color={COLORS.primary} style={styles.detailIcon} />
               <Text style={styles.detailText}>Dentist Appointment</Text>
             </View>
           </View>
@@ -53,11 +56,11 @@ export default function ConfirmationScreen({ navigation }) {
         {/* Action Buttons */}
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.outlineButton}>
-            <Ionicons name="calendar-outline" size={18} color="#162A4A" />
+            <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
             <Text style={styles.outlineButtonText}>Add to Calendar</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.outlineButton}>
-            <Ionicons name="notifications-outline" size={18} color="#162A4A" />
+            <Ionicons name="notifications-outline" size={18} color={COLORS.primary} />
             <Text style={styles.outlineButtonText}>Set Reminder</Text>
           </TouchableOpacity>
         </View>
@@ -87,22 +90,26 @@ export default function ConfirmationScreen({ navigation }) {
       </ScrollView>
 
       <BottomTabBar navigation={navigation} activeTab="Appointments" />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
   },
   header: {
-    backgroundColor: '#12418B',
+    backgroundColor: COLORS.primary,
+    paddingTop: LAYOUT.statusBarHeight,
+    height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
+  },
+  headerContent: {
+    height: LAYOUT.headerHeight,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: SIZES.margin,
   },
   headerBrand: {
     flexDirection: 'row',
@@ -115,7 +122,8 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   content: {
-    padding: 20,
+    padding: SIZES.margin,
+    gap: SIZES.gutter,
   },
   successHeader: {
     flexDirection: 'row',
@@ -127,35 +135,34 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#162A4A',
+    color: COLORS.primary,
     marginLeft: 8,
   },
   successSubtitle: {
     textAlign: 'center',
     color: '#64748B',
     fontSize: 14,
-    marginBottom: 20,
+    marginBottom: 8,
   },
   divider: {
     height: 1,
-    backgroundColor: '#E2E8F0',
-    marginBottom: 20,
+    backgroundColor: COLORS.border,
+    marginBottom: 8,
   },
   ticketCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
+    backgroundColor: COLORS.surface,
+    borderRadius: SIZES.radius,
     padding: 16,
     flexDirection: 'row',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 25,
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
+    elevation: 1,
   },
   dateBlock: {
-    backgroundColor: '#12418B',
+    backgroundColor: COLORS.primary,
     borderRadius: 8,
     padding: 15,
     alignItems: 'center',
@@ -184,7 +191,7 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#162A4A',
+    color: COLORS.primary,
     marginBottom: 2,
   },
   clinicName: {
@@ -207,12 +214,11 @@ const styles = StyleSheet.create({
   },
   detailText: {
     fontSize: 15,
-    color: '#162A4A',
+    color: COLORS.primary,
   },
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 15,
   },
   outlineButton: {
     flex: 0.48,
@@ -220,22 +226,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
     borderRadius: 20,
     paddingVertical: 12,
+    backgroundColor: COLORS.surface,
   },
   fullOutlineButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: COLORS.border,
     borderRadius: 20,
     paddingVertical: 12,
-    marginBottom: 25,
+    backgroundColor: COLORS.surface,
   },
   outlineButtonText: {
-    color: '#162A4A',
+    color: COLORS.primary,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -243,11 +250,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F4F8',
     borderRadius: 8,
     padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   complianceTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#12418B',
+    color: COLORS.primary,
     marginBottom: 10,
   },
   listItem: {
@@ -257,49 +266,15 @@ const styles = StyleSheet.create({
   },
   bulletPoint: {
     fontSize: 16,
-    color: '#12418B',
+    color: COLORS.primary,
     marginRight: 10,
     lineHeight: 20,
   },
   listText: {
     fontSize: 14,
-    color: '#162A4A',
+    color: COLORS.primary,
     flex: 1,
     lineHeight: 20,
   },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    justifyContent: 'space-between',
-  },
-  tabItem: {
-    alignItems: 'center',
-  },
-  activeTabIcon: {
-    position: 'relative',
-  },
-  badge: {
-    position: 'absolute',
-    top: 0,
-    right: -2,
-    width: 8,
-    height: 8,
-    backgroundColor: '#EF4444',
-    borderRadius: 4,
-  },
-  tabText: {
-    fontSize: 11,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  tabTextActive: {
-    fontSize: 11,
-    color: '#12418B',
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
 });
+

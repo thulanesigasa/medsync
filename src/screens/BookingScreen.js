@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import { COLORS, SIZES } from '../constants/theme';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 
 export default function BookingScreen({ navigation }) {
   const [selectedTime, setSelectedTime] = useState('12:00');
@@ -12,20 +12,29 @@ export default function BookingScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.mainTitle}>Booking</Text>
+    <View style={styles.container}>
+      {/* Header with platform heights */}
+      <View style={styles.header}>
+        <View style={styles.headerContent}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Book Appointment</Text>
+          <View style={{ width: 24 }} />
+        </View>
+      </View>
 
+      <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.sectionLabel}>Select clinic</Text>
         <View style={styles.inputBox}>
           <Text style={styles.inputText}>Cape Town Family Clinic</Text>
-          <Feather name="chevron-down" size={20} color="#162A4A" />
+          <Feather name="chevron-down" size={20} color={COLORS.primary} />
         </View>
 
         <Text style={styles.sectionLabel}>Select date</Text>
         <View style={styles.inputBox}>
           <Text style={styles.inputText}>2026-01-15</Text>
-          <Feather name="calendar" size={20} color="#162A4A" />
+          <Feather name="calendar" size={20} color={COLORS.primary} />
         </View>
 
         <Text style={styles.sectionLabel}>Select time</Text>
@@ -54,82 +63,96 @@ export default function BookingScreen({ navigation }) {
       <View style={styles.footer}>
         <Text style={styles.footerText}>Powered by Hokma Tech</Text>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.background,
+  },
+  header: {
+    backgroundColor: COLORS.primary,
+    paddingTop: LAYOUT.statusBarHeight,
+    height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
+  },
+  headerContent: {
+    height: LAYOUT.headerHeight,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SIZES.margin,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   content: {
-    padding: 24,
-  },
-  mainTitle: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#162A4A',
-    marginBottom: 30,
-    marginTop: 20,
+    padding: SIZES.margin,
   },
   sectionLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#162A4A',
-    marginBottom: 10,
+    color: COLORS.primary,
+    marginBottom: 8,
   },
   inputBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    borderColor: COLORS.border,
+    borderRadius: SIZES.radius,
     padding: 16,
-    marginBottom: 24,
+    marginBottom: 20,
+    backgroundColor: COLORS.surface,
   },
   inputText: {
     fontSize: 16,
-    color: '#162A4A',
+    color: COLORS.primary,
   },
   matrixContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 30,
+    marginBottom: 20,
+    gap: 8, // space slots
   },
   timeSlot: {
     width: '31%',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
+    borderColor: COLORS.border,
+    borderRadius: SIZES.radius,
     paddingVertical: 14,
     alignItems: 'center',
-    marginBottom: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.surface,
   },
   timeSlotActive: {
-    backgroundColor: '#162A4A',
-    borderColor: '#162A4A',
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   timeText: {
     fontSize: 15,
-    color: '#162A4A',
+    color: COLORS.primary,
   },
   timeTextActive: {
-    color: '#FFFFFF',
+    color: COLORS.surface,
     fontWeight: '600',
   },
   confirmButton: {
-    backgroundColor: '#162A4A',
-    borderRadius: 8,
+    backgroundColor: COLORS.primary,
+    borderRadius: SIZES.radius,
     paddingVertical: 18,
     alignItems: 'center',
     marginTop: 10,
   },
   confirmButtonText: {
-    color: '#FFFFFF',
+    color: COLORS.surface,
     fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: 1,
@@ -143,3 +166,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
+

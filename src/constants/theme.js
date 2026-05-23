@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 /**
  * Color Rules Assignment
  * The 60-30-10 Rule
@@ -19,5 +21,15 @@ export const COLORS = {
 
 export const SIZES = {
   padding: 16,
+  margin: 16,
+  gutter: 16,
   radius: 12,
 };
+
+export const LAYOUT = {
+  statusBarHeight: Platform.OS === 'ios' ? 54 : 24,
+  headerHeight: Platform.OS === 'ios' ? 96 : 56,
+  tabBarHeight: 56,
+  bottomPadding: Platform.OS === 'ios' ? 34 : 0,
+};
+
