@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 
 export default function HomeScreen({ navigation }) {
+  const [isDark, setIsDark] = useState(false);
   
   const handleBookAppointment = () => {
     navigation.navigate('Booking');
@@ -19,10 +20,15 @@ export default function HomeScreen({ navigation }) {
             <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
             <Text style={styles.appTitle}>MedSync</Text>
           </View>
-          <TouchableOpacity style={styles.bellIconContainer} onPress={() => navigation.navigate('Notifications')}>
-            <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-            <View style={styles.badge} />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
+              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.bellIconContainer} onPress={() => navigation.navigate('Notifications')}>
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              <View style={styles.badge} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -102,6 +108,14 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     marginLeft: 10,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  actionButton: {
+    padding: 4,
   },
   bellIconContainer: {
     position: 'relative',

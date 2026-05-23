@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 
 export default function ProfileScreen({ navigation }) {
+  const [isDark, setIsDark] = useState(false);
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -13,6 +15,11 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.headerBrand}>
             <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
             <Text style={styles.appTitle}>MedSync</Text>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
+              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -40,24 +47,24 @@ export default function ProfileScreen({ navigation }) {
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconBox, { backgroundColor: '#F0FDF4' }]}>
-              <Ionicons name="card-outline" size={20} color={COLORS.success} />
+            <View style={[styles.menuIconBox, { backgroundColor: '#EFF6FF' }]}>
+              <Ionicons name="card-outline" size={20} color={COLORS.primary} />
             </View>
             <Text style={styles.menuText}>Payment Methods</Text>
             <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconBox, { backgroundColor: '#FEF2F2' }]}>
-              <Ionicons name="shield-checkmark-outline" size={20} color="#EF4444" />
+            <View style={[styles.menuIconBox, { backgroundColor: '#EFF6FF' }]}>
+              <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
             </View>
             <Text style={styles.menuText}>Insurance Details</Text>
             <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.menuItem}>
-            <View style={[styles.menuIconBox, { backgroundColor: '#F8FAFC' }]}>
-              <Ionicons name="settings-outline" size={20} color="#64748B" />
+            <View style={[styles.menuIconBox, { backgroundColor: '#EFF6FF' }]}>
+              <Ionicons name="settings-outline" size={20} color={COLORS.primary} />
             </View>
             <Text style={styles.menuText}>Settings</Text>
             <Ionicons name="chevron-forward" size={20} color="#CBD5E1" />
@@ -96,6 +103,14 @@ const styles = StyleSheet.create({
   headerBrand: { 
     flexDirection: 'row', 
     alignItems: 'center' 
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  actionButton: {
+    padding: 4,
   },
   appTitle: { 
     color: '#FFFFFF', 

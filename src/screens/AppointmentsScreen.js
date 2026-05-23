@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 
 export default function AppointmentsScreen({ navigation }) {
+  const [isDark, setIsDark] = useState(false);
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -13,6 +15,11 @@ export default function AppointmentsScreen({ navigation }) {
           <View style={styles.headerBrand}>
             <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
             <Text style={styles.appTitle}>MedSync</Text>
+          </View>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
+              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -90,6 +97,14 @@ const styles = StyleSheet.create({
   headerBrand: { 
     flexDirection: 'row', 
     alignItems: 'center' 
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  actionButton: {
+    padding: 4,
   },
   appTitle: { 
     color: '#FFFFFF', 
