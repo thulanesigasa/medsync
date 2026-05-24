@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platfor
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
+import { useStateContext } from '../context/StateContext';
 
 const CustomSwitch = ({ value, onValueChange }) => {
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
@@ -50,8 +51,14 @@ const CustomSwitch = ({ value, onValueChange }) => {
 };
 
 export default function ProfileScreen({ navigation }) {
+  const { currentUser, logout } = useStateContext();
   const [isDark, setIsDark] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+
+  const handleLogout = () => {
+    logout();
+    navigation.replace('Login');
+  };
 
   return (
     <View style={styles.container}>
@@ -77,7 +84,9 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.cardTopRow}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>K</Text>
+                <Text style={styles.avatarText}>
+                  {(currentUser?.name || 'Kiddo').charAt(0)}
+                </Text>
               </View>
               <View style={styles.verifiedBadge}>
                 <Ionicons name="checkmark" size={12} color="#FFFFFF" />
@@ -85,12 +94,14 @@ export default function ProfileScreen({ navigation }) {
             </View>
             
             <View style={styles.profileMeta}>
-              <Text style={styles.profileName}>Kiddo</Text>
-              <Text style={styles.profileEmail}>kiddo@hokmatech.com</Text>
+              <Text style={styles.profileName}>{currentUser?.name || 'Kiddo'}</Text>
+              <Text style={styles.profileEmail}>{currentUser?.email || 'kiddo@hokmatech.com'}</Text>
               
               <View style={styles.goldBadge}>
                 <Ionicons name="ribbon" size={13} color="#D97706" style={{ marginRight: 4 }} />
-                <Text style={styles.goldBadgeText}>Gold Care Member</Text>
+                <Text style={styles.goldBadgeText}>
+                  {currentUser?.role === 'admin' ? 'Clinic Partner' : 'Gold Care Member'}
+                </Text>
               </View>
             </View>
           </View>
@@ -184,7 +195,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn}>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#EF4444" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>

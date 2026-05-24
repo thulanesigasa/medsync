@@ -3,9 +3,20 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
+import { useStateContext } from '../context/StateContext';
 
 export default function AppointmentsScreen({ navigation }) {
+  const { appointments } = useStateContext();
   const [isDark, setIsDark] = useState(false);
+
+  // Filter appointments for upcoming and past
+  const upcomingAppointments = appointments.filter(
+    appt => appt.status === 'Confirmed' || appt.status === 'Pending'
+  );
+
+  const pastAppointments = appointments.filter(
+    appt => appt.status === 'Completed' || appt.status === 'Declined' || appt.id === 'appt-2'
+  );
 
   return (
     <View style={styles.container}>
@@ -45,66 +56,96 @@ export default function AppointmentsScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        <Text style={styles.sectionTitle}>Upcoming Appointment</Text>
+        <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
         
-        {/* Redesigned Premium Card */}
-        <View style={styles.premiumCard}>
-          <View style={styles.cardHeader}>
-            <View style={styles.doctorBadge}>
-              <Text style={styles.doctorBadgeText}>CN</Text>
-            </View>
-            <View style={styles.doctorMeta}>
-              <Text style={styles.doctorNameText}>Dr. Chris Nkwanyana</Text>
-              <Text style={styles.doctorSpecText}>Dentist Specialist</Text>
-            </View>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusBadgeText}>Confirmed</Text>
-            </View>
+        {upcomingAppointments.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Ionicons name="calendar-outline" size={36} color="#94A3B8" />
+            <Text style={styles.emptyText}>No upcoming appointments scheduled</Text>
           </View>
-          
-          <View style={styles.cardDivider} />
+        ) : (
+          upcomingAppointments.map((appt) => (
+            <View key={appt.id} style={styles.premiumCard}>
+              <View style={styles.cardHeader}>
+                <View style={styles.doctorBadge}>
+                  <Text style={styles.doctorBadgeText}>
+                    {appt.doctorName.replace('Dr. ', '').charAt(0)}
+                  </Text>
+                </View>
+                <View style={styles.doctorMeta}>
+                  <Text style={styles.doctorNameText}>{appt.doctorName}</Text>
+                  <Text style={styles.doctorSpecText}>{appt.doctorTitle || 'Specialist'}</Text>
+                </View>
+                <View style={[
+                  styles.statusBadge, 
+                  appt.status === 'Confirmed' ? styles.statusConfirmed : styles.statusPending
+                ]}>
+                  <Text style={[
+                    styles.statusBadgeText,
+                    appt.status === 'Confirmed' ? styles.statusTextConfirmed : styles.statusTextPending
+                  ]}>{appt.status}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.cardDivider} />
 
-          <View style={styles.infoRow}>
-            <View style={styles.infoCol}>
-              <Ionicons name="location-sharp" size={16} color={COLORS.primary} />
-              <Text style={styles.infoColText}>Dawn Park Clinic, Boksburg</Text>
-            </View>
-            <View style={styles.infoCol}>
-              <Ionicons name="time" size={16} color={COLORS.primary} />
-              <Text style={styles.infoColText}>10:00 AM</Text>
-            </View>
-          </View>
+              <View style={styles.infoRow}>
+                <View style={styles.infoCol}>
+                  <Ionicons name="location-sharp" size={16} color={COLORS.primary} />
+                  <Text style={styles.infoColText}>{appt.clinicName}</Text>
+                </View>
+                <View style={styles.infoCol}>
+                  <Ionicons name="time" size={16} color={COLORS.primary} />
+                  <Text style={styles.infoColText}>{appt.date} at {appt.time}</Text>
+                </View>
+              </View>
 
-          <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.outlineActionBtn}>
-              <Text style={styles.outlineActionText}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.primaryActionBtn}>
-              <Text style={styles.primaryActionText}>Reschedule</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={styles.outlineActionBtn}>
+                  <Text style={styles.outlineActionText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.primaryActionBtn}>
+                  <Text style={styles.primaryActionText}>Reschedule</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
+        )}
 
         <Text style={styles.sectionTitle}>Past Appointments</Text>
         
-        <View style={[styles.ticketCard, { opacity: 0.75 }]}>
-          <View style={[styles.dateBlock, { backgroundColor: '#64748B' }]}>
-            <Text style={styles.dateWeekday}>Fri</Text>
-            <Text style={styles.dateDay}>12</Text>
-            <Text style={styles.dateMonth}>APR</Text>
+        {pastAppointments.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No past appointments found</Text>
           </View>
-          <View style={styles.detailsBlock}>
-            <Text style={styles.clinicName}>Unjani Clinic Germiston</Text>
-            <View style={styles.detailRow}>
-              <Ionicons name="time-outline" size={16} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>02:30 PM</Text>
-            </View>
-            <View style={styles.detailRow}>
-              <FontAwesome5 name="stethoscope" size={14} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>Dr. Lerato Mokoena - General Checkup</Text>
-            </View>
-          </View>
-        </View>
+        ) : (
+          pastAppointments.map((appt) => {
+            const dateParts = appt.date.split('-');
+            const day = dateParts[2] || '12';
+            const weekday = appt.date === '2026-04-12' ? 'Fri' : 'Mon';
+            const month = appt.date === '2026-04-12' ? 'APR' : 'MAY';
+            return (
+              <View key={appt.id} style={[styles.ticketCard, { opacity: 0.75, marginBottom: 12 }]}>
+                <View style={[styles.dateBlock, { backgroundColor: '#64748B' }]}>
+                  <Text style={styles.dateWeekday}>{weekday}</Text>
+                  <Text style={styles.dateDay}>{day}</Text>
+                  <Text style={styles.dateMonth}>{month}</Text>
+                </View>
+                <View style={styles.detailsBlock}>
+                  <Text style={styles.clinicName}>{appt.clinicName}</Text>
+                  <View style={styles.detailRow}>
+                    <Ionicons name="time-outline" size={16} color={COLORS.primary} style={styles.detailIcon} />
+                    <Text style={styles.detailText}>{appt.time}</Text>
+                  </View>
+                  <View style={styles.detailRow}>
+                    <FontAwesome5 name="stethoscope" size={14} color={COLORS.primary} style={styles.detailIcon} />
+                    <Text style={styles.detailText}>{appt.doctorName} - {appt.type}</Text>
+                  </View>
+                </View>
+              </View>
+            );
+          })
+        )}
       </ScrollView>
       
       <BottomTabBar navigation={navigation} activeTab="Appointments" />
@@ -243,15 +284,40 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   statusBadge: {
-    backgroundColor: '#F0FDF4',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   statusBadgeText: {
-    color: COLORS.success,
     fontSize: 11,
     fontWeight: 'bold',
+  },
+  statusConfirmed: {
+    backgroundColor: '#F0FDF4',
+  },
+  statusPending: {
+    backgroundColor: '#FFFBEB',
+  },
+  statusTextConfirmed: {
+    color: COLORS.success,
+  },
+  statusTextPending: {
+    color: '#D97706',
+  },
+  emptyContainer: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: '#EAE8FC',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  emptyText: {
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: '600',
   },
   cardDivider: {
     height: 1,

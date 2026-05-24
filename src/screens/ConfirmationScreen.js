@@ -3,8 +3,27 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
+import { useStateContext } from '../context/StateContext';
 
 export default function ConfirmationScreen({ navigation }) {
+  const { appointments } = useStateContext();
+  
+  const latestAppt = appointments[0] || {
+    patientName: 'Kiddo',
+    doctorName: 'Dr. Chris Nkwanyana',
+    clinicName: 'Dawn Park Clinic, Boksburg',
+    date: '2026-05-28',
+    time: '10:00 AM',
+    type: 'Dentist Appointment',
+    status: 'Pending'
+  };
+
+  const dateParts = latestAppt.date.split('-');
+  const day = dateParts[2] || '28';
+  const monthNum = dateParts[1] || '05';
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const month = months[parseInt(monthNum, 10) - 1] || 'MAY';
+  const weekday = latestAppt.date === '2026-05-28' ? 'Thu' : 'Mon';
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -32,24 +51,29 @@ export default function ConfirmationScreen({ navigation }) {
         {/* Ticket Card */}
         <View style={styles.ticketCard}>
           <View style={styles.dateBlock}>
-            <Text style={styles.dateWeekday}>Mon</Text>
-            <Text style={styles.dateDay}>27</Text>
-            <Text style={styles.dateMonth}>MAY</Text>
+            <Text style={styles.dateWeekday}>{weekday}</Text>
+            <Text style={styles.dateDay}>{day}</Text>
+            <Text style={styles.dateMonth}>{month}</Text>
           </View>
  
           <View style={styles.detailsBlock}>
-            <Text style={styles.patientName}>Kiddo</Text>
-            <Text style={styles.doctorName}>Dr. Chris Nkwanyana</Text>
-            <Text style={styles.clinicName}>Dawn Park Clinic, Boksburg</Text>
+            <Text style={styles.patientName}>{latestAppt.patientName}</Text>
+            <Text style={styles.doctorName}>{latestAppt.doctorName}</Text>
+            <Text style={styles.clinicName}>{latestAppt.clinicName}</Text>
             
             <View style={styles.detailRow}>
               <Ionicons name="time-outline" size={18} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>10:00 AM</Text>
+              <Text style={styles.detailText}>{latestAppt.time} ({latestAppt.status})</Text>
             </View>
             
             <View style={styles.detailRow}>
-              <FontAwesome5 name="tooth" size={16} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>Dentist Appointment</Text>
+              <FontAwesome5 
+                name={latestAppt.type.toLowerCase().includes('dentist') ? "tooth" : "stethoscope"} 
+                size={16} 
+                color={COLORS.primary} 
+                style={styles.detailIcon} 
+              />
+              <Text style={styles.detailText}>{latestAppt.type}</Text>
             </View>
           </View>
         </View>

@@ -2,12 +2,23 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
+import { useStateContext } from '../context/StateContext';
 
 export default function BookingScreen({ navigation }) {
-  const [selectedTime, setSelectedTime] = useState('12:00');
+  const { currentUser, addAppointment } = useStateContext();
+  const [selectedTime, setSelectedTime] = useState('10:00');
   const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"];
 
   const handleConfirm = () => {
+    addAppointment({
+      patientName: currentUser?.name || 'Kiddo',
+      doctorName: 'Dr. Chris Nkwanyana',
+      doctorTitle: 'Dentist Specialist',
+      clinicName: 'Dawn Park Clinic',
+      date: '2026-05-28',
+      time: `${selectedTime} AM`,
+      type: 'Dentist Appointment'
+    });
     navigation.navigate('Confirmation');
   };
 
@@ -33,7 +44,7 @@ export default function BookingScreen({ navigation }) {
 
         <Text style={styles.sectionLabel}>Select date</Text>
         <View style={styles.inputBox}>
-          <Text style={styles.inputText}>2026-01-15</Text>
+          <Text style={styles.inputText}>2026-05-28</Text>
           <Feather name="calendar" size={20} color={COLORS.primary} />
         </View>
 

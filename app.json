@@ -4,11 +4,11 @@
     "slug": "medsync",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/images/hokmatech_logo_padded.png",
+    "icon": "./src/images/icon.jpeg",
     "userInterfaceStyle": "light",
     "backgroundColor": "#162A4A",
     "splash": {
-      "image": "./src/images/hokmatech_logo_padded.png",
+      "image": "./src/images/splash-icon.jpeg",
       "resizeMode": "contain",
       "backgroundColor": "#162A4A"
     },
@@ -17,12 +17,12 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/images/hokmatech_logo_padded.png",
+        "foregroundImage": "./src/images/icon.jpeg",
         "backgroundColor": "#162A4A"
       }
     },
     "web": {
-      "favicon": "./src/images/hokmatech_logo_padded.png"
+      "favicon": "./src/images/favicon.jpeg"
     }
   }
 }
