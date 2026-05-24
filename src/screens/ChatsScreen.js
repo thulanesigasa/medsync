@@ -175,7 +175,9 @@ export default function ChatsScreen({ navigation }) {
       </Modal>
 
       {/* Tab bar */}
-      <BottomTabBar navigation={navigation} activeTab="Chats" />
+      {activeClinicName === null && (
+        <BottomTabBar navigation={navigation} activeTab="Chats" />
+      )}
     </View>
   );
 }

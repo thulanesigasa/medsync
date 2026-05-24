@@ -277,7 +277,9 @@ export default function AppointmentsScreen({ navigation }) {
         </View>
       </Modal>
       
-      <BottomTabBar navigation={navigation} activeTab="Appointments" />
+      {activeChatApptId === null && (
+        <BottomTabBar navigation={navigation} activeTab="Appointments" />
+      )}
     </View>
   );
 }
