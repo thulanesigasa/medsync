@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { Calendar } from "react-native-calendars";
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
@@ -50,15 +51,35 @@ export default function BookingScreen({ navigation, route }) {
     return hour < currentHour;
   };
 
-  const handleConfirm = () => {
-    const appointment = {
-      id: Date.now().toString(),
-      doctor,
-      date: selectedDate,
-      time: selectedTime,
-    };
+  const handleConfirm = async () => {
+    try {
+      const appointment = {
+        id: Date.now().toString(),
+        doctor,
+        date: selectedDate,
+        time: selectedTime,
+        status: "Confirmed",
+      };
 
-    navigation.navigate("Confirmation", appointment);
+      // get old appointments
+      const existingAppointments = await AsyncStorage.getItem("appointments");
+
+      let appointments = [];
+
+      if (existingAppointments) {
+        appointments = JSON.parse(existingAppointments);
+      }
+
+      // add new appointment
+      appointments.push(appointment);
+
+      // save updated appointments
+      await AsyncStorage.setItem("appointments", JSON.stringify(appointments));
+
+      navigation.navigate("Confirmation", appointment);
+    } catch (error) {
+      console.log("Error saving appointment:", error);
+    }
   };
 
   return (
