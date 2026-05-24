@@ -1,140 +1,124 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-  Alert,
-} from "react-native";
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { COLORS, SIZES, LAYOUT } from '../constants/theme';
+import BottomTabBar from '../components/BottomTabBar';
+import { useStateContext } from '../context/StateContext';
 
-import * as Calendar from "expo-calendar";
-
-import {
-  Ionicons,
-  FontAwesome5,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
-
-import { COLORS, SIZES, LAYOUT } from "../constants/theme";
-import BottomTabBar from "../components/BottomTabBar";
-
-export default function ConfirmationScreen({ navigation, route }) {
-  // ✅ receive booking data from Booking screen
-  const { doctor, date, time } = route.params || {};
-
-  const getCalendarPermission = async () => {
-    const { status } = await Calendar.requestCalendarPermissionsAsync();
-    return status === "granted";
+export default function ConfirmationScreen({ navigation }) {
+  const { appointments } = useStateContext();
+  
+  const latestAppt = appointments[0] || {
+    patientName: 'Kiddo',
+    doctorName: 'Dr. Chris Nkwanyana',
+    clinicName: 'Dawn Park Clinic, Boksburg',
+    date: '2026-05-28',
+    time: '10:00 AM',
+    type: 'Dentist Appointment',
+    status: 'Pending'
   };
 
-  const getDefaultCalendarSource = async () => {
-    const calendars = await Calendar.getCalendarsAsync(
-      Calendar.EntityTypes.EVENT,
-    );
-
-    const defaultCalendar = calendars.find((cal) => cal.allowsModifications);
-
-    return defaultCalendar ? defaultCalendar.source : undefined;
-  };
-
-  const addToCalendar = async () => {
-    try {
-      const hasPermission = await getCalendarPermission();
-
-      if (!hasPermission) {
-        Alert.alert("Permission required", "Calendar access is needed.");
-        return;
-      }
-
-      const calendarSource = await getDefaultCalendarSource();
-
-      const calendarId = await Calendar.createCalendarAsync({
-        title: "MedSync Appointments",
-        color: "#4F46E5",
-        entityType: Calendar.EntityTypes.EVENT,
-        sourceId: calendarSource?.id,
-        source: calendarSource,
-        name: "MedSync Calendar",
-        ownerAccount: "personal",
-        accessLevel: Calendar.CalendarAccessLevel.OWNER,
-      });
-
-      const startDate = new Date(`${date} ${time}`);
-      const endDate = new Date(startDate.getTime() + 30 * 60000);
-
-      await Calendar.createEventAsync(calendarId, {
-        title: `Doctor Appointment - ${doctor?.name}`,
-        location: doctor?.clinic,
-        startDate,
-        endDate,
-        notes: `Appointment with ${doctor?.name} (${doctor?.specialty})`,
-      });
-
-      Alert.alert("Success", "Added to calendar!");
-    } catch (error) {
-      console.log(error);
-      Alert.alert("Error", "Could not add to calendar");
-    }
-  };
-
+  const dateParts = latestAppt.date.split('-');
+  const day = dateParts[2] || '28';
+  const monthNum = dateParts[1] || '05';
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+  const month = months[parseInt(monthNum, 10) - 1] || 'MAY';
+  const weekday = latestAppt.date === '2026-05-28' ? 'Thu' : 'Mon';
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
-            <MaterialCommunityIcons
-              name="shield-plus"
-              size={32}
-              color="#FFFFFF"
-            />
+            <MaterialCommunityIcons name="shield-plus" size={32} color="#FFFFFF" />
             <Text style={styles.headerTitle}>MedSync</Text>
           </View>
+          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#FFFFFF" />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        {/* Success */}
+        
+        {/* Success Header */}
         <View style={styles.successHeader}>
           <Ionicons name="checkmark-circle" size={28} color={COLORS.success} />
           <Text style={styles.successTitle}>Appointment Confirmed!</Text>
         </View>
-
-        {/* Ticket */}
+        <Text style={styles.successSubtitle}>Your appointment has been successfully booked.</Text>
+ 
+        <View style={styles.divider} />
+ 
+        {/* Ticket Card */}
         <View style={styles.ticketCard}>
+          <View style={styles.dateBlock}>
+            <Text style={styles.dateWeekday}>{weekday}</Text>
+            <Text style={styles.dateDay}>{day}</Text>
+            <Text style={styles.dateMonth}>{month}</Text>
+          </View>
+ 
           <View style={styles.detailsBlock}>
-            <Text style={styles.patientName}>Kiddo</Text>
-            <Text style={styles.doctorName}>{doctor?.name || "Doctor"}</Text>
-            <Text style={styles.clinicName}>{doctor?.clinic || "Clinic"}</Text>
-
+            <Text style={styles.patientName}>{latestAppt.patientName}</Text>
+            <Text style={styles.doctorName}>{latestAppt.doctorName}</Text>
+            <Text style={styles.clinicName}>{latestAppt.clinicName}</Text>
+            
             <View style={styles.detailRow}>
-              <Ionicons name="time-outline" size={18} color={COLORS.primary} />
-              <Text style={styles.detailText}>{time || "Not set"}</Text>
+              <Ionicons name="time-outline" size={18} color={COLORS.primary} style={styles.detailIcon} />
+              <Text style={styles.detailText}>{latestAppt.time} ({latestAppt.status})</Text>
+            </View>
+            
+            <View style={styles.detailRow}>
+              <FontAwesome5 
+                name={latestAppt.type.toLowerCase().includes('dentist') ? "tooth" : "stethoscope"} 
+                size={16} 
+                color={COLORS.primary} 
+                style={styles.detailIcon} 
+              />
+              <Text style={styles.detailText}>{latestAppt.type}</Text>
             </View>
           </View>
         </View>
 
-        {/* Buttons */}
+        {/* Action Buttons */}
         <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={styles.outlineButton}
-            onPress={addToCalendar}
-          >
-            <Ionicons
-              name="calendar-outline"
-              size={18}
-              color={COLORS.primary}
-            />
+          <TouchableOpacity style={styles.outlineButton}>
+            <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
             <Text style={styles.outlineButtonText}>Add to Calendar</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.outlineButton}>
+            <Ionicons name="notifications-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.outlineButtonText}>Set Reminder</Text>
+          </TouchableOpacity>
         </View>
+
+        <TouchableOpacity style={styles.fullOutlineButton}>
+          <Ionicons name="location" size={18} color="#EF4444" />
+          <Text style={styles.outlineButtonText}>Get Directions</Text>
+        </TouchableOpacity>
+
+        {/* Compliance Box */}
+        <View style={styles.complianceBox}>
+          <Text style={styles.complianceTitle}>Appointment Tips</Text>
+          <View style={styles.listItem}>
+            <Text style={styles.bulletPoint}>•</Text>
+            <Text style={styles.listText}>Please arrive <Text style={{fontWeight: 'bold'}}>10 minutes early</Text>.</Text>
+          </View>
+          <View style={styles.listItem}>
+            <Text style={styles.bulletPoint}>•</Text>
+            <Text style={styles.listText}>Bring your ID or medical card.</Text>
+          </View>
+          <View style={styles.listItem}>
+            <Text style={styles.bulletPoint}>•</Text>
+            <Text style={styles.listText}>Wear a mask if unwell.</Text>
+          </View>
+        </View>
+
       </ScrollView>
 
       <BottomTabBar navigation={navigation} activeTab="Appointments" />
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -147,19 +131,19 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     height: LAYOUT.headerHeight,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: SIZES.margin,
   },
   headerBrand: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   headerTitle: {
-    color: "#FFFFFF",
+    color: '#FFFFFF',
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginLeft: 10,
   },
   content: {
@@ -168,21 +152,21 @@ const styles = StyleSheet.create({
     gap: SIZES.gutter,
   },
   successHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 10,
     marginBottom: 5,
   },
   successTitle: {
     fontSize: 20,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.primary,
     marginLeft: 8,
   },
   successSubtitle: {
-    textAlign: "center",
-    color: "#64748B",
+    textAlign: 'center',
+    color: '#64748B',
     fontSize: 14,
     marginBottom: 8,
   },
@@ -195,10 +179,10 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius,
     padding: 16,
-    flexDirection: "row",
+    flexDirection: 'row',
     borderWidth: 1,
     borderColor: COLORS.border,
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.03,
     shadowRadius: 5,
     elevation: 1,
@@ -207,72 +191,72 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     borderRadius: 8,
     padding: 15,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: 20,
     width: 80,
   },
   dateWeekday: {
     fontSize: 14,
-    color: "#FFFFFF",
+    color: '#FFFFFF',
   },
   dateDay: {
     fontSize: 28,
-    fontWeight: "bold",
-    color: "#FFFFFF",
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginVertical: 2,
   },
   dateMonth: {
     fontSize: 14,
-    color: "#FFFFFF",
+    color: '#FFFFFF',
   },
   detailsBlock: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   patientName: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.primary,
     marginBottom: 2,
   },
   doctorName: {
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: '600',
     color: COLORS.primary,
     marginBottom: 2,
   },
   clinicName: {
     fontSize: 13,
-    color: "#64748B",
+    color: '#64748B',
     marginBottom: 10,
   },
   detailRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: '#F1F5F9',
     paddingTop: 8,
   },
   detailIcon: {
     marginRight: 10,
     width: 20,
-    textAlign: "center",
+    textAlign: 'center',
   },
   detailText: {
     fontSize: 15,
     color: COLORS.primary,
   },
   actionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
   },
   outlineButton: {
     flex: 0.48,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 20,
@@ -280,9 +264,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.surface,
   },
   fullOutlineButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 20,
@@ -291,11 +275,11 @@ const styles = StyleSheet.create({
   },
   outlineButtonText: {
     color: COLORS.primary,
-    fontWeight: "600",
+    fontWeight: '600',
     marginLeft: 8,
   },
   complianceBox: {
-    backgroundColor: "#F0F4F8",
+    backgroundColor: '#F0F4F8',
     borderRadius: 8,
     padding: 16,
     borderWidth: 1,
@@ -303,14 +287,14 @@ const styles = StyleSheet.create({
   },
   complianceTitle: {
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     color: COLORS.primary,
     marginBottom: 10,
   },
   listItem: {
-    flexDirection: "row",
+    flexDirection: 'row',
     marginBottom: 8,
-    alignItems: "flex-start",
+    alignItems: 'flex-start',
   },
   bulletPoint: {
     fontSize: 16,
@@ -325,3 +309,4 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
+

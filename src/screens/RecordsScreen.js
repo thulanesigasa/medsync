@@ -3,8 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
+import { useStateContext } from '../context/StateContext';
 
 export default function RecordsScreen({ navigation }) {
+  const { updates } = useStateContext();
   const [isDark, setIsDark] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
 
@@ -69,49 +71,33 @@ export default function RecordsScreen({ navigation }) {
         <Text style={styles.sectionTitle}>Local Clinic Bulletins</Text>
         
         <View style={styles.bulletinsContainer}>
-          <View style={styles.updateCard}>
-            <View style={styles.iconBox}>
-              <Ionicons name="time" size={22} color={COLORS.primary} />
-            </View>
-            <View style={styles.updateInfo}>
-              <Text style={styles.updateTitle}>Dr. Lerato Mokoena's Saturday Shift</Text>
-              <Text style={styles.updateDesc}>GP checkups will be available on Saturdays from 8:00 AM - 12:00 PM at Dawn Park Clinic, Boksburg.</Text>
-              <Text style={styles.updateDate}>Posted today • Dawn Park Clinic</Text>
-            </View>
-          </View>
-
-          <View style={styles.updateCard}>
-            <View style={styles.iconBox}>
-              <Ionicons name="medical" size={22} color={COLORS.primary} />
-            </View>
-            <View style={styles.updateInfo}>
-              <Text style={styles.updateTitle}>Benoni Health Centre Dental Wing</Text>
-              <Text style={styles.updateDesc}>Our expanded dental wing opens next Monday. Specialized care for all family members at 54 Harpur Ave, Benoni.</Text>
-              <Text style={styles.updateDate}>Posted yesterday • Benoni Centre</Text>
-            </View>
-          </View>
-
-          <View style={styles.updateCard}>
-            <View style={styles.iconBox}>
-              <Ionicons name="pulse" size={22} color={COLORS.primary} />
-            </View>
-            <View style={styles.updateInfo}>
-              <Text style={styles.updateTitle}>Dr. Sipho Gumede Summit Notice</Text>
-              <Text style={styles.updateDesc}>Dr. Gumede will be away at the South African Cardiology Summit (28 May - 2 Jun). Appointments during this period will be rescheduled.</Text>
-              <Text style={styles.updateDate}>Posted 4 days ago • Cardiology</Text>
-            </View>
-          </View>
-
-          <View style={styles.updateCard}>
-            <View style={styles.iconBox}>
-              <Ionicons name="megaphone" size={22} color={COLORS.primary} />
-            </View>
-            <View style={styles.updateInfo}>
-              <Text style={styles.updateTitle}>Germiston Vaccine Drive Extended</Text>
-              <Text style={styles.updateDesc}>Free winter immunization drive at Unjani Clinic Germiston is extended until the end of next week. Walk-ins welcome.</Text>
-              <Text style={styles.updateDate}>Posted 5 days ago • Unjani Clinic</Text>
-            </View>
-          </View>
+          {updates
+            .filter(item => {
+              if (activeCategory === 'All') return true;
+              if (activeCategory === 'Campaigns') return item.category === 'Campaign';
+              return item.category.toLowerCase() === activeCategory.toLowerCase();
+            })
+            .map((item) => (
+              <View key={item.id} style={styles.updateCard}>
+                <View style={styles.iconBox}>
+                  <Ionicons 
+                    name={
+                      item.category === 'Schedules' ? 'time' :
+                      item.category === 'Vaccines' ? 'medical' :
+                      item.category === 'Notice' ? 'pulse' : 'megaphone'
+                    } 
+                    size={22} 
+                    color={COLORS.primary} 
+                  />
+                </View>
+                <View style={styles.updateInfo}>
+                  <Text style={styles.updateTitle}>{item.title}</Text>
+                  <Text style={styles.updateDesc}>{item.desc}</Text>
+                  <Text style={styles.updateDate}>{item.date} • {item.clinic}</Text>
+                </View>
+              </View>
+            ))
+          }
         </View>
         
       </ScrollView>

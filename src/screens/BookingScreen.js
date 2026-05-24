@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+
 import {
   View,
   Text,
@@ -6,9 +7,13 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
+
+import { Ionicons, Feather } from "@expo/vector-icons";
+
 import { Calendar } from "react-native-calendars";
+
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 
 export default function BookingScreen({ navigation, route }) {
@@ -18,17 +23,9 @@ export default function BookingScreen({ navigation, route }) {
     new Date().toISOString().split("T")[0],
   );
 
-  const [selectedTime, setSelectedTime] = useState("10:00");
+  const [selectedTime, setSelectedTime] = useState("12:00");
 
-  const timeSlots = [
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00",
-    "13:00",
-    "14:00",
-  ];
+  const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"];
 
   if (!doctor) {
     return (
@@ -40,14 +37,17 @@ export default function BookingScreen({ navigation, route }) {
     );
   }
 
-  // 🚫 disable past times (simple logic)
+  // disable past times
   const now = new Date();
   const currentHour = now.getHours();
 
   const isPastTime = (time) => {
-    if (selectedDate !== now.toISOString().split("T")[0]) return false;
+    if (selectedDate !== now.toISOString().split("T")[0]) {
+      return false;
+    }
 
     const hour = parseInt(time.split(":")[0], 10);
+
     return hour < currentHour;
   };
 
@@ -61,7 +61,6 @@ export default function BookingScreen({ navigation, route }) {
         status: "Confirmed",
       };
 
-      // get old appointments
       const existingAppointments = await AsyncStorage.getItem("appointments");
 
       let appointments = [];
@@ -70,10 +69,8 @@ export default function BookingScreen({ navigation, route }) {
         appointments = JSON.parse(existingAppointments);
       }
 
-      // add new appointment
       appointments.push(appointment);
 
-      // save updated appointments
       await AsyncStorage.setItem("appointments", JSON.stringify(appointments));
 
       navigation.navigate("Confirmation", appointment);
@@ -98,11 +95,22 @@ export default function BookingScreen({ navigation, route }) {
       <ScrollView contentContainerStyle={styles.content}>
         {/* DOCTOR */}
         <Text style={styles.doctorName}>{doctor.name}</Text>
+
         <Text style={styles.specialty}>{doctor.specialty}</Text>
+
         <Text style={styles.clinic}>{doctor.clinic}</Text>
 
-        {/* CALENDAR PICKER */}
-        <Text style={styles.sectionTitle}>Select Date</Text>
+        {/* CLINIC */}
+        <Text style={styles.sectionLabel}>Select clinic</Text>
+
+        <View style={styles.inputBox}>
+          <Text style={styles.inputText}>{doctor.clinic}</Text>
+
+          <Feather name="chevron-down" size={20} color={COLORS.primary} />
+        </View>
+
+        {/* DATE */}
+        <Text style={styles.sectionLabel}>Select date</Text>
 
         <Calendar
           onDayPress={(day) => setSelectedDate(day.dateString)}
@@ -113,14 +121,20 @@ export default function BookingScreen({ navigation, route }) {
             },
           }}
           minDate={new Date().toISOString().split("T")[0]}
+          theme={{
+            todayTextColor: COLORS.primary,
+            arrowColor: COLORS.primary,
+          }}
+          style={styles.calendar}
         />
 
         {/* TIME */}
-        <Text style={styles.sectionTitle}>Select Time</Text>
+        <Text style={styles.sectionLabel}>Select time</Text>
 
-        <View style={styles.timeGrid}>
+        <View style={styles.matrixContainer}>
           {timeSlots.map((time) => {
             const disabled = isPastTime(time);
+
             const active = selectedTime === time;
 
             return (
@@ -130,14 +144,12 @@ export default function BookingScreen({ navigation, route }) {
                 onPress={() => setSelectedTime(time)}
                 style={[
                   styles.timeBox,
-                  active && { backgroundColor: COLORS.primary },
+                  active && styles.timeBoxActive,
                   disabled && { opacity: 0.3 },
                 ]}
               >
                 <Text
-                  style={{
-                    color: active ? "#fff" : COLORS.primary,
-                  }}
+                  style={[styles.timeText, active && styles.timeTextActive]}
                 >
                   {time}
                 </Text>
@@ -156,7 +168,10 @@ export default function BookingScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
 
   header: {
     flexDirection: "row",
@@ -180,50 +195,97 @@ const styles = StyleSheet.create({
   },
 
   doctorName: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: "bold",
     color: COLORS.primary,
   },
 
   specialty: {
+    fontSize: 15,
     color: "#64748B",
+    marginTop: 4,
   },
 
   clinic: {
     color: "#94A3B8",
-    marginBottom: 10,
+    marginBottom: 20,
   },
 
-  sectionTitle: {
-    marginTop: 15,
-    marginBottom: 10,
-    fontWeight: "bold",
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: "600",
     color: COLORS.primary,
+    marginBottom: 10,
+    marginTop: 10,
   },
 
-  timeGrid: {
+  inputBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
+    backgroundColor: COLORS.surface,
+  },
+
+  inputText: {
+    color: COLORS.primary,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
+  calendar: {
+    borderRadius: 16,
+    overflow: "hidden",
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#EAE8FC",
+  },
+
+  matrixContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
+    marginBottom: 20,
   },
 
   timeBox: {
-    padding: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
     borderWidth: 1,
     borderColor: COLORS.primary,
-    borderRadius: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.surface,
+  },
+
+  timeBoxActive: {
+    backgroundColor: COLORS.primary,
+  },
+
+  timeText: {
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+
+  timeTextActive: {
+    color: "#FFFFFF",
   },
 
   button: {
     marginTop: 20,
     backgroundColor: COLORS.primary,
-    padding: 15,
-    borderRadius: 12,
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: "center",
   },
 
   buttonText: {
-    color: "#fff",
+    color: "#FFFFFF",
+    fontSize: 16,
     fontWeight: "bold",
+    letterSpacing: 1,
   },
 });

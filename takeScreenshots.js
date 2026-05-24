@@ -27,13 +27,15 @@ const fs = require('fs');
 
   // 3. Home Screen
   console.log('Navigating to Home...');
-  await page.getByText('Log In', { exact: true }).click();
+  await page.getByText('Patient Demo').click();
+  await page.waitForTimeout(500);
+  await page.getByText('LOG IN', { exact: true }).click();
   await page.waitForTimeout(1000); // wait for transition
   await page.screenshot({ path: 'docs/home.png' });
 
   // 4. Booking Screen
   console.log('Navigating to Booking...');
-  await page.getByText('Book Appointment', { exact: true }).click();
+  await page.getByText('Dr. Pieter Naude').first().click();
   await page.waitForTimeout(1000); // wait for transition
   await page.screenshot({ path: 'docs/booking.png' });
 
@@ -47,6 +49,25 @@ const fs = require('fs');
   await page.getByText('CONFIRM', { exact: true }).click();
   await page.waitForTimeout(1000); // wait for transition
   await page.screenshot({ path: 'docs/confirmation.png' });
+
+  // 6. Chats List Screen
+  console.log('Navigating to Chats list...');
+  await page.getByText('Chats', { exact: true }).filter({ visible: true }).click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'docs/chats_list.png' });
+
+  // 7. Open chat channel details
+  console.log('Opening Dawn Park chat channel...');
+  await page.getByText('Dawn Park Clinic', { exact: true }).filter({ visible: true }).first().click();
+  await page.waitForTimeout(1000);
+
+  // Type and send a message
+  console.log('Sending message to Dawn Park Clinic...');
+  await page.getByPlaceholder('Type your message...').fill('Hello Dawn Park team, when are you open?');
+  await page.waitForTimeout(500);
+  await page.getByLabel('send-button').click();
+  await page.waitForTimeout(1000);
+  await page.screenshot({ path: 'docs/chat_window.png' });
 
   console.log('Done!');
   await browser.close();

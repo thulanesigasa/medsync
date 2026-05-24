@@ -7,6 +7,7 @@ export default function BottomTabBar({ navigation, activeTab }) {
   const isHome = activeTab === 'Home';
   const isAppt = activeTab === 'Appointments';
   const isUpdt = activeTab === 'Records'; // activeTab for records is 'Records' internally
+  const isChat = activeTab === 'Chats';
   const isProf = activeTab === 'Profile';
 
   return (
@@ -30,6 +31,12 @@ export default function BottomTabBar({ navigation, activeTab }) {
         <Ionicons name={isUpdt ? "newspaper" : "newspaper-outline"} size={22} color={isUpdt ? COLORS.primary : '#94A3B8'} />
         <Text style={isUpdt ? styles.tabTextActive : styles.tabText}>Updates</Text>
         {isUpdt && <View style={styles.activeDot} />}
+      </TouchableOpacity>
+      
+      <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Chats')}>
+        <Ionicons name={isChat ? "chatbubbles" : "chatbubbles-outline"} size={22} color={isChat ? COLORS.primary : '#94A3B8'} />
+        <Text style={isChat ? styles.tabTextActive : styles.tabText}>Chats</Text>
+        {isChat && <View style={styles.activeDot} />}
       </TouchableOpacity>
       
       <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Profile')}>
