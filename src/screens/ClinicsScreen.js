@@ -2,8 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
+import { useStateContext } from '../context/StateContext';
 
 export default function ClinicsScreen({ navigation }) {
+  const { clinics } = useStateContext();
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -23,47 +25,31 @@ export default function ClinicsScreen({ navigation }) {
           <TextInput placeholder="Search by name or specialty..." style={styles.searchInput} placeholderTextColor="#94A3B8" />
         </View>
 
-        <TouchableOpacity style={styles.clinicCard} onPress={() => navigation.navigate('Booking')}>
-          <View style={styles.clinicImagePlaceholder}>
-            <Ionicons name="medical" size={32} color={COLORS.primary} />
-          </View>
-          <View style={styles.clinicInfo}>
-            <Text style={styles.clinicName}>Dawn Park Clinic</Text>
-            <Text style={styles.clinicType}>General Practice • Boksburg • Cason Road</Text>
-            <View style={styles.ratingRow}>
-              <Ionicons name="star" size={14} color="#F59E0B" />
-              <Text style={styles.ratingText}>4.8 (120 reviews)</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.clinicCard} onPress={() => navigation.navigate('Booking')}>
-          <View style={styles.clinicImagePlaceholder}>
-            <Ionicons name="heart" size={32} color={COLORS.primary} />
-          </View>
-          <View style={styles.clinicInfo}>
-            <Text style={styles.clinicName}>Benoni Health Centre</Text>
-            <Text style={styles.clinicType}>Dentistry • Benoni • 54 Harpur Ave</Text>
-            <View style={styles.ratingRow}>
-              <Ionicons name="star" size={14} color="#F59E0B" />
-              <Text style={styles.ratingText}>4.9 (85 reviews)</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.clinicCard} onPress={() => navigation.navigate('Booking')}>
-          <View style={styles.clinicImagePlaceholder}>
-            <Ionicons name="pulse" size={32} color={COLORS.primary} />
-          </View>
-          <View style={styles.clinicInfo}>
-            <Text style={styles.clinicName}>Unjani Clinic Germiston</Text>
-            <Text style={styles.clinicType}>Cardiology • Germiston • 250 Victoria St</Text>
-            <View style={styles.ratingRow}>
-              <Ionicons name="star" size={14} color="#F59E0B" />
-              <Text style={styles.ratingText}>4.7 (95 reviews)</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
+        {clinics.map((clinic, index) => {
+          const isDental = clinic.name.toLowerCase().includes('benoni');
+          const isHeart = clinic.name.toLowerCase().includes('unjani');
+          const iconName = isDental ? "heart" : (isHeart ? "pulse" : "medical");
+          const ratingText = index === 0 ? '4.8 (120 reviews)' : (index === 1 ? '4.9 (85 reviews)' : '4.7 (95 reviews)');
+          return (
+            <TouchableOpacity 
+              key={clinic.id} 
+              style={styles.clinicCard} 
+              onPress={() => navigation.navigate('Booking', { selectedClinicName: clinic.name })}
+            >
+              <View style={styles.clinicImagePlaceholder}>
+                <Ionicons name={iconName} size={32} color={COLORS.primary} />
+              </View>
+              <View style={styles.clinicInfo}>
+                <Text style={styles.clinicName}>{clinic.name}</Text>
+                <Text style={styles.clinicType}>{clinic.address} • Hours: {clinic.hours}</Text>
+                <View style={styles.ratingRow}>
+                  <Ionicons name="star" size={14} color="#F59E0B" />
+                  <Text style={styles.ratingText}>{ratingText}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          );
+        })}
       </ScrollView>
     </View>
   );

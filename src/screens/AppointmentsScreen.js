@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 import { useStateContext } from '../context/StateContext';
 
 export default function AppointmentsScreen({ navigation }) {
-  const { appointments } = useStateContext();
+  const { appointments, patients, messages, sendMessage } = useStateContext();
   const [isDark, setIsDark] = useState(false);
+  const [selectedNoteApptId, setSelectedNoteApptId] = useState(null);
+  const [activeChatApptId, setActiveChatApptId] = useState(null);
+  const [chatText, setChatText] = useState('');
 
   // Filter appointments for upcoming and past
   const upcomingAppointments = appointments.filter(
@@ -17,6 +20,20 @@ export default function AppointmentsScreen({ navigation }) {
   const pastAppointments = appointments.filter(
     appt => appt.status === 'Completed' || appt.status === 'Declined' || appt.id === 'appt-2'
   );
+
+  const getMedicalNoteForAppointment = (appt) => {
+    const patientRecord = patients.find(p => p.name.toLowerCase() === appt.patientName.toLowerCase());
+    if (!patientRecord) return null;
+    return patientRecord.medicalNotes.find(
+      note => note.date === appt.date || note.doctorName === appt.doctorName
+    );
+  };
+
+  const handleSendChatMessage = () => {
+    if (!chatText.trim()) return;
+    sendMessage(activeChatApptId, 'patient', chatText.trim());
+    setChatText('');
+  };
 
   return (
     <View style={styles.container}>
@@ -104,8 +121,8 @@ export default function AppointmentsScreen({ navigation }) {
                 <TouchableOpacity style={styles.outlineActionBtn}>
                   <Text style={styles.outlineActionText}>Cancel</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.primaryActionBtn}>
-                  <Text style={styles.primaryActionText}>Reschedule</Text>
+                <TouchableOpacity style={styles.primaryActionBtn} onPress={() => setActiveChatApptId(appt.id)}>
+                  <Text style={styles.primaryActionText}>Chat Support</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -124,29 +141,139 @@ export default function AppointmentsScreen({ navigation }) {
             const day = dateParts[2] || '12';
             const weekday = appt.date === '2026-04-12' ? 'Fri' : 'Mon';
             const month = appt.date === '2026-04-12' ? 'APR' : 'MAY';
+            const medicalNote = getMedicalNoteForAppointment(appt);
+            const isNoteExpanded = selectedNoteApptId === appt.id;
+
             return (
-              <View key={appt.id} style={[styles.ticketCard, { opacity: 0.75, marginBottom: 12 }]}>
-                <View style={[styles.dateBlock, { backgroundColor: '#64748B' }]}>
-                  <Text style={styles.dateWeekday}>{weekday}</Text>
-                  <Text style={styles.dateDay}>{day}</Text>
-                  <Text style={styles.dateMonth}>{month}</Text>
-                </View>
-                <View style={styles.detailsBlock}>
-                  <Text style={styles.clinicName}>{appt.clinicName}</Text>
-                  <View style={styles.detailRow}>
-                    <Ionicons name="time-outline" size={16} color={COLORS.primary} style={styles.detailIcon} />
-                    <Text style={styles.detailText}>{appt.time}</Text>
+              <View key={appt.id} style={{ marginBottom: 12 }}>
+                <View style={[styles.ticketCard, { opacity: 0.85 }]}>
+                  <View style={[styles.dateBlock, { backgroundColor: '#64748B' }]}>
+                    <Text style={styles.dateWeekday}>{weekday}</Text>
+                    <Text style={styles.dateDay}>{day}</Text>
+                    <Text style={styles.dateMonth}>{month}</Text>
                   </View>
-                  <View style={styles.detailRow}>
-                    <FontAwesome5 name="stethoscope" size={14} color={COLORS.primary} style={styles.detailIcon} />
-                    <Text style={styles.detailText}>{appt.doctorName} - {appt.type}</Text>
+                  <View style={styles.detailsBlock}>
+                    <Text style={styles.clinicName}>{appt.clinicName}</Text>
+                    <View style={styles.detailRow}>
+                      <Ionicons name="time-outline" size={16} color={COLORS.primary} style={styles.detailIcon} />
+                      <Text style={styles.detailText}>{appt.time}</Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                      <FontAwesome5 name="stethoscope" size={14} color={COLORS.primary} style={styles.detailIcon} />
+                      <Text style={styles.detailText}>{appt.doctorName} - {appt.type}</Text>
+                    </View>
+                    
+                    {medicalNote && (
+                      <TouchableOpacity 
+                        style={styles.btnViewSummary}
+                        onPress={() => setSelectedNoteApptId(isNoteExpanded ? null : appt.id)}
+                      >
+                        <Text style={styles.btnViewSummaryText}>
+                          {isNoteExpanded ? 'Hide Health Notes' : 'View Consultation Notes'}
+                        </Text>
+                        <Ionicons name={isNoteExpanded ? "chevron-up" : "chevron-down"} size={14} color={COLORS.primary} />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
+
+                {isNoteExpanded && medicalNote && (
+                  <View style={styles.expandedNoteCard}>
+                    <Text style={styles.noteTitleLabel}>EHR Visit Consultation Notes</Text>
+                    <Text style={styles.noteBodyText}><Text style={{ fontWeight: 'bold' }}>Diagnosis: </Text>{medicalNote.diagnosis}</Text>
+                    <Text style={styles.noteBodyText}><Text style={{ fontWeight: 'bold' }}>Treatment Plan: </Text>{medicalNote.treatment}</Text>
+                    {medicalNote.notes ? <Text style={styles.noteBodyText}><Text style={{ fontWeight: 'bold' }}>Physician Notes: </Text>{medicalNote.notes}</Text> : null}
+                  </View>
+                )}
               </View>
             );
           })
         )}
       </ScrollView>
+
+      {/* -------------------- LIVE CHAT MODAL -------------------- */}
+      <Modal
+        visible={activeChatApptId !== null}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setActiveChatApptId(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.chatModalContainer}
+          >
+            {/* Modal Header */}
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Clinic Live Chat Support</Text>
+                <Text style={styles.modalSubtitle}>Appt ID: {activeChatApptId}</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.modalCloseBtn}
+                onPress={() => setActiveChatApptId(null)}
+              >
+                <Ionicons name="close" size={24} color={COLORS.primary} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Message logs */}
+            <ScrollView 
+              contentContainerStyle={styles.chatMessageScroll}
+              showsVerticalScrollIndicator={false}
+              ref={ref => { if (ref) ref.scrollToEnd({ animated: true }); }}
+            >
+              {messages
+                .filter(m => m.apptId === activeChatApptId)
+                .map((msg) => {
+                  const isPatient = msg.sender === 'patient';
+                  return (
+                    <View 
+                      key={msg.id} 
+                      style={[
+                        styles.messageBubbleContainer, 
+                        isPatient ? styles.bubbleContainerRight : styles.bubbleContainerLeft
+                      ]}
+                    >
+                      <View style={[
+                        styles.messageBubble, 
+                        isPatient ? styles.bubbleRight : styles.bubbleLeft
+                      ]}>
+                        <Text style={[
+                          styles.messageText, 
+                          isPatient ? styles.messageTextRight : styles.messageTextLeft
+                        ]}>
+                          {msg.text}
+                        </Text>
+                        <Text style={[
+                          styles.messageTimeText, 
+                          isPatient ? styles.messageTimeRight : styles.messageTimeLeft
+                        ]}>
+                          {msg.time}
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })
+              }
+            </ScrollView>
+
+            {/* Input Row */}
+            <View style={styles.chatInputRow}>
+              <TextInput
+                placeholder="Type your message..."
+                value={chatText}
+                onChangeText={setChatText}
+                style={styles.chatInputField}
+                placeholderTextColor="#94A3B8"
+              />
+              <TouchableOpacity style={styles.chatSendBtn} onPress={handleSendChatMessage}>
+                <Ionicons name="send" size={18} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      </Modal>
       
       <BottomTabBar navigation={navigation} activeTab="Appointments" />
     </View>
@@ -428,6 +555,161 @@ const styles = StyleSheet.create({
   detailText: { 
     fontSize: 13, 
     color: '#64748B' 
-  }
+  },
+  btnViewSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 4,
+  },
+  btnViewSummaryText: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  expandedNoteCard: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#EAE8FC',
+    borderTopWidth: 0,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    padding: 14,
+    marginTop: -4,
+    gap: 6,
+    shadowColor: '#0F2C59',
+    shadowOpacity: 0.02,
+    shadowRadius: 5,
+    elevation: 1,
+  },
+  noteTitleLabel: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  noteBodyText: {
+    fontSize: 12,
+    color: '#475569',
+    lineHeight: 16,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 44, 89, 0.4)',
+    justifyContent: 'flex-end',
+  },
+  chatModalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    height: '75%',
+    paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 18,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  modalSubtitle: {
+    fontSize: 11,
+    color: '#94A3B8',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  modalCloseBtn: {
+    padding: 4,
+  },
+  chatMessageScroll: {
+    padding: 16,
+    gap: 12,
+  },
+  messageBubbleContainer: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  bubbleContainerLeft: {
+    justifyContent: 'flex-start',
+  },
+  bubbleContainerRight: {
+    justifyContent: 'flex-end',
+  },
+  messageBubble: {
+    maxWidth: '75%',
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    elevation: 1,
+  },
+  bubbleLeft: {
+    backgroundColor: '#F1F5F9',
+    borderTopLeftRadius: 4,
+  },
+  bubbleRight: {
+    backgroundColor: COLORS.primary,
+    borderTopRightRadius: 4,
+  },
+  messageText: {
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  messageTextLeft: {
+    color: COLORS.primary,
+  },
+  messageTextRight: {
+    color: '#FFFFFF',
+  },
+  messageTimeText: {
+    fontSize: 9,
+    marginTop: 4,
+    fontWeight: '500',
+    textAlign: 'right',
+  },
+  messageTimeLeft: {
+    color: '#94A3B8',
+  },
+  messageTimeRight: {
+    color: '#BFDBFE',
+  },
+  chatInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    gap: 8,
+  },
+  chatInputField: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: Platform.OS === 'ios' ? 12 : 8,
+    color: COLORS.primary,
+    fontSize: 14,
+  },
+  chatSendBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
 

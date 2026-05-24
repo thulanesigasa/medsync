@@ -5,7 +5,117 @@ const StateContext = createContext();
 export const StateProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
 
-  // Seed initial appointments matching the required South African clinics and doctors
+  // Editable Clinic Settings State
+  const [clinics, setClinics] = useState([
+    {
+      id: 'clinic-1',
+      name: 'Dawn Park Clinic',
+      address: 'Cason Road Boksburg 1459',
+      phone: '011 862 1007',
+      hours: '08:00 - 17:00',
+      website: 'www.dawnparkclinic.co.za',
+      slotDuration: 30
+    },
+    {
+      id: 'clinic-2',
+      name: 'Benoni Health Centre',
+      address: '54 Harpur Avenue Benoni 1501',
+      phone: '011 845 3564',
+      hours: '08:30 - 17:00',
+      website: 'https://benonihealth.co.za',
+      slotDuration: 30
+    },
+    {
+      id: 'clinic-3',
+      name: 'Unjani Clinic Germiston',
+      address: '250 Victoria Street Germiston 1401',
+      phone: '011 776 9151',
+      hours: '08:00 - 17:00',
+      website: 'http://www.unjaniclinic.co.za',
+      slotDuration: 30
+    }
+  ]);
+
+  // Dynamic Doctors Directory
+  const [doctors, setDoctors] = useState([
+    {
+      id: 'doc-1',
+      name: 'Dr. Chris Nkwanyana',
+      specialty: 'Dentist Specialist',
+      clinic: 'Dawn Park Clinic',
+      avatarText: 'C',
+      rating: '4.8',
+      reviews: '64',
+      shifts: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false }
+    },
+    {
+      id: 'doc-2',
+      name: 'Dr. Lerato Mokoena',
+      specialty: 'General Practitioner',
+      clinic: 'Dawn Park Clinic',
+      avatarText: 'L',
+      rating: '4.9',
+      reviews: '110',
+      shifts: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: true, Sun: false }
+    },
+    {
+      id: 'doc-3',
+      name: 'Dr. Pieter Naude',
+      specialty: 'Senior Surgeon',
+      clinic: 'Benoni Health Centre',
+      avatarText: 'P',
+      rating: '5.0',
+      reviews: '95',
+      shifts: { Mon: true, Tue: false, Wed: true, Thu: false, Fri: true, Sat: false, Sun: false }
+    },
+    {
+      id: 'doc-4',
+      name: 'Dr. Sipho Gumede',
+      specialty: 'Senior Cardiologist',
+      clinic: 'Unjani Clinic Germiston',
+      avatarText: 'S',
+      rating: '5.0',
+      reviews: '120',
+      shifts: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false }
+    }
+  ]);
+
+  // Patients Directory & Medical Notes (EHR summaries)
+  const [patients, setPatients] = useState([
+    {
+      id: 'pat-1',
+      name: 'Kiddo',
+      email: 'patient@medsync.co.za',
+      phone: '071 234 5678',
+      medicalNotes: [
+        {
+          id: 'note-mock-1',
+          date: '2026-04-12',
+          doctorName: 'Dr. Lerato Mokoena',
+          clinicName: 'Unjani Clinic Germiston',
+          diagnosis: 'Acute Seasonal Influenza',
+          treatment: 'Prescribed Paracetamol & Cough Syrup. Recommended 3 days rest.',
+          notes: 'Patient was showing mild dehydration. Advised to increase fluid intake.'
+        }
+      ]
+    },
+    {
+      id: 'pat-2',
+      name: 'Thabo Mokoena',
+      email: 'thabo@gmail.com',
+      phone: '083 456 7890',
+      medicalNotes: []
+    },
+    {
+      id: 'pat-3',
+      name: 'Pieter van der Merwe',
+      email: 'pieter@webmail.co.za',
+      phone: '072 987 6543',
+      medicalNotes: []
+    }
+  ]);
+
+  // Appointments State
   const [appointments, setAppointments] = useState([
     {
       id: 'appt-1',
@@ -13,7 +123,7 @@ export const StateProvider = ({ children }) => {
       doctorName: 'Dr. Chris Nkwanyana',
       doctorTitle: 'Dentist Specialist',
       clinicName: 'Dawn Park Clinic',
-      date: '2026-05-27',
+      date: '2026-05-28',
       time: '10:00 AM',
       type: 'Dentist Appointment',
       status: 'Confirmed'
@@ -31,7 +141,7 @@ export const StateProvider = ({ children }) => {
     }
   ]);
 
-  // Seed initial bulletins/updates feed matching Boksburg, Benoni, Germiston
+  // Bulletins/Updates State
   const [updates, setUpdates] = useState([
     {
       id: 'updt-1',
@@ -67,21 +177,64 @@ export const StateProvider = ({ children }) => {
     }
   ]);
 
+  // Live Chat Logs, keyed by apptId
+  const [messages, setMessages] = useState([
+    {
+      id: 'msg-1',
+      apptId: 'appt-1',
+      sender: 'admin',
+      text: 'Hello Kiddo, please note that for your teeth extraction check, you need to arrive 10 minutes early.',
+      time: '09:00 AM'
+    }
+  ]);
+
+  // Admin Activity Alerts
+  const [adminNotifications, setAdminNotifications] = useState([
+    {
+      id: 'alert-1',
+      title: 'Welcome Admin!',
+      body: 'Dawn Park Clinic management portal is fully online.',
+      time: 'Just now',
+      read: false
+    }
+  ]);
+
+  // ------------------------------
+  // Handlers
+  // ------------------------------
+
   const addAppointment = (newAppt) => {
-    setAppointments(prev => [
-      {
-        id: `appt-${Date.now()}`,
-        status: 'Pending',
-        ...newAppt
-      },
-      ...prev
-    ]);
+    const id = `appt-${Date.now()}`;
+    const newAppointment = {
+      id,
+      status: 'Pending',
+      ...newAppt
+    };
+    
+    setAppointments(prev => [newAppointment, ...prev]);
+
+    // Push Admin alert
+    addAdminNotification({
+      title: 'New Booking Request',
+      body: `${newAppt.patientName} requested an appointment with ${newAppt.doctorName}.`,
+      time: 'Just now'
+    });
   };
 
   const updateAppointmentStatus = (id, status) => {
     setAppointments(prev =>
       prev.map(appt => appt.id === id ? { ...appt, status } : appt)
     );
+
+    // If confirmed/declined, add notification alert
+    const targetAppt = appointments.find(a => a.id === id);
+    if (targetAppt) {
+      addAdminNotification({
+        title: `Appointment ${status}`,
+        body: `Booking for ${targetAppt.patientName} with ${targetAppt.doctorName} is now ${status.toLowerCase()}.`,
+        time: 'Just now'
+      });
+    }
   };
 
   const addUpdate = (newUpdate) => {
@@ -99,8 +252,94 @@ export const StateProvider = ({ children }) => {
     setUpdates(prev => prev.filter(up => up.id !== id));
   };
 
+  const addDoctor = (newDoc) => {
+    setDoctors(prev => [
+      {
+        id: `doc-${Date.now()}`,
+        avatarText: newDoc.name.replace('Dr. ', '').charAt(0),
+        rating: '5.0',
+        reviews: '0',
+        shifts: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false },
+        ...newDoc
+      },
+      ...prev
+    ]);
+  };
+
+  const updateDoctorShift = (id, day, value) => {
+    setDoctors(prev =>
+      prev.map(doc => {
+        if (doc.id === id) {
+          return {
+            ...doc,
+            shifts: {
+              ...doc.shifts,
+              [day]: value
+            }
+          };
+        }
+        return doc;
+      })
+    );
+  };
+
+  const updateClinicSettings = (clinicName, updatedFields) => {
+    setClinics(prev =>
+      prev.map(c => c.name === clinicName ? { ...c, ...updatedFields } : c)
+    );
+  };
+
+  const addMedicalNote = (patientName, noteFields) => {
+    setPatients(prev =>
+      prev.map(pat => {
+        if (pat.name.toLowerCase() === patientName.toLowerCase()) {
+          return {
+            ...pat,
+            medicalNotes: [
+              {
+                id: `note-${Date.now()}`,
+                date: new Date().toISOString().split('T')[0],
+                ...noteFields
+              },
+              ...pat.medicalNotes
+            ]
+          };
+        }
+        return pat;
+      })
+    );
+  };
+
+  const sendMessage = (apptId, sender, text) => {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setMessages(prev => [
+      ...prev,
+      {
+        id: `msg-${Date.now()}`,
+        apptId,
+        sender,
+        text,
+        time
+      }
+    ]);
+  };
+
+  const addAdminNotification = (notif) => {
+    setAdminNotifications(prev => [
+      {
+        id: `alert-${Date.now()}`,
+        read: false,
+        ...notif
+      },
+      ...prev
+    ]);
+  };
+
+  const clearNotifications = () => {
+    setAdminNotifications([]);
+  };
+
   const login = (email, password, role, clinic = '') => {
-    // Simple mock authentication
     if (role === 'admin') {
       const name = `${clinic} Admin`;
       setCurrentUser({
@@ -111,10 +350,21 @@ export const StateProvider = ({ children }) => {
       });
       return true;
     } else {
+      // Find patient or create if doesn't exist
       const name = email.split('@')[0];
       const displayName = name.charAt(0).toUpperCase() + name.slice(1);
+      const cleanedName = displayName === 'Patient' ? 'Kiddo' : displayName;
+      
+      const exists = patients.find(p => p.name.toLowerCase() === cleanedName.toLowerCase());
+      if (!exists) {
+        setPatients(prev => [
+          ...prev,
+          { id: `pat-${Date.now()}`, name: cleanedName, email, phone: '071 000 0000', medicalNotes: [] }
+        ]);
+      }
+
       setCurrentUser({
-        name: displayName === 'Patient' ? 'Kiddo' : displayName,
+        name: cleanedName,
         email,
         role: 'patient'
       });
@@ -132,6 +382,10 @@ export const StateProvider = ({ children }) => {
         phone
       });
     } else {
+      setPatients(prev => [
+        ...prev,
+        { id: `pat-${Date.now()}`, name, email, phone, medicalNotes: [] }
+      ]);
       setCurrentUser({
         name,
         email,
@@ -149,12 +403,24 @@ export const StateProvider = ({ children }) => {
   return (
     <StateContext.Provider value={{
       currentUser,
+      clinics,
+      doctors,
+      patients,
       appointments,
       updates,
+      messages,
+      adminNotifications,
       addAppointment,
       updateAppointmentStatus,
       addUpdate,
       deleteUpdate,
+      addDoctor,
+      updateDoctorShift,
+      updateClinicSettings,
+      addMedicalNote,
+      sendMessage,
+      addAdminNotification,
+      clearNotifications,
       login,
       signup,
       logout

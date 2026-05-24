@@ -27,13 +27,15 @@ const fs = require('fs');
 
   // 3. Home Screen
   console.log('Navigating to Home...');
-  await page.getByText('Log In', { exact: true }).click();
+  await page.getByText('Patient Demo').click();
+  await page.waitForTimeout(500);
+  await page.getByText('LOG IN', { exact: true }).click();
   await page.waitForTimeout(1000); // wait for transition
   await page.screenshot({ path: 'docs/home.png' });
 
   // 4. Booking Screen
   console.log('Navigating to Booking...');
-  await page.getByText('Book Appointment', { exact: true }).click();
+  await page.getByText('Dr. Pieter Naude').first().click();
   await page.waitForTimeout(1000); // wait for transition
   await page.screenshot({ path: 'docs/booking.png' });
 
