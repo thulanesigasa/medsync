@@ -14,6 +14,7 @@ import RecordsScreen from './src/screens/RecordsScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import ClinicsScreen from './src/screens/ClinicsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
+import ChatsScreen from './src/screens/ChatsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -33,6 +34,7 @@ export default function App() {
           <Stack.Screen name="Confirmation" component={ConfirmationScreen} />
           <Stack.Screen name="Appointments" component={AppointmentsScreen} />
           <Stack.Screen name="Records" component={RecordsScreen} />
+          <Stack.Screen name="Chats" component={ChatsScreen} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="Clinics" component={ClinicsScreen} />
           <Stack.Screen name="Notifications" component={NotificationsScreen} />

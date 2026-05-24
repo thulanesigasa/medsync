@@ -177,14 +177,34 @@ export const StateProvider = ({ children }) => {
     }
   ]);
 
-  // Live Chat Logs, keyed by apptId
+  // Live Chat Logs, keyed by clinicName and patientName
   const [messages, setMessages] = useState([
     {
       id: 'msg-1',
+      clinicName: 'Dawn Park Clinic',
+      patientName: 'Kiddo',
       apptId: 'appt-1',
       sender: 'admin',
       text: 'Hello Kiddo, please note that for your teeth extraction check, you need to arrive 10 minutes early.',
       time: '09:00 AM'
+    },
+    {
+      id: 'msg-2',
+      clinicName: 'Benoni Health Centre',
+      patientName: 'Kiddo',
+      apptId: null,
+      sender: 'admin',
+      text: 'Welcome to Benoni Health Centre chat support. Let us know how we can assist you.',
+      time: '08:30 AM'
+    },
+    {
+      id: 'msg-3',
+      clinicName: 'Unjani Clinic Germiston',
+      patientName: 'Kiddo',
+      apptId: null,
+      sender: 'admin',
+      text: 'Hello Kiddo, thank you for reaching out to Unjani Clinic Germiston support.',
+      time: '10:15 AM'
     }
   ]);
 
@@ -310,12 +330,14 @@ export const StateProvider = ({ children }) => {
     );
   };
 
-  const sendMessage = (apptId, sender, text) => {
+  const sendMessage = (clinicName, patientName, sender, text, apptId = null) => {
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setMessages(prev => [
       ...prev,
       {
         id: `msg-${Date.now()}`,
+        clinicName,
+        patientName,
         apptId,
         sender,
         text,

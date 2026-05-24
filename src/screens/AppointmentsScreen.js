@@ -30,8 +30,10 @@ export default function AppointmentsScreen({ navigation }) {
   };
 
   const handleSendChatMessage = () => {
-    if (!chatText.trim()) return;
-    sendMessage(activeChatApptId, 'patient', chatText.trim());
+    if (!chatText.trim() || !activeChatApptId) return;
+    const targetAppt = appointments.find(a => a.id === activeChatApptId);
+    if (!targetAppt) return;
+    sendMessage(targetAppt.clinicName, targetAppt.patientName, 'patient', chatText.trim(), activeChatApptId);
     setChatText('');
   };
 

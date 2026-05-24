@@ -50,6 +50,8 @@ export default function AdminScreen({ navigation }) {
   // Active Chat State
   const [activeChatApptId, setActiveChatApptId] = useState(null);
   const [chatText, setChatText] = useState('');
+  const [selectedChatPatientName, setSelectedChatPatientName] = useState(null);
+  const [adminChatText, setAdminChatText] = useState('');
 
   // Clinic Association Details
   const clinicName = currentUser?.clinic || 'Dawn Park Clinic';
@@ -129,9 +131,17 @@ export default function AdminScreen({ navigation }) {
   };
 
   const handleSendChatMessage = () => {
-    if (!chatText.trim()) return;
-    sendMessage(activeChatApptId, 'admin', chatText.trim());
+    if (!chatText.trim() || !activeChatApptId) return;
+    const targetAppt = appointments.find(a => a.id === activeChatApptId);
+    if (!targetAppt) return;
+    sendMessage(targetAppt.clinicName, targetAppt.patientName, 'admin', chatText.trim(), activeChatApptId);
     setChatText('');
+  };
+
+  const handleSendAdminChatMessage = () => {
+    if (!adminChatText.trim() || !selectedChatPatientName) return;
+    sendMessage(activeClinicInfo.name, selectedChatPatientName, 'admin', adminChatText.trim(), null);
+    setAdminChatText('');
   };
 
   const handlePublishUpdate = () => {
@@ -188,6 +198,7 @@ export default function AdminScreen({ navigation }) {
           {[
             { id: 'overview', label: 'Overview', icon: 'analytics' },
             { id: 'bookings', label: 'Bookings', icon: 'calendar' },
+            { id: 'chats', label: 'Chats', icon: 'chatbubbles' },
             { id: 'doctors', label: 'Doctors', icon: 'people' },
             { id: 'patients', label: 'Patients (EHR)', icon: 'medical' },
             { id: 'updates', label: 'Bulletins', icon: 'megaphone' },
@@ -370,7 +381,134 @@ export default function AdminScreen({ navigation }) {
           </View>
         )}
 
-        {/* -------------------- 3. DOCTORS TAB -------------------- */}
+        {/* -------------------- 3. CHATS TAB -------------------- */}
+        {activeTab === 'chats' && (
+          <View style={styles.sectionGap}>
+            <View style={styles.card}>
+              <Text style={styles.cardHeaderTitle}>Live Patient Conversations</Text>
+              <Text style={styles.cardDesc}>Select a patient to view messages and reply in real time.</Text>
+              
+              {(() => {
+                const clinicMessages = messages.filter(
+                  m => m.clinicName.toLowerCase().includes(clinicName.toLowerCase())
+                );
+                const activePatients = Array.from(new Set(clinicMessages.map(m => m.patientName)));
+
+                if (activePatients.length === 0) {
+                  return (
+                    <View style={styles.emptyContainer}>
+                      <Ionicons name="chatbubbles-outline" size={40} color="#94A3B8" />
+                      <Text style={styles.emptyText}>No active patient conversations</Text>
+                    </View>
+                  );
+                }
+
+                return (
+                  <View style={styles.chatDashboardLayout}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.patientTabsScroll}>
+                      {activePatients.map((patName) => {
+                        const isSelected = selectedChatPatientName === patName;
+                        const patientMsgs = clinicMessages.filter(m => m.patientName === patName);
+                        const lastMsg = patientMsgs[patientMsgs.length - 1];
+                        return (
+                          <TouchableOpacity 
+                            key={patName}
+                            style={[styles.patientChatTab, isSelected && styles.patientChatTabActive]}
+                            onPress={() => setSelectedChatPatientName(patName)}
+                          >
+                            <View style={styles.patientTabAvatar}>
+                              <Text style={styles.patientTabAvatarText}>{patName.charAt(0)}</Text>
+                            </View>
+                            <View style={{ marginLeft: 8, maxWidth: 120 }}>
+                              <Text style={[styles.patientTabName, isSelected && styles.patientTabNameActive]} numberOfLines={1}>
+                                {patName}
+                              </Text>
+                              <Text style={[styles.patientTabSnippet, isSelected && styles.patientTabSnippetActive]} numberOfLines={1}>
+                                {lastMsg ? lastMsg.text : "No messages"}
+                              </Text>
+                            </View>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+
+                    {selectedChatPatientName ? (
+                      <View style={styles.adminConversationBox}>
+                        <View style={styles.adminChatHeader}>
+                          <Text style={styles.adminChatHeaderTitle}>Chatting with {selectedChatPatientName}</Text>
+                          <TouchableOpacity onPress={() => setSelectedChatPatientName(null)}>
+                            <Text style={styles.closeChatText}>Close Thread</Text>
+                          </TouchableOpacity>
+                        </View>
+                        
+                        <ScrollView 
+                          style={styles.adminChatFeedScroll}
+                          contentContainerStyle={{ gap: 10, paddingVertical: 10 }}
+                          ref={ref => { if (ref) ref.scrollToEnd({ animated: true }); }}
+                          showsVerticalScrollIndicator={false}
+                        >
+                          {clinicMessages
+                            .filter(m => m.patientName === selectedChatPatientName)
+                            .map((msg) => {
+                              const isAdmin = msg.sender === 'admin';
+                              return (
+                                <View 
+                                  key={msg.id}
+                                  style={[
+                                    styles.messageBubbleContainer,
+                                    isAdmin ? styles.bubbleContainerRight : styles.bubbleContainerLeft
+                                  ]}
+                                >
+                                  <View style={[
+                                    styles.messageBubble,
+                                    isAdmin ? styles.bubbleRight : styles.bubbleLeft
+                                  ]}>
+                                    <Text style={[
+                                      styles.messageText,
+                                      isAdmin ? styles.messageTextRight : styles.messageTextLeft
+                                    ]}>
+                                      {msg.text}
+                                    </Text>
+                                    <Text style={[
+                                      styles.messageTimeText,
+                                      isAdmin ? styles.messageTimeRight : styles.messageTimeLeft
+                                    ]}>
+                                      {msg.time}
+                                    </Text>
+                                  </View>
+                                </View>
+                              );
+                            })
+                          }
+                        </ScrollView>
+
+                        <View style={styles.adminChatInputRow}>
+                          <TextInput
+                            placeholder={`Reply to ${selectedChatPatientName}...`}
+                            value={adminChatText}
+                            onChangeText={setAdminChatText}
+                            style={styles.adminChatInputField}
+                            placeholderTextColor="#94A3B8"
+                          />
+                          <TouchableOpacity accessibilityLabel="admin-send-button" style={styles.adminChatSendBtn} onPress={handleSendAdminChatMessage}>
+                            <Ionicons name="send" size={16} color="#FFFFFF" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={styles.selectPromptCard}>
+                        <Ionicons name="chatbubbles-outline" size={24} color="#94A3B8" />
+                        <Text style={styles.selectPromptText}>Select a patient conversation above to start replying</Text>
+                      </View>
+                    )}
+                  </View>
+                );
+              })()}
+            </View>
+          </View>
+        )}
+
+        {/* -------------------- 4. DOCTORS TAB -------------------- */}
         {activeTab === 'doctors' && (
           <View style={styles.sectionGap}>
             <View style={styles.card}>
@@ -1554,5 +1692,134 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  chatDashboardLayout: {
+    marginTop: 10,
+    gap: 16,
+  },
+  patientTabsScroll: {
+    gap: 12,
+    paddingBottom: 4,
+  },
+  patientChatTab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    minWidth: 160,
+  },
+  patientChatTabActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  patientTabAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EFF6FF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  patientTabAvatarText: {
+    color: COLORS.primary,
+    fontWeight: 'bold',
+    fontSize: 13,
+  },
+  patientTabName: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  patientTabNameActive: {
+    color: '#FFFFFF',
+  },
+  patientTabSnippet: {
+    fontSize: 11,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  patientTabSnippetActive: {
+    color: '#BFDBFE',
+  },
+  adminConversationBox: {
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    overflow: 'hidden',
+    marginTop: 6,
+  },
+  adminChatHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 14,
+    backgroundColor: '#F8FAFC',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+  },
+  adminChatHeaderTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  closeChatText: {
+    fontSize: 11,
+    color: '#EF4444',
+    fontWeight: '700',
+  },
+  adminChatFeedScroll: {
+    height: 220,
+    paddingHorizontal: 14,
+  },
+  adminChatInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    gap: 8,
+    backgroundColor: '#FFFFFF',
+  },
+  adminChatInputField: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 6,
+    color: COLORS.primary,
+    fontSize: 13,
+  },
+  adminChatSendBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectPromptCard: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 6,
+  },
+  selectPromptText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+    lineHeight: 16,
   },
 });
