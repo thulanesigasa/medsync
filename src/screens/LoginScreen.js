@@ -5,7 +5,7 @@ import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import { useStateContext } from '../context/StateContext';
 
 export default function LoginScreen({ navigation }) {
-  const { login } = useStateContext();
+  const { login, resetPassword } = useStateContext();
   const [role, setRole] = useState('patient'); // 'patient' or 'admin'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,24 +21,33 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = () => {
     if (!email) {
-      alert('Please enter your email address');
+      alert("Please enter your email address");
       return;
     }
+
     if (!password) {
-      alert('Please enter your password');
+      alert("Please enter your password");
       return;
     }
-    
-    const success = login(email, password, role, role === 'admin' ? selectedClinic : '');
-    if (success) {
-      if (role === 'admin') {
-        navigation.replace('Admin');
-      } else {
-        navigation.replace('Home');
-      }
+
+    const result = login(
+      email,
+      password,
+      role,
+      role === "admin" ? selectedClinic : "",
+    );
+
+    if (!result.success) {
+      alert(result.message);
+      return;
+    }
+
+    if (role === "admin") {
+      navigation.replace("Admin");
+    } else {
+      navigation.replace("Home");
     }
   };
-
   const handleQuickFillPatient = () => {
     setRole('patient');
     setEmail('patient@medsync.co.za');
@@ -53,63 +62,96 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* App Logo & Branding */}
         <View style={styles.brandContainer}>
           <View style={styles.logoFrame}>
-            <Image 
-              source={require('../images/icon.jpeg')} 
-              style={styles.logoImage} 
+            <Image
+              source={require("../images/icon.jpeg")}
+              style={styles.logoImage}
               resizeMode="cover"
             />
           </View>
           <Text style={styles.appName}>MedSync</Text>
-          <Text style={styles.appSubtitle}>South African Clinic Booking System</Text>
+          <Text style={styles.appSubtitle}>
+            South African Clinic Booking System
+          </Text>
         </View>
 
         {/* Premium Card */}
         <View style={styles.card}>
           {/* Segmented Role Tabs */}
           <View style={styles.tabContainer}>
-            <TouchableOpacity 
-              style={[styles.tabButton, role === 'patient' && styles.tabButtonActive]}
-              onPress={() => { setRole('patient'); setShowClinicDropdown(false); }}
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                role === "patient" && styles.tabButtonActive,
+              ]}
+              onPress={() => {
+                setRole("patient");
+                setShowClinicDropdown(false);
+              }}
             >
-              <Ionicons 
-                name="people" 
-                size={18} 
-                color={role === 'patient' ? '#FFFFFF' : COLORS.primary} 
-                style={{ marginRight: 6 }} 
+              <Ionicons
+                name="people"
+                size={18}
+                color={role === "patient" ? "#FFFFFF" : COLORS.primary}
+                style={{ marginRight: 6 }}
               />
-              <Text style={[styles.tabText, role === 'patient' && styles.tabTextActive]}>Patient</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  role === "patient" && styles.tabTextActive,
+                ]}
+              >
+                Patient
+              </Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.tabButton, role === 'admin' && styles.tabButtonActive]}
-              onPress={() => setRole('admin')}
+
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                role === "admin" && styles.tabButtonActive,
+              ]}
+              onPress={() => setRole("admin")}
             >
-              <Ionicons 
-                name="shield-half" 
-                size={18} 
-                color={role === 'admin' ? '#FFFFFF' : COLORS.primary} 
-                style={{ marginRight: 6 }} 
+              <Ionicons
+                name="shield-half"
+                size={18}
+                color={role === "admin" ? "#FFFFFF" : COLORS.primary}
+                style={{ marginRight: 6 }}
               />
-              <Text style={[styles.tabText, role === 'admin' && styles.tabTextActive]}>Clinic Admin</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  role === "admin" && styles.tabTextActive,
+                ]}
+              >
+                Clinic Admin
+              </Text>
             </TouchableOpacity>
           </View>
 
           <Text style={styles.sectionTitle}>
-            {role === 'patient' ? 'Patient Portal' : 'Clinic Dashboard Portal'}
+            {role === "patient" ? "Patient Portal" : "Clinic Dashboard Portal"}
           </Text>
 
           {/* Email Input */}
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-            <TextInput 
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color="#94A3B8"
+              style={styles.inputIcon}
+            />
+            <TextInput
               placeholder="Email Address"
               value={email}
               onChangeText={setEmail}
@@ -122,8 +164,13 @@ export default function LoginScreen({ navigation }) {
 
           {/* Password Input */}
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-            <TextInput 
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color="#94A3B8"
+              style={styles.inputIcon}
+            />
+            <TextInput
               placeholder="Password"
               value={password}
               onChangeText={setPassword}
@@ -132,30 +179,52 @@ export default function LoginScreen({ navigation }) {
               placeholderTextColor="#94A3B8"
               autoCapitalize="none"
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-              <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#94A3B8" />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIcon}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color="#94A3B8"
+              />
             </TouchableOpacity>
           </View>
 
           {/* Clinic Selector Dropdown (Admin Only) */}
-          {role === 'admin' && (
-            <View style={{ position: 'relative', zIndex: 10 }}>
-              <TouchableOpacity 
-                style={styles.inputContainer} 
+          {role === "admin" && (
+            <View style={{ position: "relative", zIndex: 10 }}>
+              <TouchableOpacity
+                style={styles.inputContainer}
                 onPress={() => setShowClinicDropdown(!showClinicDropdown)}
               >
-                <Ionicons name="business-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-                <Text style={[styles.input, { color: COLORS.primary, paddingVertical: 12 }]}>
+                <Ionicons
+                  name="business-outline"
+                  size={20}
+                  color="#94A3B8"
+                  style={styles.inputIcon}
+                />
+                <Text
+                  style={[
+                    styles.input,
+                    { color: COLORS.primary, paddingVertical: 12 },
+                  ]}
+                >
                   {selectedClinic}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color="#94A3B8" style={{ marginRight: 4 }} />
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color="#94A3B8"
+                  style={{ marginRight: 4 }}
+                />
               </TouchableOpacity>
 
               {showClinicDropdown && (
                 <View style={styles.dropdown}>
                   {clinics.map((clinic, index) => (
-                    <TouchableOpacity 
-                      key={index} 
+                    <TouchableOpacity
+                      key={index}
                       style={styles.dropdownItem}
                       onPress={() => {
                         setSelectedClinic(clinic);
@@ -171,7 +240,25 @@ export default function LoginScreen({ navigation }) {
           )}
 
           {/* Forgot Password */}
-          <TouchableOpacity style={styles.forgotBtn}>
+          <TouchableOpacity
+            style={styles.forgotBtn}
+            onPress={() => {
+              if (!email) {
+                alert("Please enter your email first.");
+                return;
+              }
+
+              const newPassword = prompt("Enter your new password");
+
+              if (!newPassword) {
+                return;
+              }
+
+              const result = resetPassword(email, newPassword, role);
+
+              alert(result.message);
+            }}
+          >
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
 
@@ -183,7 +270,11 @@ export default function LoginScreen({ navigation }) {
           {/* Sign Up Navigation Link */}
           <View style={styles.signupPrompt}>
             <Text style={styles.signupPromptText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Signup', { defaultRole: role })}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("Signup", { defaultRole: role })
+              }
+            >
               <Text style={styles.signupLinkText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
@@ -193,13 +284,29 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.demoSection}>
           <Text style={styles.demoTitle}>Developer Demo Quick-Fills</Text>
           <View style={styles.demoBtnRow}>
-            <TouchableOpacity style={styles.demoBtn} onPress={handleQuickFillPatient}>
-              <Ionicons name="person" size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
+            <TouchableOpacity
+              style={styles.demoBtn}
+              onPress={handleQuickFillPatient}
+            >
+              <Ionicons
+                name="person"
+                size={14}
+                color={COLORS.primary}
+                style={{ marginRight: 4 }}
+              />
               <Text style={styles.demoBtnText}>Patient Demo</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.demoBtn} onPress={handleQuickFillAdmin}>
-              <Ionicons name="shield" size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
+
+            <TouchableOpacity
+              style={styles.demoBtn}
+              onPress={handleQuickFillAdmin}
+            >
+              <Ionicons
+                name="shield"
+                size={14}
+                color={COLORS.primary}
+                style={{ marginRight: 4 }}
+              />
               <Text style={styles.demoBtnText}>Admin Demo</Text>
             </TouchableOpacity>
           </View>

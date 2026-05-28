@@ -1,13 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
 
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+  KeyboardAvoidingView,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { COLORS, SIZES } from '../constants/theme';
+import { useStateContext } from '../context/StateContext';
 export default function SignupScreen({ navigation, route }) {
   const { signup } = useStateContext();
   const defaultRole = route.params?.defaultRole || 'patient';
-  
   const [role, setRole] = useState(defaultRole);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -15,13 +23,11 @@ export default function SignupScreen({ navigation, route }) {
   const [password, setPassword] = useState('');
   const [selectedClinic, setSelectedClinic] = useState('Dawn Park Clinic');
   const [showClinicDropdown, setShowClinicDropdown] = useState(false);
-
   const clinics = [
     'Dawn Park Clinic',
     'Benoni Health Centre',
-    'Unjani Clinic Germiston'
+    'Unjani Clinic Germiston',
   ];
-
   const handleSignup = () => {
     if (!name && role === 'patient') {
       alert('Please enter your full name');
@@ -39,59 +45,101 @@ export default function SignupScreen({ navigation, route }) {
       alert('Please enter a password');
       return;
     }
-
-    const success = signup(name, email, phone, password, role, role === 'admin' ? selectedClinic : '');
-    if (success) {
-      if (role === 'admin') {
-        navigation.replace('Admin');
-      } else {
-        navigation.replace('Home');
-      }
+    const result = signup(
+      name,
+      email,
+      phone,
+      password,
+      role,
+      role === 'admin' ? selectedClinic : ''
+    );
+    if (!result.success) {
+      alert(result.message);
+      return;
+    }
+    if (role === 'admin') {
+      navigation.replace('Admin');
+    } else {
+      navigation.replace('Home');
     }
   };
-
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Back Button */}
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color={COLORS.primary}
+          />
         </TouchableOpacity>
-
-        {/* Header branding */}
+        {/* Branding */}
         <View style={styles.brandContainer}>
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join MedSync Local Clinic Care</Text>
+          <Text style={styles.subtitle}>
+            Join MedSync Local Clinic Care
+          </Text>
         </View>
-
         {/* Card */}
         <View style={styles.card}>
           {/* Role Tabs */}
           <View style={styles.tabContainer}>
-            <TouchableOpacity 
-              style={[styles.tabButton, role === 'patient' && styles.tabButtonActive]}
-              onPress={() => { setRole('patient'); setShowClinicDropdown(false); }}
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                role === 'patient' && styles.tabButtonActive,
+              ]}
+              onPress={() => {
+                setRole('patient');
+                setShowClinicDropdown(false);
+              }}
             >
-              <Text style={[styles.tabText, role === 'patient' && styles.tabTextActive]}>Patient</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  role === 'patient' && styles.tabTextActive,
+                ]}
+              >
+                Patient
+              </Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.tabButton, role === 'admin' && styles.tabButtonActive]}
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                role === 'admin' && styles.tabButtonActive,
+              ]}
               onPress={() => setRole('admin')}
             >
-              <Text style={[styles.tabText, role === 'admin' && styles.tabTextActive]}>Clinic Admin</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  role === 'admin' && styles.tabTextActive,
+                ]}
+              >
+                Clinic Admin
+              </Text>
             </TouchableOpacity>
           </View>
-
-          {/* Name Field (Patient Only) */}
+          {/* Name Field */}
           {role === 'patient' && (
             <View style={styles.inputContainer}>
-              <Ionicons name="person-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-              <TextInput 
+              <Ionicons
+                name="person-outline"
+                size={20}
+                color="#94A3B8"
+                style={styles.inputIcon}
+              />
+              <TextInput
                 placeholder="Full Name"
                 value={name}
                 onChangeText={setName}
@@ -100,11 +148,15 @@ export default function SignupScreen({ navigation, route }) {
               />
             </View>
           )}
-
-          {/* Email Field */}
+          {/* Email */}
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-            <TextInput 
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color="#94A3B8"
+              style={styles.inputIcon}
+            />
+            <TextInput
               placeholder="Email Address"
               value={email}
               onChangeText={setEmail}
@@ -114,11 +166,15 @@ export default function SignupScreen({ navigation, route }) {
               autoCapitalize="none"
             />
           </View>
-
-          {/* Phone Field */}
+          {/* Phone */}
           <View style={styles.inputContainer}>
-            <Ionicons name="phone-portrait-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-            <TextInput 
+            <Ionicons
+              name="phone-portrait-outline"
+              size={20}
+              color="#94A3B8"
+              style={styles.inputIcon}
+            />
+            <TextInput
               placeholder="Phone Number"
               value={phone}
               onChangeText={setPhone}
@@ -127,11 +183,15 @@ export default function SignupScreen({ navigation, route }) {
               keyboardType="phone-pad"
             />
           </View>
-
-          {/* Password Field */}
+          {/* Password */}
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-            <TextInput 
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color="#94A3B8"
+              style={styles.inputIcon}
+            />
+            <TextInput
               placeholder="Password"
               value={password}
               onChangeText={setPassword}
@@ -140,61 +200,92 @@ export default function SignupScreen({ navigation, route }) {
               placeholderTextColor="#94A3B8"
             />
           </View>
-
-          {/* Clinic Selector (Admin Only) */}
+          {/* Clinic Dropdown */}
           {role === 'admin' && (
             <View style={{ position: 'relative', zIndex: 10 }}>
-              <Text style={styles.fieldLabel}>Select Associated Clinic</Text>
-              <TouchableOpacity 
-                style={styles.inputContainer} 
-                onPress={() => setShowClinicDropdown(!showClinicDropdown)}
+              <Text style={styles.fieldLabel}>
+                Select Associated Clinic
+              </Text>
+              <TouchableOpacity
+                style={styles.inputContainer}
+                onPress={() =>
+                  setShowClinicDropdown(!showClinicDropdown)
+                }
               >
-                <Ionicons name="business-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-                <Text style={[styles.input, { color: COLORS.primary, paddingVertical: 12 }]}>
+                <Ionicons
+                  name="business-outline"
+                  size={20}
+                  color="#94A3B8"
+                  style={styles.inputIcon}
+                />
+                <Text
+                  style={[
+                    styles.input,
+                    {
+                      color: COLORS.primary,
+                      paddingVertical: 12,
+                    },
+                  ]}
+                >
                   {selectedClinic}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color="#94A3B8" style={{ marginRight: 4 }} />
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color="#94A3B8"
+                  style={{ marginRight: 4 }}
+                />
               </TouchableOpacity>
-
               {showClinicDropdown && (
                 <View style={styles.dropdown}>
                   {clinics.map((clinic, index) => (
-                    <TouchableOpacity 
-                      key={index} 
+                    <TouchableOpacity
+                      key={index}
                       style={styles.dropdownItem}
                       onPress={() => {
                         setSelectedClinic(clinic);
                         setShowClinicDropdown(false);
                       }}
                     >
-                      <Text style={styles.dropdownItemText}>{clinic}</Text>
+                      <Text style={styles.dropdownItemText}>
+                        {clinic}
+                      </Text>
                     </TouchableOpacity>
                   ))}
                 </View>
               )}
             </View>
           )}
-
-          {/* Sign Up Button */}
-          <TouchableOpacity style={styles.signupBtn} onPress={handleSignup}>
-            <Text style={styles.signupBtnText}>SIGN UP</Text>
+          {/* Signup Button */}
+          <TouchableOpacity
+            style={styles.signupBtn}
+            onPress={handleSignup}
+          >
+            <Text style={styles.signupBtnText}>
+              SIGN UP
+            </Text>
           </TouchableOpacity>
-
-          {/* Log In Redirect */}
+          {/* Login Redirect */}
           <View style={styles.loginPrompt}>
-            <Text style={styles.loginPromptText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.loginLinkText}>Log In</Text>
+            <Text style={styles.loginPromptText}>
+              Already have an account?
+            </Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.loginLinkText}>
+                {' '}Log In
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
-
-        <Text style={styles.footerText}>Powered by Hokma Tech</Text>
+        <Text style={styles.footerText}>
+          Powered by Hokma Tech
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -214,10 +305,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#EAE8FC',
     marginBottom: 20,
-    shadowColor: '#0F2C59',
-    shadowOpacity: 0.02,
-    shadowRadius: 5,
-    elevation: 1,
   },
   brandContainer: {
     marginBottom: 24,
@@ -239,10 +326,6 @@ const styles = StyleSheet.create({
     padding: 20,
     borderWidth: 1,
     borderColor: '#EAE8FC',
-    shadowColor: '#0F2C59',
-    shadowOpacity: 0.05,
-    shadowRadius: 16,
-    elevation: 4,
     marginBottom: 24,
   },
   tabContainer: {
@@ -305,10 +388,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    shadowColor: '#0F2C59',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
     elevation: 5,
     zIndex: 100,
   },
@@ -331,11 +410,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 10,
     marginBottom: 16,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 3,
   },
   signupBtnText: {
     color: '#FFFFFF',
