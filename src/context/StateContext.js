@@ -1,10 +1,45 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { COLORS } from "../constants/theme";
 
 const StateContext = createContext();
 
 export const StateProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+
+  const [isDark, setIsDark] = useState(false);
+
+  const theme = isDark
+    ? {
+        background: "#0F172A",
+
+        surface: "#1E293B",
+
+        text: "#F8FAFC",
+
+        subtext: "#CBD5E1",
+
+        border: "#334155",
+
+        primary: COLORS.primary,
+      }
+    : {
+        background: COLORS.background,
+
+        surface: COLORS.surface,
+
+        text: COLORS.primary,
+
+        subtext: "#64748B",
+
+        border: "#EAE8FC",
+
+        primary: COLORS.primary,
+      };
+
+  const toggleTheme = () => {
+    setIsDark((prev) => !prev);
+  };
 
   const [userAccounts, setUserAccounts] = useState([
     {
@@ -495,7 +530,7 @@ export const StateProvider = ({ children }) => {
       clinic: user.clinic || "",
       phone: user.phone || "",
     });
-
+    
     return {
       success: true,
       user,
@@ -642,6 +677,9 @@ export const StateProvider = ({ children }) => {
         signup,
         resetPassword,
         logout,
+        isDark,
+        theme,
+        toggleTheme,
       }}
     >
       {children}
