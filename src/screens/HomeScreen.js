@@ -46,9 +46,21 @@ export default function HomeScreen({ navigation }) {
     );
   });
 
-  const upcomingAppt = appointments.find(
-    (appt) => appt.status === "Confirmed" || appt.status === "Pending",
-  );
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const upcomingAppt = appointments
+    .filter((appt) => {
+      const appointmentDate = new Date(appt.date);
+      appointmentDate.setHours(0, 0, 0, 0);
+
+      return (
+        appt.patientName === currentUser?.name &&
+        appointmentDate >= today &&
+        (appt.status === "Confirmed" || appt.status === "Pending")
+      );
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -228,80 +240,65 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Upcoming Schedule */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Schedule</Text>
-        </View>
+        {upcomingAppt && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Upcoming Schedule</Text>
+            </View>
 
-        {upcomingAppt ? (
-          <View
-            style={[
-              styles.scheduleCard,
-              upcomingAppt.status === "Pending" && {
-                backgroundColor: "#E28743",
-                shadowColor: "#E28743",
-              },
-            ]}
-          >
-            <View style={styles.scheduleHeader}>
-              <View style={styles.scheduleDoctor}>
-                <View style={styles.doctorAvatarMini}>
-                  <Text style={styles.doctorAvatarMiniText}>
-                    {upcomingAppt.doctorName?.replace("Dr. ", "").charAt(0) ||
-                      "D"}
+            <View
+              style={[
+                styles.scheduleCard,
+                upcomingAppt.status === "Pending" && {
+                  backgroundColor: "#E28743",
+                  shadowColor: "#E28743",
+                },
+              ]}
+            >
+              <View style={styles.scheduleHeader}>
+                <View style={styles.scheduleDoctor}>
+                  <View style={styles.doctorAvatarMini}>
+                    <Text style={styles.doctorAvatarMiniText}>
+                      {upcomingAppt.doctorName?.replace("Dr. ", "").charAt(0) ||
+                        "D"}
+                    </Text>
+                  </View>
+
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={styles.scheduleDoctorName}>
+                      {upcomingAppt.doctorName}
+                    </Text>
+                    <Text style={styles.scheduleDoctorTitle} numberOfLines={1}>
+                      {upcomingAppt.doctorTitle || "Specialist"} •{" "}
+                      {upcomingAppt.clinicName}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.statusBadgeOverlay}>
+                  <Text style={styles.statusOverlayText}>
+                    {upcomingAppt.status?.toUpperCase()}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.scheduleTimeRow}>
+                <View style={styles.scheduleTimeDetail}>
+                  <Ionicons name="calendar-outline" size={15} color="#EAE8FC" />
+                  <Text style={styles.scheduleTimeText}>
+                    {upcomingAppt.date}
                   </Text>
                 </View>
 
-                <View style={{ flex: 1, marginRight: 8 }}>
-                  <Text style={styles.scheduleDoctorName}>
-                    {upcomingAppt.doctorName}
-                  </Text>
-                  <Text style={styles.scheduleDoctorTitle} numberOfLines={1}>
-                    {upcomingAppt.doctorTitle || "Specialist"} •{" "}
-                    {upcomingAppt.clinicName}
+                <View style={styles.scheduleTimeDetail}>
+                  <Ionicons name="time-outline" size={15} color="#EAE8FC" />
+                  <Text style={styles.scheduleTimeText}>
+                    {upcomingAppt.time}
                   </Text>
                 </View>
               </View>
-
-              <View style={styles.statusBadgeOverlay}>
-                <Text style={styles.statusOverlayText}>
-                  {upcomingAppt.status?.toUpperCase()}
-                </Text>
-              </View>
             </View>
-
-            <View style={styles.scheduleTimeRow}>
-              <View style={styles.scheduleTimeDetail}>
-                <Ionicons name="calendar-outline" size={15} color="#EAE8FC" />
-                <Text style={styles.scheduleTimeText}>{upcomingAppt.date}</Text>
-              </View>
-
-              <View style={styles.scheduleTimeDetail}>
-                <Ionicons name="time-outline" size={15} color="#EAE8FC" />
-                <Text style={styles.scheduleTimeText}>{upcomingAppt.time}</Text>
-              </View>
-            </View>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.noScheduleCard}
-            onPress={() => navigation.navigate("Clinics")}
-          >
-            <View style={styles.noScheduleLeft}>
-              <Ionicons
-                name="calendar-outline"
-                size={24}
-                color={COLORS.primary}
-              />
-              <View style={{ marginLeft: 12 }}>
-                <Text style={styles.noScheduleTitle}>No upcoming bookings</Text>
-                <Text style={styles.noScheduleSub}>
-                  Tap to schedule a checkup now
-                </Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.primary} />
-          </TouchableOpacity>
+          </>
         )}
 
         {/* Top Doctors */}

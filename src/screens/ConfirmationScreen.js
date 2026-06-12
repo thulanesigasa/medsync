@@ -5,49 +5,76 @@ import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 import { useStateContext } from '../context/StateContext';
 
-export default function ConfirmationScreen({ navigation }) {
+export default function ConfirmationScreen({ navigation, route }) {
   const { appointments } = useStateContext();
-  
-  const latestAppt = appointments[0] || {
-    patientName: 'Kiddo',
-    doctorName: 'Dr. Chris Nkwanyana',
-    clinicName: 'Dawn Park Clinic, Boksburg',
-    date: '2026-05-28',
-    time: '10:00 AM',
-    type: 'Dentist Appointment',
-    status: 'Pending'
+
+  const { currentUser } = useStateContext();
+
+  const bookingData = route?.params || {};
+
+  const latestAppt = {
+    patientName: currentUser?.name || "Kiddo",
+    doctorName: bookingData.doctor?.name || bookingData.doctorName || "Doctor",
+    clinicName:
+      bookingData.doctor?.clinic || bookingData.clinicName || "Clinic",
+    date: bookingData.date || new Date().toISOString().split("T")[0],
+    time: bookingData.time || "Time not set",
+    type: bookingData.doctor?.specialty || bookingData.type || "Appointment",
+    status: bookingData.status || "Confirmed",
   };
 
-  const dateParts = latestAppt.date.split('-');
-  const day = dateParts[2] || '28';
-  const monthNum = dateParts[1] || '05';
-  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-  const month = months[parseInt(monthNum, 10) - 1] || 'MAY';
-  const weekday = latestAppt.date === '2026-05-28' ? 'Thu' : 'Mon';
+  const dateParts = latestAppt.date.split("-");
+  const day = dateParts[2] || "28";
+  const monthNum = dateParts[1] || "05";
+  const months = [
+    "JAN",
+    "FEB",
+    "MAR",
+    "APR",
+    "MAY",
+    "JUN",
+    "JUL",
+    "AUG",
+    "SEP",
+    "OCT",
+    "NOV",
+    "DEC",
+  ];
+  const month = months[parseInt(monthNum, 10) - 1] || "MAY";
+  const weekday = latestAppt.date === "2026-05-28" ? "Thu" : "Mon";
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
-            <MaterialCommunityIcons name="shield-plus" size={32} color="#FFFFFF" />
+            <MaterialCommunityIcons
+              name="shield-plus"
+              size={32}
+              color="#FFFFFF"
+            />
             <Text style={styles.headerTitle}>MedSync</Text>
           </View>
-          <Ionicons name="chatbubble-ellipses-outline" size={28} color="#FFFFFF" />
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={28}
+            color="#FFFFFF"
+          />
         </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        
         {/* Success Header */}
         <View style={styles.successHeader}>
           <Ionicons name="checkmark-circle" size={28} color={COLORS.success} />
           <Text style={styles.successTitle}>Appointment Confirmed!</Text>
         </View>
-        <Text style={styles.successSubtitle}>Your appointment has been successfully booked.</Text>
- 
+        <Text style={styles.successSubtitle}>
+          Your appointment has been successfully booked.
+        </Text>
+
         <View style={styles.divider} />
- 
+
         {/* Ticket Card */}
         <View style={styles.ticketCard}>
           <View style={styles.dateBlock}>
@@ -55,23 +82,36 @@ export default function ConfirmationScreen({ navigation }) {
             <Text style={styles.dateDay}>{day}</Text>
             <Text style={styles.dateMonth}>{month}</Text>
           </View>
- 
+
           <View style={styles.detailsBlock}>
             <Text style={styles.patientName}>{latestAppt.patientName}</Text>
             <Text style={styles.doctorName}>{latestAppt.doctorName}</Text>
             <Text style={styles.clinicName}>{latestAppt.clinicName}</Text>
-            
+
             <View style={styles.detailRow}>
-              <Ionicons name="time-outline" size={18} color={COLORS.primary} style={styles.detailIcon} />
-              <Text style={styles.detailText}>{latestAppt.time} ({latestAppt.status})</Text>
+              <Ionicons
+                name="time-outline"
+                size={18}
+                color={COLORS.primary}
+                style={styles.detailIcon}
+              />
+              <Text style={styles.detailText}>
+                {latestAppt.time} ({latestAppt.status})
+              </Text>
             </View>
-            
+
             <View style={styles.detailRow}>
-              <FontAwesome5 
-                name={latestAppt.type.toLowerCase().includes('dentist') ? "tooth" : "stethoscope"} 
-                size={16} 
-                color={COLORS.primary} 
-                style={styles.detailIcon} 
+              <FontAwesome5
+                name={
+                  (latestAppt.type || "Appointment")
+                    .toLowerCase()
+                    .includes("dentist")
+                    ? "tooth"
+                    : "stethoscope"
+                }
+                size={16}
+                color={COLORS.primary}
+                style={styles.detailIcon}
               />
               <Text style={styles.detailText}>{latestAppt.type}</Text>
             </View>
@@ -81,11 +121,19 @@ export default function ConfirmationScreen({ navigation }) {
         {/* Action Buttons */}
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.outlineButton}>
-            <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
+            <Ionicons
+              name="calendar-outline"
+              size={18}
+              color={COLORS.primary}
+            />
             <Text style={styles.outlineButtonText}>Add to Calendar</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.outlineButton}>
-            <Ionicons name="notifications-outline" size={18} color={COLORS.primary} />
+            <Ionicons
+              name="notifications-outline"
+              size={18}
+              color={COLORS.primary}
+            />
             <Text style={styles.outlineButtonText}>Set Reminder</Text>
           </TouchableOpacity>
         </View>
@@ -100,7 +148,10 @@ export default function ConfirmationScreen({ navigation }) {
           <Text style={styles.complianceTitle}>Appointment Tips</Text>
           <View style={styles.listItem}>
             <Text style={styles.bulletPoint}>•</Text>
-            <Text style={styles.listText}>Please arrive <Text style={{fontWeight: 'bold'}}>10 minutes early</Text>.</Text>
+            <Text style={styles.listText}>
+              Please arrive{" "}
+              <Text style={{ fontWeight: "bold" }}>10 minutes early</Text>.
+            </Text>
           </View>
           <View style={styles.listItem}>
             <Text style={styles.bulletPoint}>•</Text>
@@ -111,7 +162,6 @@ export default function ConfirmationScreen({ navigation }) {
             <Text style={styles.listText}>Wear a mask if unwell.</Text>
           </View>
         </View>
-
       </ScrollView>
 
       <BottomTabBar navigation={navigation} activeTab="Appointments" />

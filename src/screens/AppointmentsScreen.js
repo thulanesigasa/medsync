@@ -9,6 +9,7 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import {
   MaterialCommunityIcons,
@@ -26,6 +27,7 @@ export default function AppointmentsScreen({ navigation }) {
     patients = [],
     messages = [],
     sendMessage,
+    updateAppointmentStatus,
   } = useStateContext();
 
   const [isDark, setIsDark] = useState(false);
@@ -33,13 +35,30 @@ export default function AppointmentsScreen({ navigation }) {
   const [activeChatApptId, setActiveChatApptId] = useState(null);
   const [chatText, setChatText] = useState("");
 
-  const upcomingAppointments = appointments.filter(
-    (appt) => appt.status === "Confirmed" || appt.status === "Pending",
-  );
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const pastAppointments = appointments.filter(
-    (appt) => appt.status === "Completed" || appt.status === "Declined",
-  );
+  const upcomingAppointments = appointments.filter((appt) => {
+    const appointmentDate = new Date(appt.date);
+    appointmentDate.setHours(0, 0, 0, 0);
+
+    return (
+      appointmentDate >= today &&
+      (appt.status === "Confirmed" || appt.status === "Pending")
+    );
+  });
+
+  const pastAppointments = appointments.filter((appt) => {
+    const appointmentDate = new Date(appt.date);
+    appointmentDate.setHours(0, 0, 0, 0);
+
+    return (
+      appointmentDate < today ||
+      appt.status === "Completed" ||
+      appt.status === "Declined" ||
+      appt.status === "Cancelled"
+    );
+  });
 
   const getMedicalNoteForAppointment = (appt) => {
     const patientRecord = patients.find(
@@ -50,6 +69,24 @@ export default function AppointmentsScreen({ navigation }) {
 
     return patientRecord.medicalNotes?.find(
       (note) => note.date === appt.date || note.doctorName === appt.doctorName,
+    );
+  };
+
+  const handleCancelAppointment = (appt) => {
+    Alert.alert(
+      "Cancel Appointment",
+      "Are you sure you want to cancel this appointment?",
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: () => updateAppointmentStatus(appt.id, "Cancelled"),
+        },
+      ],
     );
   };
 
@@ -73,6 +110,42 @@ export default function AppointmentsScreen({ navigation }) {
     setChatText("");
   };
 
+  const getStatusStyle = (status) => {
+    if (status === "Confirmed") return styles.statusConfirmed;
+    if (status === "Pending") return styles.statusPending;
+    if (status === "Cancelled" || status === "Declined")
+      return styles.statusCancelled;
+    return styles.statusCompleted;
+  };
+
+  const getStatusTextStyle = (status) => {
+    if (status === "Confirmed") return styles.statusTextConfirmed;
+    if (status === "Pending") return styles.statusTextPending;
+    if (status === "Cancelled" || status === "Declined")
+      return styles.statusTextCancelled;
+    return styles.statusTextCompleted;
+  };
+
+  const getDateDisplay = (dateString) => {
+    if (!dateString) {
+      return { day: "--", month: "---", weekday: "---" };
+    }
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return { day: "--", month: "---", weekday: "---" };
+    }
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = date
+      .toLocaleString("en-US", { month: "short" })
+      .toUpperCase();
+    const weekday = date.toLocaleString("en-US", { weekday: "short" });
+
+    return { day, month, weekday };
+  };
+
   const renderAppointmentCard = (appt) => (
     <View key={appt.id} style={styles.premiumCard}>
       <View style={styles.cardHeader}>
@@ -91,21 +164,9 @@ export default function AppointmentsScreen({ navigation }) {
           </Text>
         </View>
 
-        <View
-          style={[
-            styles.statusBadge,
-            appt.status === "Confirmed"
-              ? styles.statusConfirmed
-              : styles.statusPending,
-          ]}
-        >
+        <View style={[styles.statusBadge, getStatusStyle(appt.status)]}>
           <Text
-            style={[
-              styles.statusBadgeText,
-              appt.status === "Confirmed"
-                ? styles.statusTextConfirmed
-                : styles.statusTextPending,
-            ]}
+            style={[styles.statusBadgeText, getStatusTextStyle(appt.status)]}
           >
             {appt.status}
           </Text>
@@ -131,7 +192,10 @@ export default function AppointmentsScreen({ navigation }) {
       </View>
 
       <View style={styles.actionRow}>
-        <TouchableOpacity style={styles.outlineActionBtn}>
+        <TouchableOpacity
+          style={styles.outlineActionBtn}
+          onPress={() => handleCancelAppointment(appt)}
+        >
           <Text style={styles.outlineActionText}>Cancel</Text>
         </TouchableOpacity>
 
@@ -146,11 +210,7 @@ export default function AppointmentsScreen({ navigation }) {
   );
 
   const renderPastAppointment = (appt) => {
-    const dateParts = appt.date?.split("-") || [];
-    const day = dateParts[2] || "12";
-    const month = "MAY";
-    const weekday = "Mon";
-
+    const { day, month, weekday } = getDateDisplay(appt.date);
     const medicalNote = getMedicalNoteForAppointment(appt);
     const isExpanded = selectedNoteApptId === appt.id;
 
@@ -164,9 +224,22 @@ export default function AppointmentsScreen({ navigation }) {
           </View>
 
           <View style={styles.detailsBlock}>
-            <Text style={styles.clinicName}>
-              {appt.clinicName || "Clinic unavailable"}
-            </Text>
+            <View style={styles.pastHeaderRow}>
+              <Text style={styles.clinicName}>
+                {appt.clinicName || "Clinic unavailable"}
+              </Text>
+
+              <View style={[styles.statusBadge, getStatusStyle(appt.status)]}>
+                <Text
+                  style={[
+                    styles.statusBadgeText,
+                    getStatusTextStyle(appt.status),
+                  ]}
+                >
+                  {appt.status}
+                </Text>
+              </View>
+            </View>
 
             <View style={styles.detailRow}>
               <Ionicons
@@ -462,11 +535,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-  },
   actionButton: {
     padding: 4,
   },
@@ -586,11 +654,23 @@ const styles = StyleSheet.create({
   statusPending: {
     backgroundColor: "#FFFBEB",
   },
+  statusCancelled: {
+    backgroundColor: "#FEF2F2",
+  },
+  statusCompleted: {
+    backgroundColor: "#EFF6FF",
+  },
   statusTextConfirmed: {
     color: COLORS.success,
   },
   statusTextPending: {
     color: "#D97706",
+  },
+  statusTextCancelled: {
+    color: "#DC2626",
+  },
+  statusTextCompleted: {
+    color: COLORS.primary,
   },
   emptyContainer: {
     backgroundColor: COLORS.surface,
@@ -658,6 +738,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
+  pastWrapper: {
+    marginBottom: 12,
+  },
   ticketCard: {
     backgroundColor: COLORS.surface,
     borderRadius: SIZES.radius,
@@ -697,11 +780,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
+  pastHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+    marginBottom: 8,
+  },
   clinicName: {
+    flex: 1,
     fontSize: 15,
     fontWeight: "bold",
     color: COLORS.primary,
-    marginBottom: 8,
   },
   detailRow: {
     flexDirection: "row",
@@ -754,6 +844,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#475569",
     lineHeight: 16,
+  },
+  bold: {
+    fontWeight: "bold",
   },
   modalOverlay: {
     flex: 1,
