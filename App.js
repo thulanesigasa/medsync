@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ThemeProvider } from './src/context/ThemeContext';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 import { ClinicProvider } from './src/context/ClinicContext';
 import { AppointmentProvider } from './src/context/AppointmentContext';
 import { ChatProvider } from './src/context/ChatContext';
@@ -21,8 +21,44 @@ import ClinicsScreen from './src/screens/ClinicsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
 import DoctorProfileScreen from './src/screens/DoctorProfileScreen';
+import { View, ActivityIndicator } from 'react-native';
 
 const Stack = createNativeStackNavigator();
+
+function AppNavigator() {
+  const { currentUser, isAuthLoaded } = useAuth();
+
+  if (!isAuthLoaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' }}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator 
+        initialRouteName={currentUser ? (currentUser.role === 'admin' ? 'Admin' : 'Home') : 'Login'}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Signup" component={SignupScreen} />
+        <Stack.Screen name="Admin" component={AdminScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="DoctorProfile" component={DoctorProfileScreen} />
+        <Stack.Screen name="Booking" component={BookingScreen} />
+        <Stack.Screen name="Confirmation" component={ConfirmationScreen} />
+        <Stack.Screen name="Appointments" component={AppointmentsScreen} />
+        <Stack.Screen name="Records" component={RecordsScreen} />
+        <Stack.Screen name="Chats" component={ChatsScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Clinics" component={ClinicsScreen} />
+        <Stack.Screen name="Notifications" component={NotificationsScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
 
 export default function App() {
   return (
@@ -32,26 +68,7 @@ export default function App() {
           <ChatProvider>
             <AppointmentProvider>
               <ToastProvider>
-                <NavigationContainer>
-                  <Stack.Navigator 
-                    initialRouteName="Login"
-                    screenOptions={{ headerShown: false }}
-                  >
-                    <Stack.Screen name="Login" component={LoginScreen} />
-                    <Stack.Screen name="Signup" component={SignupScreen} />
-                    <Stack.Screen name="Admin" component={AdminScreen} />
-                    <Stack.Screen name="Home" component={HomeScreen} />
-                    <Stack.Screen name="DoctorProfile" component={DoctorProfileScreen} />
-                    <Stack.Screen name="Booking" component={BookingScreen} />
-                    <Stack.Screen name="Confirmation" component={ConfirmationScreen} />
-                    <Stack.Screen name="Appointments" component={AppointmentsScreen} />
-                    <Stack.Screen name="Records" component={RecordsScreen} />
-                    <Stack.Screen name="Chats" component={ChatsScreen} />
-                    <Stack.Screen name="Profile" component={ProfileScreen} />
-                    <Stack.Screen name="Clinics" component={ClinicsScreen} />
-                    <Stack.Screen name="Notifications" component={NotificationsScreen} />
-                  </Stack.Navigator>
-                </NavigationContainer>
+                <AppNavigator />
               </ToastProvider>
             </AppointmentProvider>
           </ChatProvider>

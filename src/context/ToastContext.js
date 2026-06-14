@@ -9,8 +9,8 @@ export const ToastProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
   const translateY = useRef(new Animated.Value(-100)).current;
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
+  const showToast = (message, type = 'success', title = null) => {
+    setToast({ message, type, title });
   };
 
   useEffect(() => {
@@ -41,15 +41,20 @@ export const ToastProvider = ({ children }) => {
           style={[
             styles.toastContainer,
             { transform: [{ translateY }] },
-            toast.type === 'error' ? styles.errorBg : styles.successBg
+            toast.type === 'error' ? styles.errorBg : (toast.type === 'info' ? styles.infoBg : styles.successBg)
           ]}
         >
-          <Ionicons 
-            name={toast.type === 'error' ? 'alert-circle' : 'checkmark-circle'} 
-            size={24} 
-            color="#fff" 
-          />
-          <Text style={styles.toastText}>{toast.message}</Text>
+          <View style={styles.iconContainer}>
+            <Ionicons 
+              name={toast.type === 'error' ? 'alert-circle' : (toast.type === 'info' ? 'information-circle' : 'checkmark-circle')} 
+              size={28} 
+              color="#fff" 
+            />
+          </View>
+          <View style={styles.textContainer}>
+            {toast.title && <Text style={styles.toastTitle}>{toast.title}</Text>}
+            <Text style={styles.toastText}>{toast.message}</Text>
+          </View>
         </Animated.View>
       )}
     </ToastContext.Provider>
@@ -76,15 +81,29 @@ const styles = StyleSheet.create({
     zIndex: 9999,
   },
   successBg: {
-    backgroundColor: COLORS.success || '#10B981',
+    backgroundColor: '#10B981',
   },
   errorBg: {
     backgroundColor: '#EF4444',
   },
+  infoBg: {
+    backgroundColor: '#3B82F6',
+  },
+  iconContainer: {
+    marginRight: 12,
+  },
+  textContainer: {
+    flex: 1,
+  },
+  toastTitle: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
   toastText: {
     color: '#fff',
-    fontSize: 15,
-    fontWeight: 'bold',
-    marginLeft: 10,
+    fontSize: 14,
+    opacity: 0.9,
   }
 });
