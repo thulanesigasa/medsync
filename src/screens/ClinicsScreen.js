@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
+import { useClinic } from '../context/ClinicContext';
 
 export default function ClinicsScreen({ navigation }) {
-  const { clinics, doctors } = useStateContext();
+  const { clinics, doctors } = useClinic();
   return (
     <View style={styles.container}>
       {/* Header */}

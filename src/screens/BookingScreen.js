@@ -8,7 +8,8 @@ import {
   ScrollView,
 } from "react-native";
 
-import { useStateContext } from "../context/StateContext";
+import { useAuth } from '../context/AuthContext';
+import { useAppointment } from '../context/AppointmentContext';
 
 import { Ionicons, Feather } from "@expo/vector-icons";
 
@@ -17,7 +18,8 @@ import { Calendar } from "react-native-calendars";
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 
 export default function BookingScreen({ navigation, route }) {
-  const { addAppointment, currentUser } = useStateContext();
+  const { currentUser } = useAuth();
+  const { addAppointment } = useAppointment();
   const doctor = route?.params?.doctor;
 
   const [selectedDate, setSelectedDate] = useState(

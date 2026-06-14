@@ -9,12 +9,16 @@ import {
   ScrollView,
   Platform,
   KeyboardAvoidingView,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
+import { useClinic } from '../context/ClinicContext';
+import { useToast } from '../context/ToastContext';
 export default function SignupScreen({ navigation, route }) {
-  const { signup } = useStateContext();
+  const { signup } = useAuth();
+  const { addPatient } = useClinic();
   const defaultRole = route.params?.defaultRole || 'patient';
   const [role, setRole] = useState(defaultRole);
   const [name, setName] = useState('');
@@ -23,6 +27,8 @@ export default function SignupScreen({ navigation, route }) {
   const [password, setPassword] = useState('');
   const [selectedClinic, setSelectedClinic] = useState('Dawn Park Clinic');
   const [showClinicDropdown, setShowClinicDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useToast();
   const clinics = [
     'Dawn Park Clinic',
     'Benoni Health Centre',
@@ -30,39 +36,51 @@ export default function SignupScreen({ navigation, route }) {
   ];
   const handleSignup = () => {
     if (!name && role === 'patient') {
-      alert('Please enter your full name');
+      showToast('Please enter your full name', 'error');
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
-      alert('Please enter a valid email address');
+      showToast('Please enter a valid email address', 'error');
       return;
     }
     if (!phone || phone.length < 10) {
-      alert('Please enter a valid phone number (min 10 digits)');
+      showToast('Please enter a valid phone number (min 10 digits)', 'error');
       return;
     }
     if (!password || password.length < 6) {
-      alert('Password must be at least 6 characters long');
+      showToast('Password must be at least 6 characters long', 'error');
       return;
     }
-    const result = signup(
-      name,
-      email,
-      phone,
-      password,
-      role,
-      role === 'admin' ? selectedClinic : ''
-    );
-    if (!result.success) {
-      alert(result.message);
-      return;
-    }
-    if (role === 'admin') {
-      navigation.replace('Admin');
-    } else {
-      navigation.replace('Home');
-    }
+    
+    setIsLoading(true);
+
+    setTimeout(() => {
+      setIsLoading(false);
+      const result = signup(
+        name,
+        email,
+        phone,
+        password,
+        role,
+        role === 'admin' ? selectedClinic : ''
+      );
+      if (!result.success) {
+        showToast(result.message, 'error');
+        return;
+      }
+      
+      showToast('Signup successful!', 'success');
+      
+      if (role === 'patient') {
+        addPatient({ name, email, phone });
+      }
+      if (role === 'admin') {
+        navigation.replace('Admin');
+      } else {
+        navigation.replace('Home');
+      }
+    }, 1200);
   };
   return (
     <KeyboardAvoidingView
@@ -261,10 +279,15 @@ export default function SignupScreen({ navigation, route }) {
           <TouchableOpacity
             style={styles.signupBtn}
             onPress={handleSignup}
+            disabled={isLoading}
           >
-            <Text style={styles.signupBtnText}>
-              SIGN UP
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.signupBtnText}>
+                SIGN UP
+              </Text>
+            )}
           </TouchableOpacity>
           {/* Login Redirect */}
           <View style={styles.loginPrompt}>

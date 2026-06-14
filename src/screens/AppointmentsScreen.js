@@ -19,19 +19,19 @@ import {
 
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 import BottomTabBar from "../components/BottomTabBar";
-import { useStateContext } from "../context/StateContext";
+import { useAuth } from '../context/AuthContext';
+import { useAppointment } from '../context/AppointmentContext';
+import { useTheme } from '../context/ThemeContext';
+import { useClinic } from '../context/ClinicContext';
+import { useChat } from '../context/ChatContext';
+import EmptyAppointmentsSVG from '../components/EmptyAppointmentsSVG';
 
 export default function AppointmentsScreen({ navigation }) {
-  const {
-    appointments = [],
-    patients = [],
-    messages = [],
-    sendMessage,
-    updateAppointmentStatus,
-    isDark,
-    toggleTheme,
-    theme
-  } = useStateContext();
+  const { currentUser } = useAuth();
+  const { appointments, updateAppointmentStatus } = useAppointment();
+  const { patients } = useClinic();
+  const { messages, sendMessage } = useChat();
+  const { isDark, theme, toggleTheme } = useTheme();
 
   const [selectedNoteApptId, setSelectedNoteApptId] = useState(null);
   const [activeChatApptId, setActiveChatApptId] = useState(null);
@@ -390,7 +390,7 @@ export default function AppointmentsScreen({ navigation }) {
 
         {upcomingAppointments.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={36} color="#94A3B8" />
+            <EmptyAppointmentsSVG width={140} height={140} />
             <Text style={styles.emptyText}>
               No upcoming appointments scheduled
             </Text>
@@ -403,6 +403,7 @@ export default function AppointmentsScreen({ navigation }) {
 
         {pastAppointments.length === 0 ? (
           <View style={styles.emptyContainer}>
+            <EmptyAppointmentsSVG width={140} height={140} />
             <Text style={styles.emptyText}>No past appointments found</Text>
           </View>
         ) : (

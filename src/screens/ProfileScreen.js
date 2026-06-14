@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platfor
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
 
 const CustomSwitch = ({ value, onValueChange }) => {
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
@@ -51,7 +51,7 @@ const CustomSwitch = ({ value, onValueChange }) => {
 };
 
 export default function ProfileScreen({ navigation }) {
-  const { currentUser, logout } = useStateContext();
+  const { currentUser, logout } = useAuth();
   const [isDark, setIsDark] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 

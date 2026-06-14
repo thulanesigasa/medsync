@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 export default function LoginScreen({ navigation }) {
-  const { login, resetPassword } = useStateContext();
+  const { login, resetPassword } = useAuth();
   const [role, setRole] = useState('patient'); // 'patient' or 'admin'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [selectedClinic, setSelectedClinic] = useState('Dawn Park Clinic');
   const [showClinicDropdown, setShowClinicDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useToast();
 
   const clinics = [
     'Dawn Park Clinic',
@@ -22,32 +25,40 @@ export default function LoginScreen({ navigation }) {
   const handleLogin = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
-      alert("Please enter a valid email address");
+      showToast("Please enter a valid email address", 'error');
       return;
     }
 
     if (!password || password.length < 6) {
-      alert("Password must be at least 6 characters long");
+      showToast("Password must be at least 6 characters long", 'error');
       return;
     }
 
-    const result = login(
-      email,
-      password,
-      role,
-      role === "admin" ? selectedClinic : "",
-    );
+    setIsLoading(true);
+    
+    // Simulate network delay
+    setTimeout(() => {
+      setIsLoading(false);
+      const result = login(
+        email,
+        password,
+        role,
+        role === "admin" ? selectedClinic : "",
+      );
 
-    if (!result.success) {
-      alert(result.message);
-      return;
-    }
+      if (!result.success) {
+        showToast(result.message, 'error');
+        return;
+      }
 
-    if (role === "admin") {
-      navigation.replace("Admin");
-    } else {
-      navigation.replace("Home");
-    }
+      showToast("Login successful!", 'success');
+      
+      if (role === "admin") {
+        navigation.replace("Admin");
+      } else {
+        navigation.replace("Home");
+      }
+    }, 1200);
   };
   const handleQuickFillPatient = () => {
     setRole('patient');
@@ -245,7 +256,7 @@ export default function LoginScreen({ navigation }) {
             style={styles.forgotBtn}
             onPress={() => {
               if (!email) {
-                alert("Please enter your email first.");
+                showToast("Please enter your email first.", 'error');
                 return;
               }
 
@@ -257,15 +268,23 @@ export default function LoginScreen({ navigation }) {
 
               const result = resetPassword(email, newPassword, role);
 
-              alert(result.message);
+              showToast(result.message, result.success ? 'success' : 'error');
             }}
           >
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
 
           {/* Login Action Button */}
-          <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
-            <Text style={styles.loginBtnText}>LOG IN</Text>
+          <TouchableOpacity 
+            style={styles.loginBtn} 
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.loginBtnText}>LOG IN</Text>
+            )}
           </TouchableOpacity>
 
           {/* Sign Up Navigation Link */}

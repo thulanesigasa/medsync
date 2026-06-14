@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,19 +15,27 @@ import {
 
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 import BottomTabBar from "../components/BottomTabBar";
-import { useStateContext } from "../context/StateContext";
+import SkeletonLoader from '../components/SkeletonLoader';
+import { useClinic } from '../context/ClinicContext';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useAppointment } from '../context/AppointmentContext';
 
 export default function HomeScreen({ navigation }) {
-  const {
-    currentUser,
-    appointments = [],
-    doctors = [],
-    isDark,
-    theme,
-    toggleTheme,
-  } = useStateContext();
+  const { clinics, doctors } = useClinic();
+  const { currentUser } = useAuth();
+  const { appointments = [] } = useAppointment();
+  const { isDark, theme, toggleTheme } = useTheme();
 
+  const [isLoading, setIsLoading] = useState(true);
   
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState("");
 
   const handleBookAppointment = (doctor) => {
@@ -312,7 +320,20 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View style={styles.doctorsList}>
-          {filteredDoctors.length > 0 ? (
+          {isLoading ? (
+            <>
+              {[1, 2, 3].map((i) => (
+                <View key={i} style={[styles.doctorCard, { flexDirection: 'row', alignItems: 'center' }]}>
+                  <SkeletonLoader width={56} height={56} borderRadius={28} isDark={isDark} />
+                  <View style={{ marginLeft: 16, flex: 1, gap: 8 }}>
+                    <SkeletonLoader width={120} height={16} isDark={isDark} />
+                    <SkeletonLoader width={100} height={12} isDark={isDark} />
+                    <SkeletonLoader width={140} height={12} isDark={isDark} />
+                  </View>
+                </View>
+              ))}
+            </>
+          ) : filteredDoctors.length > 0 ? (
             filteredDoctors.map((doctor) => (
               <TouchableOpacity
                 key={doctor.id}

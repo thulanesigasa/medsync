@@ -3,10 +3,17 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal,
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
+import { useClinic } from '../context/ClinicContext';
+import { useChat } from '../context/ChatContext';
+import { useTheme } from '../context/ThemeContext';
+import EmptyChatsSVG from '../components/EmptyChatsSVG';
 
 export default function ChatsScreen({ navigation }) {
-  const { currentUser, clinics, messages, sendMessage, isDark, toggleTheme, theme } = useStateContext();
+  const { currentUser } = useAuth();
+  const { clinics } = useClinic();
+  const { messages, sendMessage } = useChat();
+  const { isDark, toggleTheme, theme } = useTheme();
   const [activeClinicName, setActiveClinicName] = useState(null);
   const [chatText, setChatText] = useState('');
 
@@ -117,7 +124,14 @@ export default function ChatsScreen({ navigation }) {
               showsVerticalScrollIndicator={false}
               ref={ref => { if (ref) ref.scrollToEnd({ animated: true }); }}
             >
-              {activeClinicName && messages
+              {activeClinicName && messages.filter(
+                  m => m.clinicName === activeClinicName && m.patientName === patientName
+                ).length === 0 ? (
+                  <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 100 }}>
+                    <EmptyChatsSVG width={140} height={140} />
+                    <Text style={{ color: '#94A3B8', marginTop: 16, fontSize: 16 }}>No messages yet</Text>
+                  </View>
+                ) : activeClinicName && messages
                 .filter(
                   m => m.clinicName === activeClinicName && m.patientName === patientName
                 )
