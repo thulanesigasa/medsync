@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  RefreshControl,
 } from "react-native";
 import {
   Ionicons,
@@ -28,7 +29,11 @@ export default function HomeScreen({ navigation }) {
   const { isDark, theme, toggleTheme } = useTheme();
 
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [activeSpecialty, setActiveSpecialty] = useState(null);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
@@ -36,22 +41,37 @@ export default function HomeScreen({ navigation }) {
     return () => clearTimeout(timer);
   }, []);
 
-  const [searchQuery, setSearchQuery] = useState("");
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const handleBookAppointment = (doctor) => {
-    navigation.navigate("Booking", { doctor });
+    navigation.navigate("DoctorProfile", { doctor });
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
-    const query = searchQuery.trim().toLowerCase();
-
-    if (!query) return true;
-
-    return (
+    const query = debouncedSearchQuery.trim().toLowerCase();
+    
+    const matchesSearch = !query || (
       doctor.name?.toLowerCase().includes(query) ||
       doctor.specialty?.toLowerCase().includes(query) ||
       doctor.clinic?.toLowerCase().includes(query)
     );
+
+    const matchesSpecialty = !activeSpecialty || 
+      doctor.specialty?.toLowerCase().includes(activeSpecialty.toLowerCase());
+
+    return matchesSearch && matchesSpecialty;
   });
 
   const today = new Date();
@@ -112,6 +132,9 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
       >
         {/* Greeting */}
         <View style={styles.greetingContainer}>
@@ -194,8 +217,11 @@ export default function HomeScreen({ navigation }) {
           contentContainerStyle={styles.specialtiesScroll}
         >
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("General")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "General" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "General" ? null : "General")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5
@@ -208,8 +234,11 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("Dentist")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "Dentist" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "Dentist" ? null : "Dentist")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="tooth" size={18} color={COLORS.primary} />
@@ -218,8 +247,11 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("Cardiologist")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "Cardiologist" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "Cardiologist" ? null : "Cardiologist")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="heartbeat" size={20} color={COLORS.primary} />
@@ -228,8 +260,11 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("Pediatrics")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "Pediatrics" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "Pediatrics" ? null : "Pediatrics")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="baby" size={20} color={COLORS.primary} />
@@ -238,8 +273,11 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("Neurology")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "Neurology" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "Neurology" ? null : "Neurology")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="brain" size={18} color={COLORS.primary} />
