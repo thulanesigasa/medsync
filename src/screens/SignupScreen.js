@@ -33,16 +33,17 @@ export default function SignupScreen({ navigation, route }) {
       alert('Please enter your full name');
       return;
     }
-    if (!email) {
-      alert('Please enter your email address');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      alert('Please enter a valid email address');
       return;
     }
-    if (!phone) {
-      alert('Please enter your phone number');
+    if (!phone || phone.length < 10) {
+      alert('Please enter a valid phone number (min 10 digits)');
       return;
     }
-    if (!password) {
-      alert('Please enter a password');
+    if (!password || password.length < 6) {
+      alert('Password must be at least 6 characters long');
       return;
     }
     const result = signup(

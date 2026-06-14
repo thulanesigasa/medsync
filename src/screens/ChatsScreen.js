@@ -6,10 +6,9 @@ import BottomTabBar from '../components/BottomTabBar';
 import { useStateContext } from '../context/StateContext';
 
 export default function ChatsScreen({ navigation }) {
-  const { currentUser, clinics, messages, sendMessage } = useStateContext();
+  const { currentUser, clinics, messages, sendMessage, isDark, toggleTheme, theme } = useStateContext();
   const [activeClinicName, setActiveClinicName] = useState(null);
   const [chatText, setChatText] = useState('');
-  const [isDark, setIsDark] = useState(false);
 
   const patientName = currentUser?.name || 'Kiddo';
 
@@ -20,7 +19,7 @@ export default function ChatsScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -28,7 +27,7 @@ export default function ChatsScreen({ navigation }) {
             <Ionicons name="chatbubbles" size={28} color="#FFFFFF" />
             <Text style={styles.appTitle}>My Chats</Text>
           </View>
-          <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
+          <TouchableOpacity onPress={toggleTheme} style={styles.actionButton}>
             <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -43,8 +42,7 @@ export default function ChatsScreen({ navigation }) {
           {clinics.map((clinic) => {
             // Filter messages for this clinic and patient
             const clinicMsgs = messages.filter(
-              m => m.clinicName.toLowerCase().includes(clinic.name.toLowerCase()) && 
-                   m.patientName.toLowerCase() === patientName.toLowerCase()
+              m => m.clinicName === clinic.name && m.patientName === patientName
             );
             const lastMsg = clinicMsgs[clinicMsgs.length - 1];
 
@@ -121,8 +119,7 @@ export default function ChatsScreen({ navigation }) {
             >
               {activeClinicName && messages
                 .filter(
-                  m => m.clinicName.toLowerCase().includes(activeClinicName.toLowerCase()) && 
-                       m.patientName.toLowerCase() === patientName.toLowerCase()
+                  m => m.clinicName === activeClinicName && m.patientName === patientName
                 )
                 .map((msg) => {
                   const isPatient = msg.sender === 'patient';

@@ -5,7 +5,7 @@ import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import { useStateContext } from '../context/StateContext';
 
 export default function ClinicsScreen({ navigation }) {
-  const { clinics } = useStateContext();
+  const { clinics, doctors } = useStateContext();
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -34,7 +34,10 @@ export default function ClinicsScreen({ navigation }) {
             <TouchableOpacity 
               key={clinic.id} 
               style={styles.clinicCard} 
-              onPress={() => navigation.navigate('Booking', { selectedClinicName: clinic.name })}
+              onPress={() => {
+                const clinicDoc = doctors?.find(d => d.clinic === clinic.name) || doctors?.[0];
+                navigation.navigate('Booking', { doctor: clinicDoc });
+              }}
             >
               <View style={styles.clinicImagePlaceholder}>
                 <Ionicons name={iconName} size={32} color={COLORS.primary} />

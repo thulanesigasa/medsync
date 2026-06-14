@@ -20,13 +20,14 @@ export default function LoginScreen({ navigation }) {
   ];
 
   const handleLogin = () => {
-    if (!email) {
-      alert("Please enter your email address");
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      alert("Please enter a valid email address");
       return;
     }
 
-    if (!password) {
-      alert("Please enter your password");
+    if (!password || password.length < 6) {
+      alert("Password must be at least 6 characters long");
       return;
     }
 
