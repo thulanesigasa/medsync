@@ -4,6 +4,9 @@ import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../context/ToastContext';
+import { TextInput, KeyboardAvoidingView } from 'react-native';
 
 const CustomSwitch = ({ value, onValueChange }) => {
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
@@ -52,12 +55,23 @@ const CustomSwitch = ({ value, onValueChange }) => {
 
 export default function ProfileScreen({ navigation }) {
   const { currentUser, logout } = useAuth();
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
+  const { showToast } = useToast();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  
+  const [isEditModalVisible, setEditModalVisible] = useState(false);
+  const [editName, setEditName] = useState(currentUser?.name || '');
+  const [editEmail, setEditEmail] = useState(currentUser?.email || '');
 
   const handleLogout = () => {
     logout();
     navigation.replace('Login');
+  };
+
+  const handleSaveProfile = () => {
+    // In a real app we'd update AuthContext. For now, mock success.
+    setEditModalVisible(false);
+    showToast("Profile details updated successfully!", "success", "Profile Saved");
   };
 
   return (
@@ -70,7 +84,7 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.appTitle}>MedSync</Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
+            <TouchableOpacity onPress={toggleTheme} style={styles.actionButton}>
               <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
@@ -106,7 +120,7 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </View>
 
-          <TouchableOpacity style={styles.editBtn}>
+          <TouchableOpacity style={styles.editBtn} onPress={() => setEditModalVisible(true)}>
             <Text style={styles.editBtnText}>Edit Profile Details</Text>
             <Ionicons name="create-outline" size={16} color={COLORS.primary} />
           </TouchableOpacity>
@@ -165,11 +179,11 @@ export default function ProfileScreen({ navigation }) {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={() => setIsDark(!isDark)}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={toggleTheme}>
             <View style={styles.menuIconBox}>
               <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuText}>Dark Mode (Visual Mock)</Text>
+            <Text style={styles.menuText}>Dark Mode</Text>
             <Text style={styles.rightValueText}>{isDark ? 'ON' : 'OFF'}</Text>
           </TouchableOpacity>
         </View>
@@ -203,6 +217,48 @@ export default function ProfileScreen({ navigation }) {
       </ScrollView>
       
       <BottomTabBar navigation={navigation} activeTab="Profile" />
+
+      {/* Edit Profile Modal */}
+      {isEditModalVisible && (
+        <View style={styles.modalOverlay}>
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.modalContent}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Edit Profile</Text>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Full Name</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Enter full name"
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Email Address</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={editEmail}
+                onChangeText={setEditEmail}
+                keyboardType="email-address"
+                placeholder="Enter email address"
+              />
+            </View>
+
+            <TouchableOpacity style={styles.saveModalBtn} onPress={handleSaveProfile}>
+              <Text style={styles.saveModalBtnText}>Save Changes</Text>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </View>
+      )}
     </View>
   );
 }
@@ -434,5 +490,59 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'flex-end',
+    zIndex: 100,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748B',
+    marginBottom: 8,
+  },
+  modalInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    color: COLORS.primary,
+  },
+  saveModalBtn: {
+    backgroundColor: COLORS.primary,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  saveModalBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   }
 });

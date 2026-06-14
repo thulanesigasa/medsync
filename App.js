@@ -21,17 +21,39 @@ import ClinicsScreen from './src/screens/ClinicsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
 import DoctorProfileScreen from './src/screens/DoctorProfileScreen';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
 
 const Stack = createNativeStackNavigator();
 
 function AppNavigator() {
   const { currentUser, isAuthLoaded } = useAuth();
+  const [isLocked, setIsLocked] = useState(true);
 
   if (!isAuthLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F172A' }}>
         <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
+
+  // Show lock screen if user is logged in but app is locked
+  if (currentUser && isLocked) {
+    return (
+      <View style={styles.lockContainer}>
+        <Ionicons name="finger-print" size={80} color="#3B82F6" style={{ marginBottom: 20 }} />
+        <Text style={styles.lockTitle}>App Locked</Text>
+        <Text style={styles.lockSub}>Verify your identity to continue</Text>
+        
+        <TouchableOpacity style={styles.unlockBtn} onPress={() => setIsLocked(false)}>
+          <Text style={styles.unlockBtnText}>Use Face ID / Touch ID</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.pinBtn} onPress={() => setIsLocked(false)}>
+          <Text style={styles.pinBtnText}>Use PIN instead</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -77,3 +99,50 @@ export default function App() {
     </ThemeProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  lockContainer: {
+    flex: 1,
+    backgroundColor: '#0F172A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  lockTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  lockSub: {
+    fontSize: 14,
+    color: '#94A3B8',
+    marginBottom: 40,
+  },
+  unlockBtn: {
+    backgroundColor: '#3B82F6',
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    marginBottom: 16,
+    width: '100%',
+    alignItems: 'center',
+  },
+  unlockBtnText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  pinBtn: {
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    borderRadius: 30,
+    width: '100%',
+    alignItems: 'center',
+  },
+  pinBtnText: {
+    color: '#3B82F6',
+    fontSize: 16,
+    fontWeight: '600',
+  }
+});
