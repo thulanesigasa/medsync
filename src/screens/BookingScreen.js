@@ -1,145 +1,152 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
+import React, { useState } from "react";
+
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+
+import { useAuth } from '../context/AuthContext';
+import { useAppointment } from '../context/AppointmentContext';
+
+import { Ionicons, Feather } from "@expo/vector-icons";
+
+import { Calendar } from "react-native-calendars";
+
+import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 
 export default function BookingScreen({ navigation, route }) {
-  const { currentUser, clinics, doctors, addAppointment } = useStateContext();
-  
-  // Default to parameter from ClinicsScreen, or first clinic
-  const initialClinicName = route.params?.selectedClinicName || clinics[0].name;
-  
-  const [selectedClinic, setSelectedClinic] = useState(initialClinicName);
-  const [showClinicDropdown, setShowClinicDropdown] = useState(false);
-  
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const [showDoctorDropdown, setShowDoctorDropdown] = useState(false);
-  
-  const [selectedTime, setSelectedTime] = useState('10:00');
-  const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"];
+  const { currentUser } = useAuth();
+  const { addAppointment } = useAppointment();
+  const doctor = route?.params?.doctor;
 
-  // Filter doctors based on selected clinic
-  const filteredDoctors = doctors.filter(
-    doc => doc.clinic.toLowerCase().includes(selectedClinic.toLowerCase())
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0],
   );
 
-  // Set active doctor to first filtered doctor if not set or invalid
-  const activeDoctor = selectedDoctor || filteredDoctors[0] || doctors[0];
+  const [selectedTime, setSelectedTime] = useState("12:00");
+
+  const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00"];
+
+  if (!doctor) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: "center", marginTop: 20 }}>
+          No doctor selected
+        </Text>
+      </View>
+    );
+  }
+
+  // disable past times
+  const now = new Date();
+  const currentHour = now.getHours();
+
+  const isPastTime = (time) => {
+    if (selectedDate !== now.toISOString().split("T")[0]) {
+      return false;
+    }
+
+    const hour = parseInt(time.split(":")[0], 10);
+
+    return hour < currentHour;
+  };
 
   const handleConfirm = () => {
-    addAppointment({
-      patientName: currentUser?.name || 'Kiddo',
-      doctorName: activeDoctor.name,
-      doctorTitle: activeDoctor.specialty,
-      clinicName: selectedClinic,
-      date: '2026-05-28',
-      time: `${selectedTime} AM`,
-      type: activeDoctor.specialty.includes('Dentist') ? 'Dentist Appointment' : 'General Checkup'
-    });
-    navigation.navigate('Confirmation');
+    try {
+      const appointment = {
+        patientName: currentUser?.name || 'Guest',
+        doctorName: doctor.name,
+        doctorTitle: doctor.specialty,
+        clinicName: doctor.clinic,
+        type: "Checkup",
+        date: selectedDate,
+        time: selectedTime,
+        status: "Confirmed",
+      };
+
+      addAppointment(appointment);
+
+      navigation.navigate("Confirmation", appointment);
+    } catch (error) {
+      console.log("Error saving appointment:", error);
+    }
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* HEADER */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Book Appointment</Text>
-          <View style={{ width: 24 }} />
-        </View>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Book Appointment</Text>
+
+        <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Clinic Selector */}
-        <Text style={styles.sectionLabel}>Select Clinic</Text>
-        <View style={{ zIndex: 20, position: 'relative' }}>
-          <TouchableOpacity 
-            style={styles.inputBox} 
-            onPress={() => {
-              setShowClinicDropdown(!showClinicDropdown);
-              setShowDoctorDropdown(false);
-            }}
-          >
-            <Text style={styles.inputText}>{selectedClinic}</Text>
-            <Feather name="chevron-down" size={20} color={COLORS.primary} />
-          </TouchableOpacity>
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* DOCTOR */}
+        <Text style={styles.doctorName}>{doctor.name}</Text>
 
-          {showClinicDropdown && (
-            <View style={styles.dropdown}>
-              {clinics.map((clinic) => (
-                <TouchableOpacity 
-                  key={clinic.id} 
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setSelectedClinic(clinic.name);
-                    setSelectedDoctor(null); // Reset doctor when clinic changes
-                    setShowClinicDropdown(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>{clinic.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
+        <Text style={styles.specialty}>{doctor.specialty}</Text>
 
-        {/* Doctor Selector */}
-        <Text style={styles.sectionLabel}>Select Doctor</Text>
-        <View style={{ zIndex: 10, position: 'relative' }}>
-          <TouchableOpacity 
-            style={styles.inputBox} 
-            onPress={() => {
-              setShowDoctorDropdown(!showDoctorDropdown);
-              setShowClinicDropdown(false);
-            }}
-          >
-            <Text style={styles.inputText}>
-              {activeDoctor ? `${activeDoctor.name} (${activeDoctor.specialty})` : 'Select Doctor'}
-            </Text>
-            <Feather name="chevron-down" size={20} color={COLORS.primary} />
-          </TouchableOpacity>
+        <Text style={styles.clinic}>{doctor.clinic}</Text>
 
-          {showDoctorDropdown && (
-            <View style={styles.dropdown}>
-              {filteredDoctors.map((doc) => (
-                <TouchableOpacity 
-                  key={doc.id} 
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setSelectedDoctor(doc);
-                    setShowDoctorDropdown(false);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>{doc.name} ({doc.specialty})</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </View>
+        {/* CLINIC */}
+        <Text style={styles.sectionLabel}>Select clinic</Text>
 
-        {/* Date Display */}
-        <Text style={styles.sectionLabel}>Select Date</Text>
         <View style={styles.inputBox}>
-          <Text style={styles.inputText}>2026-05-28</Text>
-          <Feather name="calendar" size={20} color={COLORS.primary} />
+          <Text style={styles.inputText}>{doctor.clinic}</Text>
+
+          <Feather name="chevron-down" size={20} color={COLORS.primary} />
         </View>
 
-        {/* Time Selector */}
-        <Text style={styles.sectionLabel}>Select Time</Text>
+        {/* DATE */}
+        <Text style={styles.sectionLabel}>Select date</Text>
+
+        <Calendar
+          onDayPress={(day) => setSelectedDate(day.dateString)}
+          markedDates={{
+            [selectedDate]: {
+              selected: true,
+              selectedColor: COLORS.primary,
+            },
+          }}
+          minDate={new Date().toISOString().split("T")[0]}
+          theme={{
+            todayTextColor: COLORS.primary,
+            arrowColor: COLORS.primary,
+          }}
+          style={styles.calendar}
+        />
+
+        {/* TIME */}
+        <Text style={styles.sectionLabel}>Select time</Text>
+
         <View style={styles.matrixContainer}>
-          {timeSlots.map((time, index) => {
-            const isActive = selectedTime === time;
+          {timeSlots.map((time) => {
+            const disabled = isPastTime(time);
+
+            const active = selectedTime === time;
+
             return (
               <TouchableOpacity
-                key={index}
-                style={[styles.timeSlot, isActive && styles.timeSlotActive]}
+                key={time}
+                disabled={disabled}
                 onPress={() => setSelectedTime(time)}
+                style={[
+                  styles.timeBox,
+                  active && styles.timeBoxActive,
+                  disabled && { opacity: 0.3 },
+                ]}
               >
-                <Text style={[styles.timeText, isActive && styles.timeTextActive]}>
+                <Text
+                  style={[styles.timeText, active && styles.timeTextActive]}
+                >
                   {time}
                 </Text>
               </TouchableOpacity>
@@ -147,14 +154,11 @@ export default function BookingScreen({ navigation, route }) {
           })}
         </View>
 
-        <TouchableOpacity style={styles.confirmButton} onPress={handleConfirm}>
-          <Text style={styles.confirmButtonText}>CONFIRM</Text>
+        {/* CONFIRM */}
+        <TouchableOpacity style={styles.button} onPress={handleConfirm}>
+          <Text style={styles.buttonText}>CONFIRM APPOINTMENT</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Powered by Hokma Tech</Text>
-      </View>
     </View>
   );
 }
@@ -164,137 +168,120 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: COLORS.primary,
     paddingTop: LAYOUT.statusBarHeight,
     height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
-  },
-  headerContent: {
-    height: LAYOUT.headerHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: SIZES.margin,
   },
-  backButton: {
-    padding: 4,
-  },
+
   headerTitle: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
+
   content: {
     padding: SIZES.margin,
-    paddingBottom: 40,
+    paddingBottom: 100,
   },
+
+  doctorName: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: COLORS.primary,
+  },
+
+  specialty: {
+    fontSize: 15,
+    color: "#64748B",
+    marginTop: 4,
+  },
+
+  clinic: {
+    color: "#94A3B8",
+    marginBottom: 20,
+  },
+
   sectionLabel: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.primary,
-    marginBottom: 8,
-    marginTop: 10,
-  },
-  inputBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: SIZES.radius,
-    padding: 16,
-    marginBottom: 16,
-    backgroundColor: COLORS.surface,
-    shadowColor: '#0F2C59',
-    shadowOpacity: 0.02,
-    shadowRadius: 5,
-    elevation: 1,
-  },
-  inputText: {
-    fontSize: 15,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  dropdown: {
-    position: 'absolute',
-    top: 55,
-    left: 0,
-    right: 0,
-    backgroundColor: '#FFFFFF',
-    borderRadius: SIZES.radius,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#0F2C59',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-    zIndex: 100,
-  },
-  dropdownItem: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  dropdownItemText: {
-    color: COLORS.primary,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  matrixContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-    gap: 8,
-  },
-  timeSlot: {
-    width: '31%',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: SIZES.radius,
-    paddingVertical: 14,
-    alignItems: 'center',
-    backgroundColor: COLORS.surface,
-  },
-  timeSlotActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  timeText: {
-    fontSize: 15,
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  timeTextActive: {
-    color: COLORS.surface,
-    fontWeight: 'bold',
-  },
-  confirmButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radius,
-    paddingVertical: 18,
-    alignItems: 'center',
-    marginTop: 10,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  confirmButtonText: {
-    color: COLORS.surface,
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "600",
+    color: COLORS.primary,
+    marginBottom: 10,
+    marginTop: 10,
+  },
+
+  inputBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
+    backgroundColor: COLORS.surface,
+  },
+
+  inputText: {
+    color: COLORS.primary,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
+  calendar: {
+    borderRadius: 16,
+    overflow: "hidden",
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#EAE8FC",
+  },
+
+  matrixContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 20,
+  },
+
+  timeBox: {
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    borderRadius: 12,
+    backgroundColor: COLORS.surface,
+  },
+
+  timeBoxActive: {
+    backgroundColor: COLORS.primary,
+  },
+
+  timeText: {
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+
+  timeTextActive: {
+    color: "#FFFFFF",
+  },
+
+  button: {
+    marginTop: 20,
+    backgroundColor: COLORS.primary,
+    borderRadius: 14,
+    paddingVertical: 18,
+    alignItems: "center",
+  },
+
+  buttonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
     letterSpacing: 1,
-  },
-  footer: {
-    paddingBottom: 30,
-    alignItems: 'center',
-  },
-  footerText: {
-    color: '#94A3B8',
-    fontSize: 13,
   },
 });

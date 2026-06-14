@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
+import { useClinic } from '../context/ClinicContext';
 
 export default function ClinicsScreen({ navigation }) {
-  const { clinics } = useStateContext();
+  const { clinics, doctors } = useClinic();
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -34,7 +34,10 @@ export default function ClinicsScreen({ navigation }) {
             <TouchableOpacity 
               key={clinic.id} 
               style={styles.clinicCard} 
-              onPress={() => navigation.navigate('Booking', { selectedClinicName: clinic.name })}
+              onPress={() => {
+                const clinicDoc = doctors?.find(d => d.clinic === clinic.name) || doctors?.[0];
+                navigation.navigate('Booking', { doctor: clinicDoc });
+              }}
             >
               <View style={styles.clinicImagePlaceholder}>
                 <Ionicons name={iconName} size={32} color={COLORS.primary} />

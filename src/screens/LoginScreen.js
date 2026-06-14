@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 
 export default function LoginScreen({ navigation }) {
-  const { login } = useStateContext();
+  const { login, resetPassword } = useAuth();
   const [role, setRole] = useState('patient'); // 'patient' or 'admin'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [selectedClinic, setSelectedClinic] = useState('Dawn Park Clinic');
   const [showClinicDropdown, setShowClinicDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { showToast } = useToast();
 
   const clinics = [
     'Dawn Park Clinic',
@@ -20,25 +23,43 @@ export default function LoginScreen({ navigation }) {
   ];
 
   const handleLogin = () => {
-    if (!email) {
-      alert('Please enter your email address');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      showToast("Please enter a valid email address", 'error');
       return;
     }
-    if (!password) {
-      alert('Please enter your password');
-      return;
-    }
-    
-    const success = login(email, password, role, role === 'admin' ? selectedClinic : '');
-    if (success) {
-      if (role === 'admin') {
-        navigation.replace('Admin');
-      } else {
-        navigation.replace('Home');
-      }
-    }
-  };
 
+    if (!password || password.length < 6) {
+      showToast("Password must be at least 6 characters long", 'error');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Simulate network delay
+    setTimeout(() => {
+      setIsLoading(false);
+      const result = login(
+        email,
+        password,
+        role,
+        role === "admin" ? selectedClinic : "",
+      );
+
+      if (!result.success) {
+        showToast(result.message, 'error');
+        return;
+      }
+
+      showToast("Login successful!", 'success');
+      
+      if (role === "admin") {
+        navigation.replace("Admin");
+      } else {
+        navigation.replace("Home");
+      }
+    }, 1200);
+  };
   const handleQuickFillPatient = () => {
     setRole('patient');
     setEmail('patient@medsync.co.za');
@@ -53,63 +74,96 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* App Logo & Branding */}
         <View style={styles.brandContainer}>
           <View style={styles.logoFrame}>
-            <Image 
-              source={require('../images/icon.jpeg')} 
-              style={styles.logoImage} 
+            <Image
+              source={require("../images/icon.jpeg")}
+              style={styles.logoImage}
               resizeMode="cover"
             />
           </View>
           <Text style={styles.appName}>MedSync</Text>
-          <Text style={styles.appSubtitle}>South African Clinic Booking System</Text>
+          <Text style={styles.appSubtitle}>
+            South African Clinic Booking System
+          </Text>
         </View>
 
         {/* Premium Card */}
         <View style={styles.card}>
           {/* Segmented Role Tabs */}
           <View style={styles.tabContainer}>
-            <TouchableOpacity 
-              style={[styles.tabButton, role === 'patient' && styles.tabButtonActive]}
-              onPress={() => { setRole('patient'); setShowClinicDropdown(false); }}
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                role === "patient" && styles.tabButtonActive,
+              ]}
+              onPress={() => {
+                setRole("patient");
+                setShowClinicDropdown(false);
+              }}
             >
-              <Ionicons 
-                name="people" 
-                size={18} 
-                color={role === 'patient' ? '#FFFFFF' : COLORS.primary} 
-                style={{ marginRight: 6 }} 
+              <Ionicons
+                name="people"
+                size={18}
+                color={role === "patient" ? "#FFFFFF" : COLORS.primary}
+                style={{ marginRight: 6 }}
               />
-              <Text style={[styles.tabText, role === 'patient' && styles.tabTextActive]}>Patient</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  role === "patient" && styles.tabTextActive,
+                ]}
+              >
+                Patient
+              </Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.tabButton, role === 'admin' && styles.tabButtonActive]}
-              onPress={() => setRole('admin')}
+
+            <TouchableOpacity
+              style={[
+                styles.tabButton,
+                role === "admin" && styles.tabButtonActive,
+              ]}
+              onPress={() => setRole("admin")}
             >
-              <Ionicons 
-                name="shield-half" 
-                size={18} 
-                color={role === 'admin' ? '#FFFFFF' : COLORS.primary} 
-                style={{ marginRight: 6 }} 
+              <Ionicons
+                name="shield-half"
+                size={18}
+                color={role === "admin" ? "#FFFFFF" : COLORS.primary}
+                style={{ marginRight: 6 }}
               />
-              <Text style={[styles.tabText, role === 'admin' && styles.tabTextActive]}>Clinic Admin</Text>
+              <Text
+                style={[
+                  styles.tabText,
+                  role === "admin" && styles.tabTextActive,
+                ]}
+              >
+                Clinic Admin
+              </Text>
             </TouchableOpacity>
           </View>
 
           <Text style={styles.sectionTitle}>
-            {role === 'patient' ? 'Patient Portal' : 'Clinic Dashboard Portal'}
+            {role === "patient" ? "Patient Portal" : "Clinic Dashboard Portal"}
           </Text>
 
           {/* Email Input */}
           <View style={styles.inputContainer}>
-            <Ionicons name="mail-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-            <TextInput 
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color="#94A3B8"
+              style={styles.inputIcon}
+            />
+            <TextInput
               placeholder="Email Address"
               value={email}
               onChangeText={setEmail}
@@ -122,8 +176,13 @@ export default function LoginScreen({ navigation }) {
 
           {/* Password Input */}
           <View style={styles.inputContainer}>
-            <Ionicons name="lock-closed-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-            <TextInput 
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color="#94A3B8"
+              style={styles.inputIcon}
+            />
+            <TextInput
               placeholder="Password"
               value={password}
               onChangeText={setPassword}
@@ -132,30 +191,52 @@ export default function LoginScreen({ navigation }) {
               placeholderTextColor="#94A3B8"
               autoCapitalize="none"
             />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-              <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#94A3B8" />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeIcon}
+            >
+              <Ionicons
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
+                size={20}
+                color="#94A3B8"
+              />
             </TouchableOpacity>
           </View>
 
           {/* Clinic Selector Dropdown (Admin Only) */}
-          {role === 'admin' && (
-            <View style={{ position: 'relative', zIndex: 10 }}>
-              <TouchableOpacity 
-                style={styles.inputContainer} 
+          {role === "admin" && (
+            <View style={{ position: "relative", zIndex: 10 }}>
+              <TouchableOpacity
+                style={styles.inputContainer}
                 onPress={() => setShowClinicDropdown(!showClinicDropdown)}
               >
-                <Ionicons name="business-outline" size={20} color="#94A3B8" style={styles.inputIcon} />
-                <Text style={[styles.input, { color: COLORS.primary, paddingVertical: 12 }]}>
+                <Ionicons
+                  name="business-outline"
+                  size={20}
+                  color="#94A3B8"
+                  style={styles.inputIcon}
+                />
+                <Text
+                  style={[
+                    styles.input,
+                    { color: COLORS.primary, paddingVertical: 12 },
+                  ]}
+                >
                   {selectedClinic}
                 </Text>
-                <Ionicons name="chevron-down" size={20} color="#94A3B8" style={{ marginRight: 4 }} />
+                <Ionicons
+                  name="chevron-down"
+                  size={20}
+                  color="#94A3B8"
+                  style={{ marginRight: 4 }}
+                />
               </TouchableOpacity>
 
               {showClinicDropdown && (
                 <View style={styles.dropdown}>
                   {clinics.map((clinic, index) => (
-                    <TouchableOpacity 
-                      key={index} 
+                    <TouchableOpacity
+                      key={index}
                       style={styles.dropdownItem}
                       onPress={() => {
                         setSelectedClinic(clinic);
@@ -171,19 +252,49 @@ export default function LoginScreen({ navigation }) {
           )}
 
           {/* Forgot Password */}
-          <TouchableOpacity style={styles.forgotBtn}>
+          <TouchableOpacity
+            style={styles.forgotBtn}
+            onPress={() => {
+              if (!email) {
+                showToast("Please enter your email first.", 'error');
+                return;
+              }
+
+              const newPassword = prompt("Enter your new password");
+
+              if (!newPassword) {
+                return;
+              }
+
+              const result = resetPassword(email, newPassword, role);
+
+              showToast(result.message, result.success ? 'success' : 'error');
+            }}
+          >
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
 
           {/* Login Action Button */}
-          <TouchableOpacity style={styles.loginBtn} onPress={handleLogin}>
-            <Text style={styles.loginBtnText}>LOG IN</Text>
+          <TouchableOpacity 
+            style={styles.loginBtn} 
+            onPress={handleLogin}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.loginBtnText}>LOG IN</Text>
+            )}
           </TouchableOpacity>
 
           {/* Sign Up Navigation Link */}
           <View style={styles.signupPrompt}>
             <Text style={styles.signupPromptText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Signup', { defaultRole: role })}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("Signup", { defaultRole: role })
+              }
+            >
               <Text style={styles.signupLinkText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
@@ -193,13 +304,29 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.demoSection}>
           <Text style={styles.demoTitle}>Developer Demo Quick-Fills</Text>
           <View style={styles.demoBtnRow}>
-            <TouchableOpacity style={styles.demoBtn} onPress={handleQuickFillPatient}>
-              <Ionicons name="person" size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
+            <TouchableOpacity
+              style={styles.demoBtn}
+              onPress={handleQuickFillPatient}
+            >
+              <Ionicons
+                name="person"
+                size={14}
+                color={COLORS.primary}
+                style={{ marginRight: 4 }}
+              />
               <Text style={styles.demoBtnText}>Patient Demo</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.demoBtn} onPress={handleQuickFillAdmin}>
-              <Ionicons name="shield" size={14} color={COLORS.primary} style={{ marginRight: 4 }} />
+
+            <TouchableOpacity
+              style={styles.demoBtn}
+              onPress={handleQuickFillAdmin}
+            >
+              <Ionicons
+                name="shield"
+                size={14}
+                color={COLORS.primary}
+                style={{ marginRight: 4 }}
+              />
               <Text style={styles.demoBtnText}>Admin Demo</Text>
             </TouchableOpacity>
           </View>

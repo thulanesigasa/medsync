@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
-import { useStateContext } from '../context/StateContext';
+import { useClinic } from '../context/ClinicContext';
 
 export default function RecordsScreen({ navigation }) {
-  const { updates } = useStateContext();
+  const { updates } = useClinic();
   const [isDark, setIsDark] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
 

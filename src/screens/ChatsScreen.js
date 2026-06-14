@@ -3,13 +3,19 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal,
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
+import { useClinic } from '../context/ClinicContext';
+import { useChat } from '../context/ChatContext';
+import { useTheme } from '../context/ThemeContext';
+import EmptyChatsSVG from '../components/EmptyChatsSVG';
 
 export default function ChatsScreen({ navigation }) {
-  const { currentUser, clinics, messages, sendMessage } = useStateContext();
+  const { currentUser } = useAuth();
+  const { clinics } = useClinic();
+  const { messages, sendMessage } = useChat();
+  const { isDark, toggleTheme, theme } = useTheme();
   const [activeClinicName, setActiveClinicName] = useState(null);
   const [chatText, setChatText] = useState('');
-  const [isDark, setIsDark] = useState(false);
 
   const patientName = currentUser?.name || 'Kiddo';
 
@@ -20,7 +26,7 @@ export default function ChatsScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -28,7 +34,7 @@ export default function ChatsScreen({ navigation }) {
             <Ionicons name="chatbubbles" size={28} color="#FFFFFF" />
             <Text style={styles.appTitle}>My Chats</Text>
           </View>
-          <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
+          <TouchableOpacity onPress={toggleTheme} style={styles.actionButton}>
             <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
@@ -43,8 +49,7 @@ export default function ChatsScreen({ navigation }) {
           {clinics.map((clinic) => {
             // Filter messages for this clinic and patient
             const clinicMsgs = messages.filter(
-              m => m.clinicName.toLowerCase().includes(clinic.name.toLowerCase()) && 
-                   m.patientName.toLowerCase() === patientName.toLowerCase()
+              m => m.clinicName === clinic.name && m.patientName === patientName
             );
             const lastMsg = clinicMsgs[clinicMsgs.length - 1];
 
@@ -119,10 +124,16 @@ export default function ChatsScreen({ navigation }) {
               showsVerticalScrollIndicator={false}
               ref={ref => { if (ref) ref.scrollToEnd({ animated: true }); }}
             >
-              {activeClinicName && messages
+              {activeClinicName && messages.filter(
+                  m => m.clinicName === activeClinicName && m.patientName === patientName
+                ).length === 0 ? (
+                  <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 100 }}>
+                    <EmptyChatsSVG width={140} height={140} />
+                    <Text style={{ color: '#94A3B8', marginTop: 16, fontSize: 16 }}>No messages yet</Text>
+                  </View>
+                ) : activeClinicName && messages
                 .filter(
-                  m => m.clinicName.toLowerCase().includes(activeClinicName.toLowerCase()) && 
-                       m.patientName.toLowerCase() === patientName.toLowerCase()
+                  m => m.clinicName === activeClinicName && m.patientName === patientName
                 )
                 .map((msg) => {
                   const isPatient = msg.sender === 'patient';

@@ -1,97 +1,246 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput } from 'react-native';
-import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
-import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import BottomTabBar from '../components/BottomTabBar';
-import { useStateContext } from '../context/StateContext';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+} from "react-native";
+import {
+  Ionicons,
+  MaterialCommunityIcons,
+  FontAwesome5,
+} from "@expo/vector-icons";
+
+import { COLORS, SIZES, LAYOUT } from "../constants/theme";
+import BottomTabBar from "../components/BottomTabBar";
+import SkeletonLoader from '../components/SkeletonLoader';
+import { useClinic } from '../context/ClinicContext';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useAppointment } from '../context/AppointmentContext';
 
 export default function HomeScreen({ navigation }) {
-  const { currentUser, appointments } = useStateContext();
-  const [isDark, setIsDark] = useState(false);
+  const { clinics, doctors } = useClinic();
+  const { currentUser } = useAuth();
+  const { appointments = [] } = useAppointment();
+  const { isDark, theme, toggleTheme } = useTheme();
+
+  const [isLoading, setIsLoading] = useState(true);
   
-  const handleBookAppointment = () => {
-    navigation.navigate('Booking');
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleBookAppointment = (doctor) => {
+    navigation.navigate("Booking", { doctor });
   };
 
-  // Find the first upcoming appointment (Pending or Confirmed)
-  const upcomingAppt = appointments.find(appt => appt.status === 'Confirmed' || appt.status === 'Pending');
+  const filteredDoctors = doctors.filter((doctor) => {
+    const query = searchQuery.trim().toLowerCase();
+
+    if (!query) return true;
+
+    return (
+      doctor.name?.toLowerCase().includes(query) ||
+      doctor.specialty?.toLowerCase().includes(query) ||
+      doctor.clinic?.toLowerCase().includes(query)
+    );
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const upcomingAppt = appointments
+    .filter((appt) => {
+      const appointmentDate = new Date(appt.date);
+      appointmentDate.setHours(0, 0, 0, 0);
+
+      return (
+        appt.patientName === currentUser?.name &&
+        appointmentDate >= today &&
+        (appt.status === "Confirmed" || appt.status === "Pending")
+      );
+    })
+    .sort((a, b) => new Date(a.date) - new Date(b.date))[0];
 
   return (
-    <View style={styles.container}>
-      {/* Dynamic Header */}
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
-            <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
+            <MaterialCommunityIcons
+              name="shield-plus"
+              size={28}
+              color="#FFFFFF"
+            />
             <Text style={styles.appTitle}>MedSync</Text>
           </View>
+
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
-              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
+            <TouchableOpacity onPress={toggleTheme} style={styles.actionButton}>
+              <Ionicons
+                name={isDark ? "sunny-outline" : "moon-outline"}
+                size={24}
+                color="#FFFFFF"
+              />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.bellIconContainer} onPress={() => navigation.navigate('Notifications')}>
-              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+
+            <TouchableOpacity
+              style={styles.bellIconContainer}
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                color="#FFFFFF"
+              />
               <View style={styles.badge} />
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Greeting */}
         <View style={styles.greetingContainer}>
-          <Text style={styles.greetingTitle}>Hello, {currentUser?.name || 'Kiddo'}!</Text>
-          <Text style={styles.greetingSubline}>Find your local doctor easily</Text>
+          <Text style={styles.greetingTitle}>
+            Hello, {currentUser?.name || "Kiddo"}!
+          </Text>
+          <Text style={styles.greetingSubline}>
+            Find your local doctor easily
+          </Text>
         </View>
 
-        {/* Search Bar */}
+        {/* Search */}
         <View style={styles.searchBar}>
           <Ionicons name="search-outline" size={20} color="#94A3B8" />
-          <TextInput 
-            placeholder="Search doctor, clinic or specialty..." 
+          {searchQuery.length > 0 && (
+            <Text style={styles.searchResultText}>
+              {filteredDoctors.length} result(s) found
+            </Text>
+          )}
+          {searchQuery.length > 0 && (
+            <View style={styles.searchResultsBox}>
+              {filteredDoctors.length > 0 ? (
+                filteredDoctors.map((doctor) => (
+                  <TouchableOpacity
+                    key={doctor.id}
+                    style={styles.searchResultItem}
+                    onPress={() => handleBookAppointment(doctor)}
+                  >
+                    <View>
+                      <Text style={styles.searchResultName}>{doctor.name}</Text>
+                      <Text style={styles.searchResultDetails}>
+                        {doctor.specialty} • {doctor.clinic}
+                      </Text>
+                    </View>
+
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color={COLORS.primary}
+                    />
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={styles.noSearchResults}>
+                  No doctors or clinics found
+                </Text>
+              )}
+            </View>
+          )}
+          <TextInput
+            placeholder="Search doctor, clinic or specialty..."
             style={styles.searchInput}
             placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
           />
-          <Ionicons name="options-outline" size={20} color={COLORS.primary} />
+
+          {searchQuery.length > 0 ? (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Ionicons name="close-circle" size={20} color="#94A3B8" />
+            </TouchableOpacity>
+          ) : (
+            <Ionicons name="options-outline" size={20} color={COLORS.primary} />
+          )}
         </View>
 
-        {/* Specialties Section */}
+        {/* Specialties */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Specialties</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Clinics')}>
+          <TouchableOpacity onPress={() => navigation.navigate("Clinics")}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.specialtiesScroll}>
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.specialtiesScroll}
+        >
+          <TouchableOpacity
+            style={styles.specialtyItem}
+            onPress={() => setSearchQuery("General")}
+          >
             <View style={styles.specialtyIconBox}>
-              <FontAwesome5 name="stethoscope" size={20} color={COLORS.primary} />
+              <FontAwesome5
+                name="stethoscope"
+                size={20}
+                color={COLORS.primary}
+              />
             </View>
             <Text style={styles.specialtyLabel}>General</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
+
+          <TouchableOpacity
+            style={styles.specialtyItem}
+            onPress={() => setSearchQuery("Dentist")}
+          >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="tooth" size={18} color={COLORS.primary} />
             </View>
             <Text style={styles.specialtyLabel}>Dentistry</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
+
+          <TouchableOpacity
+            style={styles.specialtyItem}
+            onPress={() => setSearchQuery("Cardiologist")}
+          >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="heartbeat" size={20} color={COLORS.primary} />
             </View>
             <Text style={styles.specialtyLabel}>Cardiology</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
+
+          <TouchableOpacity
+            style={styles.specialtyItem}
+            onPress={() => setSearchQuery("Pediatrics")}
+          >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="baby" size={20} color={COLORS.primary} />
             </View>
             <Text style={styles.specialtyLabel}>Pediatrics</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.specialtyItem} onPress={() => navigation.navigate('Clinics')}>
+
+          <TouchableOpacity
+            style={styles.specialtyItem}
+            onPress={() => setSearchQuery("Neurology")}
+          >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="brain" size={18} color={COLORS.primary} />
             </View>
@@ -99,99 +248,138 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </ScrollView>
 
-        {/* Upcoming Visit Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Schedule</Text>
-        </View>
-        
-        {upcomingAppt ? (
-          <View style={[styles.scheduleCard, upcomingAppt.status === 'Pending' && { backgroundColor: '#E28743', shadowColor: '#E28743' }]}>
-            <View style={styles.scheduleHeader}>
-              <View style={styles.scheduleDoctor}>
-                <View style={styles.doctorAvatarMini}>
-                  <Text style={styles.doctorAvatarMiniText}>
-                    {upcomingAppt.doctorName.replace('Dr. ', '').charAt(0)}
+        {upcomingAppt && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Upcoming Schedule</Text>
+            </View>
+
+            <View
+              style={[
+                styles.scheduleCard,
+                upcomingAppt.status === "Pending" && {
+                  backgroundColor: "#E28743",
+                  shadowColor: "#E28743",
+                },
+              ]}
+            >
+              <View style={styles.scheduleHeader}>
+                <View style={styles.scheduleDoctor}>
+                  <View style={styles.doctorAvatarMini}>
+                    <Text style={styles.doctorAvatarMiniText}>
+                      {upcomingAppt.doctorName?.replace("Dr. ", "").charAt(0) ||
+                        "D"}
+                    </Text>
+                  </View>
+
+                  <View style={{ flex: 1, marginRight: 8 }}>
+                    <Text style={styles.scheduleDoctorName}>
+                      {upcomingAppt.doctorName}
+                    </Text>
+                    <Text style={styles.scheduleDoctorTitle} numberOfLines={1}>
+                      {upcomingAppt.doctorTitle || "Specialist"} •{" "}
+                      {upcomingAppt.clinicName}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.statusBadgeOverlay}>
+                  <Text style={styles.statusOverlayText}>
+                    {upcomingAppt.status?.toUpperCase()}
                   </Text>
                 </View>
-                <View style={{ flex: 1, marginRight: 8 }}>
-                  <Text style={styles.scheduleDoctorName}>{upcomingAppt.doctorName}</Text>
-                  <Text style={styles.scheduleDoctorTitle} numberOfLines={1}>
-                    {upcomingAppt.doctorTitle || 'Specialist'} • {upcomingAppt.clinicName}
+              </View>
+
+              <View style={styles.scheduleTimeRow}>
+                <View style={styles.scheduleTimeDetail}>
+                  <Ionicons name="calendar-outline" size={15} color="#EAE8FC" />
+                  <Text style={styles.scheduleTimeText}>
+                    {upcomingAppt.date}
+                  </Text>
+                </View>
+
+                <View style={styles.scheduleTimeDetail}>
+                  <Ionicons name="time-outline" size={15} color="#EAE8FC" />
+                  <Text style={styles.scheduleTimeText}>
+                    {upcomingAppt.time}
                   </Text>
                 </View>
               </View>
-              <View style={styles.statusBadgeOverlay}>
-                <Text style={styles.statusOverlayText}>
-                  {upcomingAppt.status.toUpperCase()}
-                </Text>
-              </View>
             </View>
-            <View style={styles.scheduleTimeRow}>
-              <View style={styles.scheduleTimeDetail}>
-                <Ionicons name="calendar-outline" size={15} color="#EAE8FC" />
-                <Text style={styles.scheduleTimeText}>{upcomingAppt.date}</Text>
-              </View>
-              <View style={styles.scheduleTimeDetail}>
-                <Ionicons name="time-outline" size={15} color="#EAE8FC" />
-                <Text style={styles.scheduleTimeText}>{upcomingAppt.time}</Text>
-              </View>
-            </View>
-          </View>
-        ) : (
-          <TouchableOpacity style={styles.noScheduleCard} onPress={handleBookAppointment}>
-            <View style={styles.noScheduleLeft}>
-              <Ionicons name="calendar-outline" size={24} color={COLORS.primary} />
-              <View style={{ marginLeft: 12 }}>
-                <Text style={styles.noScheduleTitle}>No upcoming bookings</Text>
-                <Text style={styles.noScheduleSub}>Tap to schedule a checkup now</Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.primary} />
-          </TouchableOpacity>
+          </>
         )}
 
-        {/* Top Doctors Section */}
+        {/* Top Doctors */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Top Doctors</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Clinics')}>
+          <Text style={styles.sectionTitle}>
+            {searchQuery ? "Search Results" : "Top Doctors"}
+          </Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Clinics")}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.doctorsList}>
-          <TouchableOpacity style={styles.doctorCard} onPress={handleBookAppointment}>
-            <View style={styles.doctorAvatarLarge}>
-              <Text style={styles.doctorAvatarTextLarge}>P</Text>
-            </View>
-            <View style={styles.doctorInfo}>
-              <Text style={styles.doctorName}>Dr. Pieter Naude</Text>
-              <Text style={styles.doctorTitle}>Senior Surgeon</Text>
-              <View style={styles.doctorStats}>
-                <Ionicons name="star" size={14} color="#F59E0B" />
-                <Text style={styles.doctorRating}>4.9 (96 reviews)</Text>
-              </View>
-            </View>
-            <View style={styles.doctorAction}>
-              <Ionicons name="arrow-forward-circle" size={32} color={COLORS.primary} />
-            </View>
-          </TouchableOpacity>
+          {isLoading ? (
+            <>
+              {[1, 2, 3].map((i) => (
+                <View key={i} style={[styles.doctorCard, { flexDirection: 'row', alignItems: 'center' }]}>
+                  <SkeletonLoader width={56} height={56} borderRadius={28} isDark={isDark} />
+                  <View style={{ marginLeft: 16, flex: 1, gap: 8 }}>
+                    <SkeletonLoader width={120} height={16} isDark={isDark} />
+                    <SkeletonLoader width={100} height={12} isDark={isDark} />
+                    <SkeletonLoader width={140} height={12} isDark={isDark} />
+                  </View>
+                </View>
+              ))}
+            </>
+          ) : filteredDoctors.length > 0 ? (
+            filteredDoctors.map((doctor) => (
+              <TouchableOpacity
+                key={doctor.id}
+                style={styles.doctorCard}
+                onPress={() => handleBookAppointment(doctor)}
+              >
+                <View style={styles.doctorAvatarLarge}>
+                  <Text style={styles.doctorAvatarTextLarge}>
+                    {doctor.avatarText ||
+                      doctor.name?.replace("Dr. ", "").charAt(0) ||
+                      "D"}
+                  </Text>
+                </View>
 
-          <TouchableOpacity style={styles.doctorCard} onPress={handleBookAppointment}>
-            <View style={styles.doctorAvatarLarge}>
-              <Text style={styles.doctorAvatarTextLarge}>S</Text>
+                <View style={styles.doctorInfo}>
+                  <Text style={styles.doctorName}>{doctor.name}</Text>
+                  <Text style={styles.doctorTitle}>{doctor.specialty}</Text>
+
+                  <View style={styles.doctorStats}>
+                    <Ionicons name="star" size={14} color="#F59E0B" />
+                    <Text style={styles.doctorRating}>
+                      {doctor.rating} ({doctor.reviews} reviews)
+                    </Text>
+                  </View>
+
+                  <Text style={styles.doctorClinic}>{doctor.clinic}</Text>
+                </View>
+
+                <View style={styles.doctorAction}>
+                  <Ionicons
+                    name="arrow-forward-circle"
+                    size={32}
+                    color={COLORS.primary}
+                  />
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptySearchBox}>
+              <Ionicons name="search-outline" size={28} color="#94A3B8" />
+              <Text style={styles.emptySearchTitle}>No doctors found</Text>
+              <Text style={styles.emptySearchSub}>
+                Try searching by doctor name, clinic, or specialty.
+              </Text>
             </View>
-            <View style={styles.doctorInfo}>
-              <Text style={styles.doctorName}>Dr. Sipho Gumede</Text>
-              <Text style={styles.doctorTitle}>Senior Cardiologist</Text>
-              <View style={styles.doctorStats}>
-                <Ionicons name="star" size={14} color="#F59E0B" />
-                <Text style={styles.doctorRating}>5.0 (120 reviews)</Text>
-              </View>
-            </View>
-            <View style={styles.doctorAction}>
-              <Ionicons name="arrow-forward-circle" size={32} color={COLORS.primary} />
-            </View>
-          </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
 
@@ -199,7 +387,6 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
@@ -213,39 +400,39 @@ const styles = StyleSheet.create({
   },
   headerContent: {
     height: LAYOUT.headerHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SIZES.margin,
   },
   headerBrand: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   appTitle: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 10,
   },
   headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
   },
   actionButton: {
     padding: 4,
   },
   bellIconContainer: {
-    position: 'relative',
+    position: "relative",
   },
   badge: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     right: -2,
     width: 8,
     height: 8,
-    backgroundColor: '#EF4444',
+    backgroundColor: "#EF4444",
     borderRadius: 4,
   },
   scrollContent: {
@@ -257,25 +444,25 @@ const styles = StyleSheet.create({
   },
   greetingTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
   },
   greetingSubline: {
     fontSize: 15,
-    color: '#64748B',
+    color: "#64748B",
     marginTop: 4,
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: COLORS.surface,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#EAE8FC',
+    borderColor: "#EAE8FC",
     marginBottom: 20,
-    shadowColor: '#0F2C59',
+    shadowColor: "#0F2C59",
     shadowOpacity: 0.02,
     shadowRadius: 5,
     elevation: 1,
@@ -287,28 +474,28 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
     marginTop: 8,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
   },
   seeAllText: {
     fontSize: 14,
     color: COLORS.accent,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   specialtiesScroll: {
     paddingBottom: 8,
     gap: 16,
   },
   specialtyItem: {
-    alignItems: 'center',
+    alignItems: "center",
     width: 72,
   },
   specialtyIconBox: {
@@ -317,20 +504,20 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: COLORS.surface,
     borderWidth: 1,
-    borderColor: '#EAE8FC',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#0F2C59',
+    borderColor: "#EAE8FC",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#0F2C59",
     shadowOpacity: 0.02,
     shadowRadius: 5,
     elevation: 1,
   },
   specialtyLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLORS.primary,
     marginTop: 6,
-    textAlign: 'center',
+    textAlign: "center",
   },
   scheduleCard: {
     backgroundColor: COLORS.primary,
@@ -344,115 +531,107 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   statusBadgeOverlay: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
   },
   statusOverlayText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 9,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   noScheduleCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#EAE8FC',
+    borderColor: "#EAE8FC",
     padding: 16,
     marginBottom: 20,
-    shadowColor: '#0F2C59',
+    shadowColor: "#0F2C59",
     shadowOpacity: 0.03,
     shadowRadius: 5,
     elevation: 1,
   },
   noScheduleLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   noScheduleTitle: {
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
   },
   noScheduleSub: {
     fontSize: 12,
-    color: '#64748B',
+    color: "#64748B",
     marginTop: 2,
   },
   scheduleHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.15)',
+    borderBottomColor: "rgba(255, 255, 255, 0.15)",
     paddingBottom: 14,
     marginBottom: 14,
   },
   scheduleDoctor: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   doctorAvatarMini: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 12,
   },
   doctorAvatarMiniText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   scheduleDoctorName: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   scheduleDoctorTitle: {
-    color: '#EAE8FC',
+    color: "#EAE8FC",
     fontSize: 12,
   },
-  scheduleVideoBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   scheduleTimeRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 20,
   },
   scheduleTimeDetail: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   scheduleTimeText: {
-    color: '#EAE8FC',
+    color: "#EAE8FC",
     fontSize: 13,
     marginLeft: 6,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   doctorsList: {
     gap: 12,
   },
   doctorCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: COLORS.surface,
     borderRadius: 16,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#EAE8FC',
-    alignItems: 'center',
-    shadowColor: '#0F2C59',
+    borderColor: "#EAE8FC",
+    alignItems: "center",
+    shadowColor: "#0F2C59",
     shadowOpacity: 0.02,
     shadowRadius: 5,
     elevation: 1,
@@ -461,42 +640,108 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 16,
   },
   doctorAvatarTextLarge: {
     color: COLORS.primary,
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   doctorInfo: {
     flex: 1,
   },
   doctorName: {
     fontSize: 15,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.primary,
   },
   doctorTitle: {
     fontSize: 13,
-    color: '#64748B',
+    color: "#64748B",
     marginTop: 2,
   },
+  doctorClinic: {
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 4,
+  },
   doctorStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 6,
   },
   doctorRating: {
     fontSize: 12,
-    color: '#64748B',
+    color: "#64748B",
     marginLeft: 4,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   doctorAction: {
     paddingLeft: 8,
   },
-});
+  emptySearchBox: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: "#EAE8FC",
+    borderRadius: 16,
+    padding: 20,
+    alignItems: "center",
+  },
+  emptySearchTitle: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: COLORS.primary,
+    marginTop: 8,
+  },
+  emptySearchSub: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 4,
+    textAlign: "center",
+  },
+  searchResultText: {
+    fontSize: 13,
+    color: "#64748B",
+    marginBottom: 12,
+    fontWeight: "600",
+  },
+  searchResultsBox: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: "#EAE8FC",
+    borderRadius: 16,
+    marginBottom: 20,
+    overflow: "hidden",
+  },
 
+  searchResultItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+
+  searchResultName: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: COLORS.primary,
+  },
+
+  searchResultDetails: {
+    fontSize: 12,
+    color: "#64748B",
+    marginTop: 3,
+  },
+
+  noSearchResults: {
+    textAlign: "center",
+    color: "#64748B",
+    padding: 16,
+    fontWeight: "600",
+  },
+});

@@ -2,29 +2,18 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, KeyboardAvoidingView, Switch, Modal } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
+import { useClinic } from '../context/ClinicContext';
+import { useAppointment } from '../context/AppointmentContext';
+import { useChat } from '../context/ChatContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function AdminScreen({ navigation }) {
-  const { 
-    currentUser, 
-    clinics,
-    doctors,
-    patients,
-    appointments, 
-    updates, 
-    messages,
-    adminNotifications,
-    updateAppointmentStatus, 
-    addUpdate, 
-    deleteUpdate, 
-    addDoctor,
-    updateDoctorShift,
-    updateClinicSettings,
-    addMedicalNote,
-    sendMessage,
-    clearNotifications,
-    logout 
-  } = useStateContext();
+  const { currentUser, logout } = useAuth();
+  const { clinics, doctors, patients, updates, addUpdate, deleteUpdate, addDoctor, updateDoctorShift, updateClinicSettings, addMedicalNote } = useClinic();
+  const { appointments, updateAppointmentStatus } = useAppointment();
+  const { messages, sendMessage, adminNotifications, clearNotifications } = useChat();
+  const { isDark, theme, toggleTheme } = useTheme();
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'bookings', 'doctors', 'patients', 'updates', 'settings'
   const [bookingFilter, setBookingFilter] = useState('Pending'); // 'Pending' or 'Confirmed'
@@ -390,7 +379,7 @@ export default function AdminScreen({ navigation }) {
               
               {(() => {
                 const clinicMessages = messages.filter(
-                  m => m.clinicName.toLowerCase().includes(clinicName.toLowerCase())
+                  m => m.clinicName === activeClinicInfo.name
                 );
                 const activePatients = Array.from(new Set(clinicMessages.map(m => m.patientName)));
 
