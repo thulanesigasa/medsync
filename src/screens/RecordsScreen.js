@@ -4,13 +4,30 @@ import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-ico
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 import { useClinic } from '../context/ClinicContext';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { ActivityIndicator } from 'react-native';
 
 export default function RecordsScreen({ navigation }) {
-  const { updates } = useClinic();
+  const { updates, patients } = useClinic();
+  const { currentUser } = useAuth();
+  const { showToast } = useToast();
   const [isDark, setIsDark] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [downloadingId, setDownloadingId] = useState(null);
 
   const categories = ['All', 'Schedules', 'Vaccines', 'Campaigns'];
+
+  const currentUserData = patients?.find(p => p.name.toLowerCase() === currentUser?.name?.toLowerCase());
+  const myRecords = currentUserData?.medicalNotes || [];
+
+  const handleDownload = (recordId) => {
+    setDownloadingId(recordId);
+    setTimeout(() => {
+      setDownloadingId(null);
+      showToast("Medical Record downloaded successfully!", "success", "Download Complete");
+    }, 1500);
+  };
 
   return (
     <View style={styles.container}>
@@ -97,8 +114,38 @@ export default function RecordsScreen({ navigation }) {
                 </View>
               </View>
             ))
-          }
-        </View>
+          </View>
+
+        {myRecords.length > 0 && (
+          <>
+            <Text style={[styles.sectionTitle, { marginTop: 20 }]}>My Medical Records</Text>
+            <View style={styles.bulletinsContainer}>
+              {myRecords.map((record, index) => (
+                <View key={index} style={styles.updateCard}>
+                  <View style={[styles.iconBox, { backgroundColor: '#F0FDF4' }]}>
+                    <Ionicons name="document-text" size={22} color="#10B981" />
+                  </View>
+                  <View style={styles.updateInfo}>
+                    <Text style={styles.updateTitle}>{record.diagnosis}</Text>
+                    <Text style={styles.updateDesc}>Dr. {record.doctorName} • {record.clinicName}</Text>
+                    <Text style={styles.updateDate}>{record.date}</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.downloadBtn} 
+                    onPress={() => handleDownload(index)}
+                    disabled={downloadingId === index}
+                  >
+                    {downloadingId === index ? (
+                      <ActivityIndicator size="small" color={COLORS.primary} />
+                    ) : (
+                      <Ionicons name="download-outline" size={24} color={COLORS.primary} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
         
       </ScrollView>
       
@@ -287,5 +334,11 @@ const styles = StyleSheet.create({
     fontSize: 11, 
     color: '#94A3B8',
     fontWeight: '500',
+  },
+  downloadBtn: {
+    padding: 10,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    marginLeft: 10,
   }
 });

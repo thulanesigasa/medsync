@@ -38,6 +38,7 @@ export default function AppointmentsScreen({ navigation }) {
   const [activeChatApptId, setActiveChatApptId] = useState(null);
   const [chatText, setChatText] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -52,22 +53,24 @@ export default function AppointmentsScreen({ navigation }) {
   const upcomingAppointments = appointments.filter((appt) => {
     const appointmentDate = new Date(appt.date);
     appointmentDate.setHours(0, 0, 0, 0);
+    const matchesSearch = appt.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) || appt.clinicName.toLowerCase().includes(searchQuery.toLowerCase());
 
     return (
       appointmentDate >= today &&
-      (appt.status === "Confirmed" || appt.status === "Pending")
+      (appt.status === "Confirmed" || appt.status === "Pending") && matchesSearch
     );
   });
 
   const pastAppointments = appointments.filter((appt) => {
     const appointmentDate = new Date(appt.date);
     appointmentDate.setHours(0, 0, 0, 0);
+    const matchesSearch = appt.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) || appt.clinicName.toLowerCase().includes(searchQuery.toLowerCase());
 
     return (
-      appointmentDate < today ||
+      (appointmentDate < today ||
       appt.status === "Completed" ||
       appt.status === "Declined" ||
-      appt.status === "Cancelled"
+      appt.status === "Cancelled") && matchesSearch
     );
   });
 
@@ -398,7 +401,21 @@ export default function AppointmentsScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by doctor or clinic..."
+            placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+          <View style={styles.countBadge}><Text style={styles.countBadgeText}>{upcomingAppointments.length}</Text></View>
+        </View>
 
         {upcomingAppointments.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -960,6 +977,52 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#F1F5F9",
     gap: 8,
+  },
+  chatInputStyle: {
+    flex: 1,
+    height: 40,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    marginRight: 10,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 50,
+    marginHorizontal: SIZES.margin,
+    marginTop: 10,
+    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: COLORS.primary,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: SIZES.margin,
+  },
+  countBadge: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  countBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   chatInputField: {
     flex: 1,
