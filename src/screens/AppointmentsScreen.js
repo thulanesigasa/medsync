@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  RefreshControl,
 } from "react-native";
 import {
   MaterialCommunityIcons,
@@ -36,6 +37,14 @@ export default function AppointmentsScreen({ navigation }) {
   const [selectedNoteApptId, setSelectedNoteApptId] = useState(null);
   const [activeChatApptId, setActiveChatApptId] = useState(null);
   const [chatText, setChatText] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -342,6 +351,9 @@ export default function AppointmentsScreen({ navigation }) {
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
       >
         <View style={styles.calendarStrip}>
           <ScrollView

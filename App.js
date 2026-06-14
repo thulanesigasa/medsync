@@ -20,6 +20,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import ClinicsScreen from './src/screens/ClinicsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
+import DoctorProfileScreen from './src/screens/DoctorProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -40,6 +41,7 @@ export default function App() {
                     <Stack.Screen name="Signup" component={SignupScreen} />
                     <Stack.Screen name="Admin" component={AdminScreen} />
                     <Stack.Screen name="Home" component={HomeScreen} />
+                    <Stack.Screen name="DoctorProfile" component={DoctorProfileScreen} />
                     <Stack.Screen name="Booking" component={BookingScreen} />
                     <Stack.Screen name="Confirmation" component={ConfirmationScreen} />
                     <Stack.Screen name="Appointments" component={AppointmentsScreen} />
