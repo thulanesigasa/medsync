@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
@@ -16,6 +16,14 @@ export default function ChatsScreen({ navigation }) {
   const { isDark, toggleTheme, theme } = useTheme();
   const [activeClinicName, setActiveClinicName] = useState(null);
   const [chatText, setChatText] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const patientName = currentUser?.name || 'Kiddo';
 
@@ -41,7 +49,13 @@ export default function ChatsScreen({ navigation }) {
       </View>
 
       {/* Main Content Area */}
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        contentContainerStyle={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
+      >
         <Text style={styles.sectionTitle}>Clinic Support Channels</Text>
         <Text style={styles.sectionSubtitle}>Start a conversation with any of our branches for support.</Text>
 

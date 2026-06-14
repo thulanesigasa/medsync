@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import { useClinic } from '../context/ClinicContext';
+import MapView, { Marker } from 'react-native-maps';
 
 export default function ClinicsScreen({ navigation }) {
   const { clinics, doctors } = useClinic();
@@ -23,6 +24,36 @@ export default function ClinicsScreen({ navigation }) {
         <View style={styles.searchBar}>
           <Ionicons name="search" size={20} color="#94A3B8" />
           <TextInput placeholder="Search by name or specialty..." style={styles.searchInput} placeholderTextColor="#94A3B8" />
+        </View>
+
+        <View style={styles.mapContainer}>
+          <MapView 
+            style={styles.map}
+            initialRegion={{
+              latitude: -26.1906,
+              longitude: 28.2612,
+              latitudeDelta: 0.1,
+              longitudeDelta: 0.1,
+            }}
+          >
+            {clinics.map((clinic, index) => {
+              const coords = [
+                { latitude: -26.182, longitude: 28.243 },
+                { latitude: -26.191, longitude: 28.312 },
+                { latitude: -26.205, longitude: 28.256 },
+                { latitude: -26.180, longitude: 28.280 },
+              ];
+              const coord = coords[index % coords.length];
+              return (
+                <Marker
+                  key={clinic.id}
+                  coordinate={coord}
+                  title={clinic.name}
+                  description={clinic.address}
+                />
+              );
+            })}
+          </MapView>
         </View>
 
         {clinics.map((clinic, index) => {
@@ -96,6 +127,16 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius, 
     borderWidth: 1, 
     borderColor: COLORS.border, 
+  },
+  mapContainer: {
+    height: 200,
+    borderRadius: SIZES.radius,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  map: {
+    flex: 1,
   },
   searchInput: { 
     flex: 1, 
