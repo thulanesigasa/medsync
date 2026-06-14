@@ -390,7 +390,7 @@ export default function AdminScreen({ navigation }) {
               
               {(() => {
                 const clinicMessages = messages.filter(
-                  m => m.clinicName.toLowerCase().includes(clinicName.toLowerCase())
+                  m => m.clinicName === activeClinicInfo.name
                 );
                 const activePatients = Array.from(new Set(clinicMessages.map(m => m.patientName)));
 

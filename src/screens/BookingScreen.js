@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useStateContext } from "../context/StateContext";
 
 import { Ionicons, Feather } from "@expo/vector-icons";
 
@@ -17,6 +17,7 @@ import { Calendar } from "react-native-calendars";
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 
 export default function BookingScreen({ navigation, route }) {
+  const { addAppointment, currentUser } = useStateContext();
   const doctor = route?.params?.doctor;
 
   const [selectedDate, setSelectedDate] = useState(
@@ -51,27 +52,20 @@ export default function BookingScreen({ navigation, route }) {
     return hour < currentHour;
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     try {
       const appointment = {
-        id: Date.now().toString(),
-        doctor,
+        patientName: currentUser?.name || 'Guest',
+        doctorName: doctor.name,
+        doctorTitle: doctor.specialty,
+        clinicName: doctor.clinic,
+        type: "Checkup",
         date: selectedDate,
         time: selectedTime,
         status: "Confirmed",
       };
 
-      const existingAppointments = await AsyncStorage.getItem("appointments");
-
-      let appointments = [];
-
-      if (existingAppointments) {
-        appointments = JSON.parse(existingAppointments);
-      }
-
-      appointments.push(appointment);
-
-      await AsyncStorage.setItem("appointments", JSON.stringify(appointments));
+      addAppointment(appointment);
 
       navigation.navigate("Confirmation", appointment);
     } catch (error) {

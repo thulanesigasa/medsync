@@ -28,9 +28,11 @@ export default function AppointmentsScreen({ navigation }) {
     messages = [],
     sendMessage,
     updateAppointmentStatus,
+    isDark,
+    toggleTheme,
+    theme
   } = useStateContext();
 
-  const [isDark, setIsDark] = useState(false);
   const [selectedNoteApptId, setSelectedNoteApptId] = useState(null);
   const [activeChatApptId, setActiveChatApptId] = useState(null);
   const [chatText, setChatText] = useState("");
@@ -312,7 +314,7 @@ export default function AppointmentsScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
@@ -325,7 +327,7 @@ export default function AppointmentsScreen({ navigation }) {
           </View>
 
           <TouchableOpacity
-            onPress={() => setIsDark(!isDark)}
+            onPress={toggleTheme}
             style={styles.actionButton}
           >
             <Ionicons
