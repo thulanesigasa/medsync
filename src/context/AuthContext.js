@@ -5,6 +5,7 @@ const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [isAuthLoaded, setIsAuthLoaded] = useState(false);
 
   const [userAccounts, setUserAccounts] = useState([
     {
@@ -25,6 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     loadUserAccounts();
+    loadCurrentUser();
   }, []);
 
   useEffect(() => {
@@ -39,6 +41,19 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.log("Error loading user accounts:", error);
+    }
+  };
+
+  const loadCurrentUser = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem("currentUser");
+      if (storedUser) {
+        setCurrentUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.log("Error loading current user:", error);
+    } finally {
+      setIsAuthLoaded(true);
     }
   };
 
@@ -71,13 +86,15 @@ export const AuthProvider = ({ children }) => {
     if (role === "admin" && user.clinic !== clinic) {
       return { success: false, message: "Incorrect clinic selected for this admin account." };
     }
-    setCurrentUser({
+    const loggedInUser = {
       name: user.name,
       email: user.email,
       role: user.role,
       clinic: user.clinic || "",
       phone: user.phone || "",
-    });
+    };
+    setCurrentUser(loggedInUser);
+    AsyncStorage.setItem("currentUser", JSON.stringify(loggedInUser));
     return { success: true, user };
   };
 
@@ -105,13 +122,15 @@ export const AuthProvider = ({ children }) => {
     };
     setUserAccounts((prev) => [...prev, newUser]);
     
-    setCurrentUser({
+    const loggedInUser = {
       name: newUser.name,
       email: newUser.email,
       role: newUser.role,
       clinic: newUser.clinic,
       phone: newUser.phone,
-    });
+    };
+    setCurrentUser(loggedInUser);
+    AsyncStorage.setItem("currentUser", JSON.stringify(loggedInUser));
     return { success: true, user: newUser };
   };
 
@@ -139,12 +158,13 @@ export const AuthProvider = ({ children }) => {
     return { success: true, message: "Password reset successful." };
   };
 
-  const logout = () => {
+  const logout = async () => {
     setCurrentUser(null);
+    await AsyncStorage.removeItem("currentUser");
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, userAccounts, login, signup, resetPassword, logout }}>
+    <AuthContext.Provider value={{ currentUser, isAuthLoaded, userAccounts, login, signup, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   );

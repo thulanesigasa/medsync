@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, KeyboardAvoidingView, Switch, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, KeyboardAvoidingView, Switch, Modal, Dimensions } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LineChart, PieChart } from 'react-native-chart-kit';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
 import { useClinic } from '../context/ClinicContext';
@@ -154,13 +155,13 @@ export default function AdminScreen({ navigation }) {
     Alert.alert('Success', 'Bulletin published successfully.');
   };
 
-  // Mock Bar Chart Values (Height representation)
-  const monthlyMetrics = [
-    { month: 'Jan', count: 42, height: 60 },
-    { month: 'Feb', count: 56, height: 80 },
-    { month: 'Mar', count: 68, height: 95 },
-    { month: 'Apr', count: 48, height: 68 },
-    { month: 'May', count: 72, height: 110 }
+  const screenWidth = Dimensions.get('window').width;
+
+  const pieData = [
+    { name: "General", population: 45, color: "#3B82F6", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+    { name: "Dental", population: 28, color: "#10B981", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+    { name: "Cardio", population: 15, color: "#F59E0B", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+    { name: "Pediatrics", population: 12, color: "#EF4444", legendFontColor: "#7F7F7F", legendFontSize: 12 }
   ];
 
   return (
@@ -242,18 +243,46 @@ export default function AdminScreen({ navigation }) {
               </View>
             </View>
 
-            {/* Performance Bar Chart */}
+            {/* Performance Line Chart */}
             <View style={styles.card}>
               <Text style={styles.cardHeaderTitle}>Monthly Traffic Analytics</Text>
-              <View style={styles.chartContainer}>
-                {monthlyMetrics.map((item, index) => (
-                  <View key={index} style={styles.chartCol}>
-                    <Text style={styles.chartValText}>{item.count}</Text>
-                    <View style={[styles.chartBar, { height: item.height }]} />
-                    <Text style={styles.chartLabelText}>{item.month}</Text>
-                  </View>
-                ))}
-              </View>
+              <LineChart
+                data={{
+                  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                  datasets: [{ data: [20, 45, 28, 80, 99, 43] }]
+                }}
+                width={screenWidth - 64}
+                height={220}
+                yAxisSuffix="k"
+                chartConfig={{
+                  backgroundColor: COLORS.surface,
+                  backgroundGradientFrom: COLORS.surface,
+                  backgroundGradientTo: COLORS.surface,
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(148, 163, 184, ${opacity})`,
+                  style: { borderRadius: 16 },
+                  propsForDots: { r: "6", strokeWidth: "2", stroke: COLORS.primary }
+                }}
+                bezier
+                style={{ marginVertical: 8, borderRadius: 16 }}
+              />
+            </View>
+
+            {/* Specialties Pie Chart */}
+            <View style={styles.card}>
+              <Text style={styles.cardHeaderTitle}>Patient Distribution</Text>
+              <PieChart
+                data={pieData}
+                width={screenWidth - 64}
+                height={200}
+                chartConfig={{ color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})` }}
+                accessor={"population"}
+                backgroundColor={"transparent"}
+                paddingLeft={"0"}
+                center={[10, 0]}
+                absolute
+              />
             </View>
 
             {/* Admin Alerts Notifications Feed */}
