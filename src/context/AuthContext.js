@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
 
       if (error) {
         // If supabase URL is not set or network fails, fallback to Mock Data
-        if (error.message.includes('URL') || error.message.includes('fetch')) {
+        if (error.message.includes('URL') || error.message.includes('fetch') || error.message.includes('Network request failed')) {
           throw new Error('FallbackToMock');
         }
         throw error;
@@ -135,7 +135,12 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, user: data.user };
     } catch (error) {
-      if (error.message === 'FallbackToMock' || String(error).includes('URL')) {
+      const isFallback = error.message === 'FallbackToMock' || 
+                         String(error).includes('URL') || 
+                         String(error).includes('Network request failed') ||
+                         String(error).includes('Failed to fetch');
+                         
+      if (isFallback) {
         console.log("Supabase failed/unconfigured. Falling back to mock login.");
         const user = userAccounts.find(
           (account) => account.email.toLowerCase() === cleanEmail && account.role === role,
@@ -191,7 +196,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (error) {
-        if (error.message.includes('URL') || error.message.includes('fetch')) {
+        if (error.message.includes('URL') || error.message.includes('fetch') || error.message.includes('Network request failed')) {
           throw new Error('FallbackToMock');
         }
         throw error;
@@ -199,7 +204,12 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, user: data.user };
     } catch (error) {
-      if (error.message === 'FallbackToMock' || String(error).includes('URL')) {
+      const isFallback = error.message === 'FallbackToMock' || 
+                         String(error).includes('URL') || 
+                         String(error).includes('Network request failed') ||
+                         String(error).includes('Failed to fetch');
+
+      if (isFallback) {
         console.log("Supabase failed/unconfigured. Falling back to mock signup.");
         const existingUser = userAccounts.find(
           (account) => account.email.toLowerCase() === cleanEmail,
