@@ -126,6 +126,7 @@ export default function RecordsScreen({ navigation }) {
                   <Text style={styles.updateDesc}>{item.desc}</Text>
                   <Text style={styles.updateDate}>{item.date} • {item.clinic}</Text>
                 </View>
+              </View>
             ))}
         </View>
 
