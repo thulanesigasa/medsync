@@ -213,11 +213,22 @@ export default function AppointmentsScreen({ navigation }) {
           <Text style={styles.outlineActionText}>Cancel</Text>
         </TouchableOpacity>
 
+        {appt.status === "Confirmed" && (
+          <TouchableOpacity
+            style={[styles.primaryActionBtn, { backgroundColor: '#10B981', marginRight: 8 }]}
+            onPress={() => navigation.navigate("Telehealth", { doctorName: appt.doctorName })}
+          >
+            <Ionicons name="videocam" size={16} color="#fff" style={{ marginRight: 4 }} />
+            <Text style={styles.primaryActionText}>Join Call</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={styles.primaryActionBtn}
           onPress={() => setActiveChatApptId(appt.id)}
         >
-          <Text style={styles.primaryActionText}>Chat Support</Text>
+          <Ionicons name="chatbubble" size={16} color="#fff" style={{ marginRight: 4 }} />
+          <Text style={styles.primaryActionText}>Chat</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -841,6 +852,7 @@ const styles = StyleSheet.create({
   },
   btnViewSummary: {
     flexDirection: "row",
+    justifyContent: "flex-end",
     alignItems: "center",
     marginTop: 8,
     gap: 4,

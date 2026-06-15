@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
@@ -7,6 +7,24 @@ import MapView, { Marker } from 'react-native-maps';
 
 export default function ClinicsScreen({ navigation }) {
   const { clinics, doctors } = useClinic();
+  const [activeFilter, setActiveFilter] = useState('All');
+  
+  const filters = ['All', 'Top Rated', 'Closest Distance', 'Open Now'];
+
+  const getSortedClinics = () => {
+    let sorted = [...clinics];
+    if (activeFilter === 'Top Rated') {
+      sorted.reverse(); // Just mock sorting for now
+    } else if (activeFilter === 'Closest Distance') {
+      sorted = [sorted[1], sorted[0], ...sorted.slice(2)];
+    } else if (activeFilter === 'Open Now') {
+      sorted = sorted.filter(c => c.hours.includes('24/7') || c.hours.includes('Mon-Sat'));
+    }
+    return sorted;
+  };
+
+  const displayedClinics = getSortedClinics();
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -25,6 +43,20 @@ export default function ClinicsScreen({ navigation }) {
           <Ionicons name="search" size={20} color="#94A3B8" />
           <TextInput placeholder="Search by name or specialty..." style={styles.searchInput} placeholderTextColor="#94A3B8" />
         </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChipsContainer}>
+          {filters.map(filter => (
+            <TouchableOpacity 
+              key={filter} 
+              style={[styles.filterChip, activeFilter === filter && styles.filterChipActive]}
+              onPress={() => setActiveFilter(filter)}
+            >
+              <Text style={[styles.filterChipText, activeFilter === filter && styles.filterChipTextActive]}>
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
 
         <View style={styles.mapContainer}>
           <MapView 
@@ -56,7 +88,7 @@ export default function ClinicsScreen({ navigation }) {
           </MapView>
         </View>
 
-        {clinics.map((clinic, index) => {
+        {displayedClinics.map((clinic, index) => {
           const isDental = clinic.name.toLowerCase().includes('benoni');
           const isHeart = clinic.name.toLowerCase().includes('unjani');
           const iconName = isDental ? "heart" : (isHeart ? "pulse" : "medical");
@@ -137,6 +169,31 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  filterChipsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  filterChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  filterChipText: {
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
   },
   searchInput: { 
     flex: 1, 

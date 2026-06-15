@@ -314,6 +314,50 @@ export default function AdminScreen({ navigation }) {
                 </View>
               )}
             </View>
+
+            {/* Quick Action Pending Appointments */}
+            <View style={styles.card}>
+              <Text style={styles.cardHeaderTitle}>Action Required: Pending Bookings</Text>
+              
+              {clinicAppointments.filter(a => a.status === 'Pending').length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="checkmark-done-circle-outline" size={40} color="#10B981" />
+                  <Text style={styles.emptyText}>All caught up!</Text>
+                </View>
+              ) : (
+                <View style={{ gap: 12 }}>
+                  {clinicAppointments.filter(a => a.status === 'Pending').slice(0, 3).map((appt) => (
+                    <View key={appt.id} style={styles.bookingCard}>
+                      <View style={styles.bookingCardHeader}>
+                        <View style={styles.avatarCircle}>
+                          <Text style={styles.avatarCircleText}>{appt.patientName.charAt(0)}</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.bookingPatientName}>{appt.patientName}</Text>
+                          <Text style={styles.bookingDoctorName}>{appt.doctorName} • {appt.date}</Text>
+                        </View>
+                      </View>
+
+                      <View style={[styles.bookingActionRow, { marginTop: 12 }]}>
+                        <TouchableOpacity 
+                          style={styles.btnDecline}
+                          onPress={() => updateAppointmentStatus(appt.id, 'Declined')}
+                        >
+                          <Text style={styles.btnDeclineText}>Decline</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                          style={styles.btnAccept}
+                          onPress={() => updateAppointmentStatus(appt.id, 'Confirmed')}
+                        >
+                          <Text style={styles.btnAcceptText}>Approve</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
           </View>
         )}
 

@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useClinic } from '../context/ClinicContext';
 import { useChat } from '../context/ChatContext';
 import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../context/ToastContext';
 import EmptyChatsSVG from '../components/EmptyChatsSVG';
 
 export default function ChatsScreen({ navigation }) {
@@ -14,6 +15,7 @@ export default function ChatsScreen({ navigation }) {
   const { clinics } = useClinic();
   const { messages, sendMessage } = useChat();
   const { isDark, toggleTheme, theme } = useTheme();
+  const { showToast } = useToast();
   const [activeClinicName, setActiveClinicName] = useState(null);
   const [chatText, setChatText] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -31,6 +33,12 @@ export default function ChatsScreen({ navigation }) {
     if (!chatText.trim() || !activeClinicName) return;
     sendMessage(activeClinicName, patientName, 'patient', chatText.trim(), null);
     setChatText('');
+  };
+
+  const handleSendAttachment = () => {
+    if (!activeClinicName) return;
+    sendMessage(activeClinicName, patientName, 'patient', "📷 [Image Attached]", null);
+    showToast("Image attachment sent successfully.", "success", "Attachment Sent");
   };
 
   return (
@@ -184,6 +192,9 @@ export default function ChatsScreen({ navigation }) {
 
             {/* Input Row */}
             <View style={styles.chatInputRow}>
+              <TouchableOpacity accessibilityLabel="attach-button" style={styles.chatAttachBtn} onPress={handleSendAttachment}>
+                <Ionicons name="add" size={24} color="#94A3B8" />
+              </TouchableOpacity>
               <TextInput
                 placeholder="Type your message..."
                 value={chatText}
@@ -428,6 +439,14 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatAttachBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
