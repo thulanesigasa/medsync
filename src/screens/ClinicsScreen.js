@@ -3,10 +3,12 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
 import MapView, { Marker } from 'react-native-maps';
 
 export default function ClinicsScreen({ navigation }) {
   const { clinics, doctors } = useClinic();
+  const { theme } = useTheme();
   const [activeFilter, setActiveFilter] = useState('All');
   
   const filters = ['All', 'Top Rated', 'Closest Distance', 'Open Now'];
@@ -26,7 +28,7 @@ export default function ClinicsScreen({ navigation }) {
   const displayedClinics = getSortedClinics();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -34,24 +36,32 @@ export default function ClinicsScreen({ navigation }) {
             <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.appTitle}>Clinics Near Me</Text>
-          <View style={{ width: 24 }} />
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.bellIconContainer}
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              <View style={styles.badge} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
       
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.searchBar}>
+        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Ionicons name="search" size={20} color="#94A3B8" />
-          <TextInput placeholder="Search by name or specialty..." style={styles.searchInput} placeholderTextColor="#94A3B8" />
+          <TextInput placeholder="Search by name or specialty..." style={[styles.searchInput, { color: theme.text }]} placeholderTextColor="#94A3B8" />
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChipsContainer}>
           {filters.map(filter => (
             <TouchableOpacity 
               key={filter} 
-              style={[styles.filterChip, activeFilter === filter && styles.filterChipActive]}
+              style={[styles.filterChip, { backgroundColor: theme.surface, borderColor: theme.border }, activeFilter === filter && styles.filterChipActive]}
               onPress={() => setActiveFilter(filter)}
             >
-              <Text style={[styles.filterChipText, activeFilter === filter && styles.filterChipTextActive]}>
+              <Text style={[styles.filterChipText, { color: theme.subtext }, activeFilter === filter && styles.filterChipTextActive]}>
                 {filter}
               </Text>
             </TouchableOpacity>
@@ -96,7 +106,7 @@ export default function ClinicsScreen({ navigation }) {
           return (
             <TouchableOpacity 
               key={clinic.id} 
-              style={styles.clinicCard} 
+              style={[styles.clinicCard, { backgroundColor: theme.surface, borderColor: theme.border }]} 
               onPress={() => {
                 const clinicDoc = doctors?.find(d => d.clinic === clinic.name) || doctors?.[0];
                 navigation.navigate('Booking', { doctor: clinicDoc });
@@ -106,8 +116,8 @@ export default function ClinicsScreen({ navigation }) {
                 <Ionicons name={iconName} size={32} color={COLORS.primary} />
               </View>
               <View style={styles.clinicInfo}>
-                <Text style={styles.clinicName}>{clinic.name}</Text>
-                <Text style={styles.clinicType}>{clinic.address} • Hours: {clinic.hours}</Text>
+                <Text style={[styles.clinicName, { color: theme.text }]}>{clinic.name}</Text>
+                <Text style={[styles.clinicType, { color: theme.subtext }]}>{clinic.address} • Hours: {clinic.hours}</Text>
                 <View style={styles.ratingRow}>
                   <Ionicons name="star" size={14} color="#F59E0B" />
                   <Text style={styles.ratingText}>{ratingText}</Text>
@@ -137,6 +147,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SIZES.margin,
+    fontFamily: "System",
+  },
+  headerActions: {
+    flexDirection: 'row',
+  },
+  bellIconContainer: {
+    position: 'relative',
+    padding: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   backButton: {
     padding: 4,

@@ -161,7 +161,7 @@ export default function AppointmentsScreen({ navigation }) {
   };
 
   const renderAppointmentCard = (appt) => (
-    <View key={appt.id} style={styles.premiumCard}>
+    <View key={appt.id} style={[styles.premiumCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       <View style={styles.cardHeader}>
         <View style={styles.doctorBadge}>
           <Text style={styles.doctorBadgeText}>
@@ -170,10 +170,10 @@ export default function AppointmentsScreen({ navigation }) {
         </View>
 
         <View style={styles.doctorMeta}>
-          <Text style={styles.doctorNameText}>
+          <Text style={[styles.doctorNameText, { color: theme.text }]}>
             {appt.doctorName || "Doctor"}
           </Text>
-          <Text style={styles.doctorSpecText}>
+          <Text style={[styles.doctorSpecText, { color: theme.subtext }]}>
             {appt.doctorTitle || appt.type || "Specialist"}
           </Text>
         </View>
@@ -192,14 +192,14 @@ export default function AppointmentsScreen({ navigation }) {
       <View style={styles.infoRow}>
         <View style={styles.infoCol}>
           <Ionicons name="location-sharp" size={16} color={COLORS.primary} />
-          <Text style={styles.infoColText}>
+          <Text style={[styles.infoColText, { color: theme.subtext }]}>
             {appt.clinicName || "Clinic unavailable"}
           </Text>
         </View>
 
         <View style={styles.infoCol}>
           <Ionicons name="time" size={16} color={COLORS.primary} />
-          <Text style={styles.infoColText}>
+          <Text style={[styles.infoColText, { color: theme.subtext }]}>
             {appt.date || "Date not set"} at {appt.time || "Time not set"}
           </Text>
         </View>
@@ -241,7 +241,7 @@ export default function AppointmentsScreen({ navigation }) {
 
     return (
       <View key={appt.id} style={styles.pastWrapper}>
-        <View style={[styles.ticketCard, { opacity: 0.85 }]}>
+        <View style={[styles.ticketCard, { opacity: 0.85, backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={[styles.dateBlock, { backgroundColor: "#64748B" }]}>
             <Text style={styles.dateWeekday}>{weekday}</Text>
             <Text style={styles.dateDay}>{day}</Text>
@@ -349,16 +349,15 @@ export default function AppointmentsScreen({ navigation }) {
             <Text style={styles.appTitle}>MedSync</Text>
           </View>
 
-          <TouchableOpacity
-            onPress={toggleTheme}
-            style={styles.actionButton}
-          >
-            <Ionicons
-              name={isDark ? "sunny-outline" : "moon-outline"}
-              size={24}
-              color="#FFFFFF"
-            />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.bellIconContainer}
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              <View style={styles.badge} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -412,10 +411,10 @@ export default function AppointmentsScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        <View style={styles.searchContainer}>
+        <View style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: theme.text }]}
             placeholder="Search by doctor or clinic..."
             placeholderTextColor="#94A3B8"
             value={searchQuery}
@@ -424,7 +423,7 @@ export default function AppointmentsScreen({ navigation }) {
         </View>
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Upcoming Appointments</Text>
           <View style={styles.countBadge}><Text style={styles.countBadgeText}>{upcomingAppointments.length}</Text></View>
         </View>
 
@@ -439,7 +438,7 @@ export default function AppointmentsScreen({ navigation }) {
           upcomingAppointments.map(renderAppointmentCard)
         )}
 
-        <Text style={styles.sectionTitle}>Past Appointments</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Past Appointments</Text>
 
         {pastAppointments.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -576,7 +575,25 @@ const styles = StyleSheet.create({
   },
   headerBrand: {
     flexDirection: "row",
-    alignItems: "center",
+    fontFamily: "System",
+  },
+  headerActions: {
+    flexDirection: 'row',
+  },
+  bellIconContainer: {
+    position: 'relative',
+    padding: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   actionButton: {
     padding: 4,

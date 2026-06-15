@@ -55,7 +55,7 @@ const CustomSwitch = ({ value, onValueChange }) => {
 
 export default function ProfileScreen({ navigation }) {
   const { currentUser, logout } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, toggleTheme, theme } = useTheme();
   const { showToast } = useToast();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   
@@ -75,7 +75,7 @@ export default function ProfileScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -84,8 +84,12 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.appTitle}>MedSync</Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={toggleTheme} style={styles.actionButton}>
-              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
+            <TouchableOpacity
+              style={styles.bellIconContainer}
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              <View style={styles.badge} />
             </TouchableOpacity>
           </View>
         </View>
@@ -127,13 +131,13 @@ export default function ProfileScreen({ navigation }) {
         </View>
 
         {/* Section 1: Account Settings */}
-        <Text style={styles.sectionHeader}>ACCOUNT SETTINGS</Text>
-        <View style={styles.menuSection}>
+        <Text style={[styles.sectionHeader, { color: theme.text }]}>ACCOUNT SETTINGS</Text>
+        <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <TouchableOpacity style={styles.menuItem}>
             <View style={styles.menuIconBox}>
               <Ionicons name="person-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuText}>Personal Information</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Personal Information</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
           
@@ -141,7 +145,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.menuIconBox}>
               <Ionicons name="card-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuText}>Payment Methods</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Payment Methods</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
           
@@ -149,61 +153,61 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.menuIconBox}>
               <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuText}>Insurance Details</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Insurance Details</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
         </View>
 
         {/* Section 2: Preferences */}
-        <Text style={styles.sectionHeader}>PREFERENCES</Text>
-        <View style={styles.menuSection}>
-          <View style={styles.menuItemNonClickable}>
+        <Text style={[styles.sectionHeader, { color: theme.text }]}>PREFERENCES</Text>
+        <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <View style={[styles.menuItemNonClickable, { borderBottomColor: theme.border }]}>
             <View style={styles.menuIconBox}>
               <Ionicons name="notifications-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuText}>Push Notifications</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Push Notifications</Text>
             <CustomSwitch 
               value={notificationsEnabled} 
               onValueChange={setNotificationsEnabled} 
             />
           </View>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
             <View style={styles.menuIconBox}>
               <Ionicons name="globe-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuText}>Language</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Language</Text>
             <View style={styles.rightValueContainer}>
               <Text style={styles.rightValueText}>English (SA)</Text>
               <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={toggleTheme}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]} onPress={toggleTheme}>
             <View style={styles.menuIconBox}>
               <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuText}>Dark Mode</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Dark Mode</Text>
             <Text style={styles.rightValueText}>{isDark ? 'ON' : 'OFF'}</Text>
           </TouchableOpacity>
         </View>
 
         {/* Section 3: Support */}
-        <Text style={styles.sectionHeader}>HELP & SUPPORT</Text>
-        <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem}>
+        <Text style={[styles.sectionHeader, { color: theme.text }]}>HELP & SUPPORT</Text>
+        <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
             <View style={styles.menuIconBox}>
               <Ionicons name="help-circle-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuText}>Help Center & FAQ</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Help Center & FAQ</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}>
             <View style={styles.menuIconBox}>
               <Ionicons name="document-text-outline" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.menuText}>Terms of Service & Privacy Policy</Text>
+            <Text style={[styles.menuText, { color: theme.text }]}>Terms of Service & Privacy Policy</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
         </View>
@@ -288,6 +292,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+  },
+  bellIconContainer: {
+    position: 'relative',
+    padding: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   actionButton: {
     padding: 4,
