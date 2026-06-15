@@ -1,0 +1,10 @@
+mutation {
+  addDiscussionComment(input: {
+    discussionId: "D_kwDOSgr2Uc4AnIpV",
+    body: "Yes, doing this twice unlocks the base tier!"
+  }) {
+    comment {
+      id
+    }
+  }
+}

@@ -34,7 +34,7 @@ export default function SignupScreen({ navigation, route }) {
     'Benoni Health Centre',
     'Unjani Clinic Germiston',
   ];
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (!name && role === 'patient') {
       showToast('Please enter your full name', 'error');
       return;
@@ -55,32 +55,32 @@ export default function SignupScreen({ navigation, route }) {
     
     setIsLoading(true);
 
-    setTimeout(() => {
-      setIsLoading(false);
-      const result = signup(
-        name,
-        email,
-        phone,
-        password,
-        role,
-        role === 'admin' ? selectedClinic : ''
-      );
-      if (!result.success) {
-        showToast(result.message, 'error');
-        return;
-      }
-      
-      showToast('Signup successful!', 'success');
-      
-      if (role === 'patient') {
-        addPatient({ name, email, phone });
-      }
-      if (role === 'admin') {
-        navigation.replace('Admin');
-      } else {
-        navigation.replace('Home');
-      }
-    }, 1200);
+    const result = await signup(
+      name,
+      email,
+      phone,
+      password,
+      role,
+      role === 'admin' ? selectedClinic : ''
+    );
+    
+    setIsLoading(false);
+
+    if (!result.success) {
+      showToast(result.message, 'error');
+      return;
+    }
+    
+    showToast('Signup successful!', 'success');
+    
+    if (role === 'patient') {
+      addPatient({ name, email, phone });
+    }
+    if (role === 'admin') {
+      navigation.replace('Admin');
+    } else {
+      navigation.replace('Home');
+    }
   };
   return (
     <KeyboardAvoidingView
