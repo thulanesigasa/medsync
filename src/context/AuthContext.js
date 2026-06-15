@@ -8,6 +8,51 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthLoaded, setIsAuthLoaded] = useState(false);
 
+  // MOCK FALLBACK DATA
+  const [userAccounts, setUserAccounts] = useState([
+    {
+      name: "Kiddo",
+      email: "patient@medsync.co.za",
+      password: "password123",
+      role: "patient",
+      phone: "071 234 5678",
+    },
+    {
+      name: "Dawn Park Clinic Admin",
+      email: "admin@dawnpark.co.za",
+      password: "admin123",
+      role: "admin",
+      clinic: "Dawn Park Clinic",
+    },
+  ]);
+
+  useEffect(() => {
+    loadUserAccounts();
+  }, []);
+
+  useEffect(() => {
+    saveUserAccounts();
+  }, [userAccounts]);
+
+  const loadUserAccounts = async () => {
+    try {
+      const storedAccounts = await AsyncStorage.getItem("userAccounts");
+      if (storedAccounts) {
+        setUserAccounts(JSON.parse(storedAccounts));
+      }
+    } catch (error) {
+      console.log("Error loading user accounts:", error);
+    }
+  };
+
+  const saveUserAccounts = async () => {
+    try {
+      await AsyncStorage.setItem("userAccounts", JSON.stringify(userAccounts));
+    } catch (error) {
+      console.log("Error saving user accounts:", error);
+    }
+  };
+
   useEffect(() => {
     // Check active session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -61,12 +106,19 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
+      // 1. Attempt Supabase Login
       const { data, error } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password: password,
       });
 
-      if (error) throw error;
+      if (error) {
+        // If supabase URL is not set or network fails, fallback to Mock Data
+        if (error.message.includes('URL') || error.message.includes('fetch')) {
+          throw new Error('FallbackToMock');
+        }
+        throw error;
+      }
       
       const userMeta = data.user?.user_metadata || {};
       
@@ -83,6 +135,33 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, user: data.user };
     } catch (error) {
+      if (error.message === 'FallbackToMock' || String(error).includes('URL')) {
+        console.log("Supabase failed/unconfigured. Falling back to mock login.");
+        const user = userAccounts.find(
+          (account) => account.email.toLowerCase() === cleanEmail && account.role === role,
+        );
+        if (!user) {
+          return { success: false, message: "Account not found. Please sign up first." };
+        }
+        if (user.password !== password) {
+          return { success: false, message: "Incorrect password." };
+        }
+        if (role === "admin" && user.clinic !== clinic) {
+          return { success: false, message: "Incorrect clinic selected for this admin account." };
+        }
+        const loggedInUser = {
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          clinic: user.clinic || "",
+          phone: user.phone || "",
+          isMock: true
+        };
+        setCurrentUser(loggedInUser);
+        AsyncStorage.setItem("currentUser", JSON.stringify(loggedInUser));
+        return { success: true, user };
+      }
+
       console.log("Login Error:", error);
       return { success: false, message: error.message };
     }
@@ -111,9 +190,46 @@ export const AuthProvider = ({ children }) => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('URL') || error.message.includes('fetch')) {
+          throw new Error('FallbackToMock');
+        }
+        throw error;
+      }
+
       return { success: true, user: data.user };
     } catch (error) {
+      if (error.message === 'FallbackToMock' || String(error).includes('URL')) {
+        console.log("Supabase failed/unconfigured. Falling back to mock signup.");
+        const existingUser = userAccounts.find(
+          (account) => account.email.toLowerCase() === cleanEmail,
+        );
+        if (existingUser) {
+          return { success: false, message: "An account with this email already exists." };
+        }
+        const newUser = {
+          name: role === "admin" ? `${clinic} Admin` : name,
+          email: cleanEmail,
+          password,
+          role,
+          clinic: role === "admin" ? clinic : "",
+          phone,
+        };
+        setUserAccounts((prev) => [...prev, newUser]);
+        
+        const loggedInUser = {
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          clinic: newUser.clinic,
+          phone: newUser.phone,
+          isMock: true
+        };
+        setCurrentUser(loggedInUser);
+        AsyncStorage.setItem("currentUser", JSON.stringify(loggedInUser));
+        return { success: true, user: newUser };
+      }
+
       console.log("Signup Error:", error);
       return { success: false, message: error.message };
     }
@@ -126,12 +242,17 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.log("Supabase logout skipped (mock mode)");
+    }
     setCurrentUser(null);
+    await AsyncStorage.removeItem("currentUser");
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, isAuthLoaded, login, signup, resetPassword, logout }}>
+    <AuthContext.Provider value={{ currentUser, isAuthLoaded, userAccounts, login, signup, resetPassword, logout }}>
       {children}
     </AuthContext.Provider>
   );
