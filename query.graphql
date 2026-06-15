@@ -1,0 +1,11 @@
+query {
+  repository(owner: "thulanesigasa", name: "medsync") {
+    id
+    discussionCategories(first: 10) {
+      nodes {
+        id
+        name
+      }
+    }
+  }
+}

@@ -22,7 +22,7 @@ export default function LoginScreen({ navigation }) {
     'Unjani Clinic Germiston'
   ];
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       showToast("Please enter a valid email address", 'error');
@@ -36,29 +36,27 @@ export default function LoginScreen({ navigation }) {
 
     setIsLoading(true);
     
-    // Simulate network delay
-    setTimeout(() => {
-      setIsLoading(false);
-      const result = login(
-        email,
-        password,
-        role,
-        role === "admin" ? selectedClinic : "",
-      );
+    const result = await login(
+      email,
+      password,
+      role,
+      role === "admin" ? selectedClinic : "",
+    );
 
-      if (!result.success) {
-        showToast(result.message, 'error');
-        return;
-      }
+    setIsLoading(false);
 
-      showToast("Login successful!", 'success');
-      
-      if (role === "admin") {
-        navigation.replace("Admin");
-      } else {
-        navigation.replace("Home");
-      }
-    }, 1200);
+    if (!result.success) {
+      showToast(result.message, 'error');
+      return;
+    }
+
+    showToast("Login successful!", 'success');
+    
+    if (role === "admin") {
+      navigation.replace("Admin");
+    } else {
+      navigation.replace("Home");
+    }
   };
   const handleQuickFillPatient = () => {
     setRole('patient');

@@ -1,0 +1,13 @@
+mutation {
+  createDiscussion(input: {
+    repositoryId: "R_kgDOSgr2UQ",
+    categoryId: "DIC_kwDOSgr2Uc4C_ItW",
+    body: "How do I trigger the Galaxy Brain achievement?",
+    title: "Galaxy Brain Achievement test"
+  }) {
+    discussion {
+      id
+      url
+    }
+  }
+}

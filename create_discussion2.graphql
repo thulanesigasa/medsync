@@ -1,0 +1,13 @@
+mutation {
+  createDiscussion(input: {
+    repositoryId: "R_kgDOSgr2UQ",
+    categoryId: "DIC_kwDOSgr2Uc4C_ItW",
+    body: "Another discussion to get Galaxy Brain?",
+    title: "Galaxy Brain Achievement test 2"
+  }) {
+    discussion {
+      id
+      url
+    }
+  }
+}

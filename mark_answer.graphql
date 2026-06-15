@@ -1,0 +1,9 @@
+mutation {
+  markDiscussionCommentAsAnswer(input: {
+    id: "DC_kwDOSgr2Uc4BCAsZ"
+  }) {
+    discussion {
+      id
+    }
+  }
+}
