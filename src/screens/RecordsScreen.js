@@ -15,6 +15,7 @@ export default function RecordsScreen({ navigation }) {
   const [isDark, setIsDark] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
   const [downloadingId, setDownloadingId] = useState(null);
+  const [refillingId, setRefillingId] = useState(null);
 
   const categories = ['All', 'Schedules', 'Vaccines', 'Campaigns'];
 
@@ -28,6 +29,19 @@ export default function RecordsScreen({ navigation }) {
       showToast("Medical Record downloaded successfully!", "success", "Download Complete");
     }, 1500);
   };
+
+  const handleRefill = (prescId) => {
+    setRefillingId(prescId);
+    setTimeout(() => {
+      setRefillingId(null);
+      showToast("Refill request sent to clinic pharmacy.", "success", "Request Sent");
+    }, 1500);
+  };
+
+  const activePrescriptions = [
+    { id: 1, name: 'Amoxicillin 500mg', dosage: '1 capsule 3x a day', remaining: '2 Refills left' },
+    { id: 2, name: 'Lisinopril 10mg', dosage: '1 tablet daily', remaining: '1 Refill left' },
+  ];
 
   return (
     <View style={styles.container}>
@@ -138,6 +152,33 @@ export default function RecordsScreen({ navigation }) {
                       <ActivityIndicator size="small" color={COLORS.primary} />
                     ) : (
                       <Ionicons name="download-outline" size={24} color={COLORS.primary} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+
+            <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Active Prescriptions</Text>
+            <View style={styles.bulletinsContainer}>
+              {activePrescriptions.map((presc) => (
+                <View key={presc.id} style={styles.updateCard}>
+                  <View style={[styles.iconBox, { backgroundColor: '#EFF6FF' }]}>
+                    <Ionicons name="medical" size={22} color="#3B82F6" />
+                  </View>
+                  <View style={styles.updateInfo}>
+                    <Text style={styles.updateTitle}>{presc.name}</Text>
+                    <Text style={styles.updateDesc}>{presc.dosage}</Text>
+                    <Text style={[styles.updateDate, { color: '#F59E0B' }]}>{presc.remaining}</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={[styles.downloadBtn, { backgroundColor: '#3B82F6', width: 'auto', paddingHorizontal: 12, borderRadius: 20 }]} 
+                    onPress={() => handleRefill(presc.id)}
+                    disabled={refillingId === presc.id}
+                  >
+                    {refillingId === presc.id ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>Refill</Text>
                     )}
                   </TouchableOpacity>
                 </View>

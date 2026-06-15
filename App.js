@@ -21,6 +21,7 @@ import ClinicsScreen from './src/screens/ClinicsScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import ChatsScreen from './src/screens/ChatsScreen';
 import DoctorProfileScreen from './src/screens/DoctorProfileScreen';
+import TelehealthScreen from './src/screens/TelehealthScreen';
 import { View, ActivityIndicator, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -77,6 +78,7 @@ function AppNavigator() {
         <Stack.Screen name="Profile" component={ProfileScreen} />
         <Stack.Screen name="Clinics" component={ClinicsScreen} />
         <Stack.Screen name="Notifications" component={NotificationsScreen} />
+        <Stack.Screen name="Telehealth" component={TelehealthScreen} options={{ presentation: 'fullScreenModal' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
