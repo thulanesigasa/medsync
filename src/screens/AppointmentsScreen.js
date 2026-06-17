@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   TouchableOpacity,
   TextInput,
@@ -10,12 +9,16 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  StyleSheet,
 } from "react-native";
+
 import {
   MaterialCommunityIcons,
   Ionicons,
   FontAwesome5,
 } from "@expo/vector-icons";
+
+import * as Calendar from "expo-calendar";
 
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 import BottomTabBar from "../components/BottomTabBar";
@@ -60,27 +63,12 @@ export default function AppointmentsScreen({ navigation }) {
     );
   });
 
-  const getMedicalNoteForAppointment = (appt) => {
-    const patientRecord = patients.find(
-      (p) => p.name?.toLowerCase() === appt.patientName?.toLowerCase(),
-    );
-
-    if (!patientRecord) return null;
-
-    return patientRecord.medicalNotes?.find(
-      (note) => note.date === appt.date || note.doctorName === appt.doctorName,
-    );
-  };
-
   const handleCancelAppointment = (appt) => {
     Alert.alert(
       "Cancel Appointment",
       "Are you sure you want to cancel this appointment?",
       [
-        {
-          text: "No",
-          style: "cancel",
-        },
+        { text: "No", style: "cancel" },
         {
           text: "Yes, Cancel",
           style: "destructive",
@@ -88,6 +76,77 @@ export default function AppointmentsScreen({ navigation }) {
         },
       ],
     );
+  };
+
+  const handleAddToCalendar = async (appt) => {
+    try {
+      if (Platform.OS === "web") {
+        Alert.alert(
+          "Calendar not supported on web",
+          "Please test Add Calendar on a real phone using Expo Go.",
+        );
+        return;
+      }
+      const { status } = await Calendar.requestCalendarPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert("Permission needed", "Please allow calendar access first.");
+        return;
+      }
+if (Platform.OS === "web") {
+  Alert.alert(
+    "Calendar not supported",
+    "Add to Calendar only works on a real phone through Expo Go.",
+  );
+  return;
+}
+      const calendars = await Calendar.getCalendarsAsync(
+        Calendar.EntityTypes.EVENT,
+      );
+
+      const defaultCalendar = calendars.find((cal) => cal.allowsModifications);
+
+      if (!defaultCalendar) {
+        Alert.alert("Calendar unavailable", "No editable calendar was found.");
+        return;
+      }
+
+      const appointmentDate =
+        appt.date || new Date().toISOString().split("T")[0];
+      const appointmentTime = appt.time || "09:00";
+
+      const cleanTime = appointmentTime
+        .replace(" AM", "")
+        .replace(" PM", "")
+        .trim();
+
+      const [hoursValue, minutesValue] = cleanTime.split(":");
+      let hours = parseInt(hoursValue || "9", 10);
+      const minutes = parseInt(minutesValue || "0", 10);
+
+      if (appointmentTime.includes("PM") && hours !== 12) hours += 12;
+      if (appointmentTime.includes("AM") && hours === 12) hours = 0;
+
+      const startDate = new Date(appointmentDate);
+      startDate.setHours(hours, minutes, 0, 0);
+
+      const endDate = new Date(startDate.getTime() + 30 * 60 * 1000);
+
+      await Calendar.createEventAsync(defaultCalendar.id, {
+        title: `MedSync Appointment - ${appt.doctorName || "Doctor"}`,
+        location: appt.clinicName || "Clinic",
+        notes: `${appt.type || "Appointment"} with ${
+          appt.doctorName || "Doctor"
+        }`,
+        startDate,
+        endDate,
+      });
+
+      Alert.alert("Success", "Appointment added to your calendar.");
+    } catch (error) {
+      console.log("Calendar error:", error);
+      Alert.alert("Error", "Could not add appointment to calendar.");
+    }
   };
 
   const handleSendChatMessage = () => {
@@ -110,26 +169,38 @@ export default function AppointmentsScreen({ navigation }) {
     setChatText("");
   };
 
+  const getMedicalNoteForAppointment = (appt) => {
+    const patientRecord = patients.find(
+      (p) => p.name?.toLowerCase() === appt.patientName?.toLowerCase(),
+    );
+
+    if (!patientRecord) return null;
+
+    return patientRecord.medicalNotes?.find(
+      (note) => note.date === appt.date || note.doctorName === appt.doctorName,
+    );
+  };
+
   const getStatusStyle = (status) => {
     if (status === "Confirmed") return styles.statusConfirmed;
     if (status === "Pending") return styles.statusPending;
-    if (status === "Cancelled" || status === "Declined")
+    if (status === "Cancelled" || status === "Declined") {
       return styles.statusCancelled;
+    }
     return styles.statusCompleted;
   };
 
   const getStatusTextStyle = (status) => {
     if (status === "Confirmed") return styles.statusTextConfirmed;
     if (status === "Pending") return styles.statusTextPending;
-    if (status === "Cancelled" || status === "Declined")
+    if (status === "Cancelled" || status === "Declined") {
       return styles.statusTextCancelled;
+    }
     return styles.statusTextCompleted;
   };
 
   const getDateDisplay = (dateString) => {
-    if (!dateString) {
-      return { day: "--", month: "---", weekday: "---" };
-    }
+    if (!dateString) return { day: "--", month: "---", weekday: "---" };
 
     const date = new Date(dateString);
 
@@ -137,14 +208,32 @@ export default function AppointmentsScreen({ navigation }) {
       return { day: "--", month: "---", weekday: "---" };
     }
 
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = date
-      .toLocaleString("en-US", { month: "short" })
-      .toUpperCase();
-    const weekday = date.toLocaleString("en-US", { weekday: "short" });
-
-    return { day, month, weekday };
+    return {
+      day: String(date.getDate()).padStart(2, "0"),
+      month: date.toLocaleString("en-US", { month: "short" }).toUpperCase(),
+      weekday: date.toLocaleString("en-US", { weekday: "short" }),
+    };
   };
+
+
+
+const handleSetReminder = (appt) => {
+  const message = `We will remind you about your appointment with ${
+    appt.doctorName || "your doctor"
+  } on ${appt.date || "the selected date"} at ${
+    appt.time || "the selected time"
+  }.`;
+
+  console.log("Reminder message:", message);
+
+  if (Platform.OS === "web") {
+    window.alert(`Reminder Set\n\n${message}`);
+    return;
+  }
+
+  Alert.alert("Reminder Set", message);
+};
+
 
   const renderAppointmentCard = (appt) => (
     <View key={appt.id} style={styles.premiumCard}>
@@ -194,16 +283,32 @@ export default function AppointmentsScreen({ navigation }) {
       <View style={styles.actionRow}>
         <TouchableOpacity
           style={styles.outlineActionBtn}
-          onPress={() => handleCancelAppointment(appt)}
+          onPress={() => {
+            console.log("Cancel clicked", appt.id);
+            handleCancelAppointment(appt);
+          }}
         >
           <Text style={styles.outlineActionText}>Cancel</Text>
+          <TouchableOpacity
+            style={styles.outlineActionBtn}
+            onPress={() => {
+              console.log("Set Reminder clicked", appt);
+              handleSetReminder(appt);
+            }}
+          >
+            <Text style={styles.outlineActionText}>
+              {appt.reminderSet ? "Reminder Set" : "Set Reminder"}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.outlineActionText}>
+            {appt.reminderSet ? "Reminder Set" : "Set Reminder"}
+          </Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={styles.primaryActionBtn}
           onPress={() => setActiveChatApptId(appt.id)}
         >
-          <Text style={styles.primaryActionText}>Chat Support</Text>
+          <Text style={styles.primaryActionText}>Chat</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -341,49 +446,6 @@ export default function AppointmentsScreen({ navigation }) {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.calendarStrip}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.calendarStripContent}
-          >
-            {[
-              { day: "24", weekday: "Sun" },
-              { day: "25", weekday: "Mon" },
-              { day: "26", weekday: "Tue" },
-              { day: "27", weekday: "Wed", active: true },
-              { day: "28", weekday: "Thu" },
-              { day: "29", weekday: "Fri" },
-              { day: "30", weekday: "Sat" },
-            ].map((item) => (
-              <TouchableOpacity
-                key={`${item.weekday}-${item.day}`}
-                style={[
-                  styles.calendarDayBtn,
-                  item.active && styles.calendarDayBtnActive,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.calendarDayText,
-                    item.active && styles.calendarDayTextActive,
-                  ]}
-                >
-                  {item.day}
-                </Text>
-                <Text
-                  style={[
-                    styles.calendarWeekdayText,
-                    item.active && styles.calendarWeekdayTextActive,
-                  ]}
-                >
-                  {item.weekday}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
         <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
 
         {upcomingAppointments.length === 0 ? (
@@ -513,7 +575,6 @@ export default function AppointmentsScreen({ navigation }) {
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -707,11 +768,11 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   actionRow: {
-    flexDirection: "row",
-    gap: 12,
+    gap: 10,
   },
+
   outlineActionBtn: {
-    flex: 1,
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
@@ -720,22 +781,41 @@ const styles = StyleSheet.create({
     borderColor: "#CBD5E1",
     backgroundColor: "#FFFFFF",
   },
-  outlineActionText: {
-    color: "#64748B",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
+
   primaryActionBtn: {
-    flex: 1,
+    width: "100%",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 12,
     borderRadius: 12,
     backgroundColor: COLORS.primary,
   },
+  outlineActionBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+  },
+  outlineActionText: {
+    color: "#64748B",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  primaryActionBtn: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary,
+  },
   primaryActionText: {
     color: "#FFFFFF",
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "bold",
   },
   pastWrapper: {

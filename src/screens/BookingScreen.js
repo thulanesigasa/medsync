@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-
 import {
   View,
   Text,
@@ -8,16 +7,15 @@ import {
   ScrollView,
 } from "react-native";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import { Ionicons, Feather } from "@expo/vector-icons";
-
 import { Calendar } from "react-native-calendars";
 
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
+import { useStateContext } from "../context/StateContext";
 
 export default function BookingScreen({ navigation, route }) {
   const doctor = route?.params?.doctor;
+  const { currentUser, addAppointment } = useStateContext();
 
   const [selectedDate, setSelectedDate] = useState(
     new Date().toISOString().split("T")[0],
@@ -30,14 +28,11 @@ export default function BookingScreen({ navigation, route }) {
   if (!doctor) {
     return (
       <View style={styles.container}>
-        <Text style={{ textAlign: "center", marginTop: 20 }}>
-          No doctor selected
-        </Text>
+        <Text style={styles.emptyText}>No doctor selected</Text>
       </View>
     );
   }
 
-  // disable past times
   const now = new Date();
   const currentHour = now.getHours();
 
@@ -47,31 +42,25 @@ export default function BookingScreen({ navigation, route }) {
     }
 
     const hour = parseInt(time.split(":")[0], 10);
-
     return hour < currentHour;
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     try {
       const appointment = {
         id: Date.now().toString(),
-        doctor,
+        patientName: currentUser?.name || "Kiddo",
+        doctorName: doctor?.name || "Doctor",
+        doctorTitle: doctor?.specialty || "Specialist",
+        clinicName: doctor?.clinic || "Clinic",
         date: selectedDate,
         time: selectedTime,
+        type: doctor?.specialty || "Appointment",
         status: "Confirmed",
+        reminderSet: false,
       };
 
-      const existingAppointments = await AsyncStorage.getItem("appointments");
-
-      let appointments = [];
-
-      if (existingAppointments) {
-        appointments = JSON.parse(existingAppointments);
-      }
-
-      appointments.push(appointment);
-
-      await AsyncStorage.setItem("appointments", JSON.stringify(appointments));
+      addAppointment(appointment);
 
       navigation.navigate("Confirmation", appointment);
     } catch (error) {
@@ -95,17 +84,14 @@ export default function BookingScreen({ navigation, route }) {
       <ScrollView contentContainerStyle={styles.content}>
         {/* DOCTOR */}
         <Text style={styles.doctorName}>{doctor.name}</Text>
-
         <Text style={styles.specialty}>{doctor.specialty}</Text>
-
         <Text style={styles.clinic}>{doctor.clinic}</Text>
 
         {/* CLINIC */}
-        <Text style={styles.sectionLabel}>Select clinic</Text>
+        <Text style={styles.sectionLabel}>Selected clinic</Text>
 
         <View style={styles.inputBox}>
           <Text style={styles.inputText}>{doctor.clinic}</Text>
-
           <Feather name="chevron-down" size={20} color={COLORS.primary} />
         </View>
 
@@ -131,10 +117,9 @@ export default function BookingScreen({ navigation, route }) {
         {/* TIME */}
         <Text style={styles.sectionLabel}>Select time</Text>
 
-        <View style={styles.matrixContainer}>
+        <View style={styles.timeGrid}>
           {timeSlots.map((time) => {
             const disabled = isPastTime(time);
-
             const active = selectedTime === time;
 
             return (
@@ -145,7 +130,7 @@ export default function BookingScreen({ navigation, route }) {
                 style={[
                   styles.timeBox,
                   active && styles.timeBoxActive,
-                  disabled && { opacity: 0.3 },
+                  disabled && styles.timeBoxDisabled,
                 ]}
               >
                 <Text
@@ -173,6 +158,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
+  emptyText: {
+    textAlign: "center",
+    marginTop: 40,
+    color: COLORS.primary,
+    fontSize: 16,
+    fontWeight: "600",
+  },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -184,85 +177,92 @@ const styles = StyleSheet.create({
   },
 
   headerTitle: {
-    color: "#fff",
+    color: "#FFFFFF",
     fontSize: 18,
     fontWeight: "bold",
   },
 
   content: {
     padding: SIZES.margin,
-    paddingBottom: 100,
+    paddingBottom: 40,
   },
 
   doctorName: {
     fontSize: 24,
     fontWeight: "bold",
     color: COLORS.primary,
+    marginBottom: 6,
   },
 
   specialty: {
     fontSize: 15,
     color: "#64748B",
-    marginTop: 4,
+    marginBottom: 4,
   },
 
   clinic: {
-    color: "#94A3B8",
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: "600",
     marginBottom: 20,
   },
 
   sectionLabel: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "bold",
     color: COLORS.primary,
     marginBottom: 10,
-    marginTop: 10,
+    marginTop: 16,
   },
 
   inputBox: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    backgroundColor: COLORS.surface,
+    borderRadius: 14,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 20,
-    backgroundColor: COLORS.surface,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 
   inputText: {
     color: COLORS.primary,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600",
   },
 
   calendar: {
     borderRadius: 16,
     overflow: "hidden",
-    marginBottom: 20,
     borderWidth: 1,
-    borderColor: "#EAE8FC",
+    borderColor: COLORS.border,
   },
 
-  matrixContainer: {
+  timeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,
-    marginBottom: 20,
   },
 
   timeBox: {
+    width: "30%",
     paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
     borderRadius: 12,
     backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: "center",
   },
 
   timeBoxActive: {
     backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+
+  timeBoxDisabled: {
+    opacity: 0.3,
   },
 
   timeText: {
@@ -275,17 +275,17 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    marginTop: 20,
+    marginTop: 30,
     backgroundColor: COLORS.primary,
     borderRadius: 14,
-    paddingVertical: 18,
+    paddingVertical: 16,
     alignItems: "center",
   },
 
   buttonText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "bold",
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
 });
