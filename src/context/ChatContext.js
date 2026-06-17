@@ -6,13 +6,66 @@ const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
   const { currentUser, isAuthLoaded } = useAuth();
-  const [messages, setMessages] = useState([]);
+  
+  const [messages, setMessages] = useState([
+    {
+      id: "msg-1",
+      clinicName: "Dawn Park Clinic",
+      patientName: "Kiddo",
+      apptId: "appt-1",
+      sender: "admin",
+      text: "Hello Kiddo! How are you feeling after your dentist appointment?",
+      time: "09:00 AM",
+    },
+    {
+      id: "msg-2",
+      clinicName: "Dawn Park Clinic",
+      patientName: "Kiddo",
+      apptId: "appt-1",
+      sender: "patient",
+      text: "Much better, thank you! The pain has subsided.",
+      time: "09:15 AM",
+    },
+    {
+      id: "msg-3",
+      clinicName: "Unjani Clinic Germiston",
+      patientName: "Kiddo",
+      apptId: "appt-2",
+      sender: "admin",
+      text: "Hi Kiddo, this is regarding your upcoming checkup.",
+      time: "10:30 AM",
+    },
+    {
+      id: "msg-4",
+      clinicName: "Dawn Park Clinic",
+      patientName: "Thabo Mokoena",
+      apptId: null,
+      sender: "admin",
+      text: "Mr. Mokoena, please remember to bring your latest X-rays.",
+      time: "11:00 AM",
+    },
+  ]);
   
   // Local state for admin notifications until Phase 2 Push Notifications are implemented
-  const [adminNotifications, setAdminNotifications] = useState([]);
+  const [adminNotifications, setAdminNotifications] = useState([
+    {
+      id: "alert-1",
+      title: "New Booking Request",
+      body: "Thabo Mokoena requested an appointment with Dr. Nkwanyana.",
+      time: "2 mins ago",
+      read: false,
+    },
+    {
+      id: "alert-2",
+      title: "Message Received",
+      body: "Kiddo sent a new message regarding their recent checkup.",
+      time: "1 hour ago",
+      read: false,
+    },
+  ]);
 
   useEffect(() => {
-    if (isAuthLoaded && currentUser) {
+    if (isAuthLoaded && currentUser && !currentUser.isMock) {
       fetchMessages();
       
       // Subscribe to real-time chat updates
@@ -42,44 +95,65 @@ export const ChatProvider = ({ children }) => {
         `)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+         if (error.message.includes('URL') || error.message.includes('fetch')) throw new Error('FallbackToMock');
+         throw error;
+      }
 
-      const formatted = data.map(m => {
-        const isSenderAdmin = m.profiles.role === 'admin' || m.profiles.role === 'doctor';
-        return {
-          id: m.id,
-          clinicName: m.clinics?.name,
-          patientName: m.profiles?.full_name, // If admin sent it, this is admin name. In real app we'd join receiver_id too.
-          sender: isSenderAdmin ? 'admin' : 'patient',
-          text: m.text_content,
-          time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        };
-      });
-
-      setMessages(formatted);
+      if (data && data.length > 0) {
+        const formatted = data.map(m => {
+          const isSenderAdmin = m.profiles.role === 'admin' || m.profiles.role === 'doctor';
+          return {
+            id: m.id,
+            clinicName: m.clinics?.name,
+            patientName: m.profiles?.full_name, // If admin sent it, this is admin name. In real app we'd join receiver_id too.
+            sender: isSenderAdmin ? 'admin' : 'patient',
+            text: m.text_content,
+            time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          };
+        });
+        setMessages(formatted);
+      }
     } catch (error) {
-      console.log('Error fetching messages:', error);
+      console.log('Error fetching messages (falling back to mock):', error.message);
     }
   };
 
   const sendMessage = async (clinicName, patientName, sender, text, apptId = null) => {
-    // We would need the exact clinic UUID here instead of name in a full implementation,
-    // for this mockup context rewrite we just send the text.
-    try {
-      const { error } = await supabase
-        .from('messages')
-        .insert([{
-          sender_id: currentUser.id,
-          // clinic_id: clinic_id,
-          // receiver_id: receiver_id,
-          text_content: text
-        }]);
+    if (!currentUser?.isMock) {
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .insert([{
+            sender_id: currentUser.id,
+            text_content: text
+          }]);
 
-      if (error) throw error;
-      fetchMessages();
-    } catch (error) {
-      console.log('Error sending message:', error);
+        if (!error) {
+          fetchMessages();
+          return;
+        }
+      } catch (error) {}
     }
+
+    // Fallback Mock Logic
+    const time = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `msg-${Date.now()}`,
+        clinicName,
+        patientName,
+        apptId,
+        sender,
+        text,
+        time,
+      },
+    ]);
   };
 
   const addAdminNotification = (notif) => {

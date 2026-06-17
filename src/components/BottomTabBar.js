@@ -2,8 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
+import { useTheme } from '../context/ThemeContext';
 
 export default function BottomTabBar({ navigation, activeTab }) {
+  const { theme } = useTheme();
   const isHome = activeTab === 'Home';
   const isAppt = activeTab === 'Appointments';
   const isUpdt = activeTab === 'Records'; // activeTab for records is 'Records' internally
@@ -11,7 +13,7 @@ export default function BottomTabBar({ navigation, activeTab }) {
   const isProf = activeTab === 'Profile';
 
   return (
-    <View style={styles.tabBar}>
+    <View style={[styles.tabBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Home')}>
         <Ionicons name={isHome ? "home" : "home-outline"} size={22} color={isHome ? COLORS.primary : '#94A3B8'} />
         <Text style={isHome ? styles.tabTextActive : styles.tabText}>Home</Text>
@@ -55,14 +57,12 @@ const styles = StyleSheet.create({
     left: SIZES.margin,
     right: SIZES.margin,
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     height: LAYOUT.tabBarHeight,
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 8,
     borderWidth: 1,
-    borderColor: '#EAE8FC',
     shadowColor: '#0F2C59',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,

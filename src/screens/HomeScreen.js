@@ -93,15 +93,15 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.surface }]}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
             <MaterialCommunityIcons
               name="shield-plus"
               size={28}
-              color="#FFFFFF"
+              color={theme.text}
             />
-            <Text style={styles.appTitle}>MedSync</Text>
+            <Text style={[styles.appTitle, { color: theme.text }]}>MedSync</Text>
           </View>
 
           <View style={styles.headerActions}>
@@ -112,7 +112,7 @@ export default function HomeScreen({ navigation }) {
               <Ionicons
                 name="notifications-outline"
                 size={24}
-                color="#FFFFFF"
+                color={theme.text}
               />
               <View style={styles.badge} />
             </TouchableOpacity>
@@ -211,7 +211,6 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity
             style={[
               styles.specialtyItem,
-              { backgroundColor: theme.surface, borderColor: theme.border },
               activeSpecialty === "General" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
             ]}
             onPress={() => setActiveSpecialty(activeSpecialty === "General" ? null : "General")}
@@ -229,7 +228,6 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity
             style={[
               styles.specialtyItem,
-              { backgroundColor: theme.surface, borderColor: theme.border },
               activeSpecialty === "Dentist" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
             ]}
             onPress={() => setActiveSpecialty(activeSpecialty === "Dentist" ? null : "Dentist")}
@@ -243,7 +241,6 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity
             style={[
               styles.specialtyItem,
-              { backgroundColor: theme.surface, borderColor: theme.border },
               activeSpecialty === "Cardiologist" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
             ]}
             onPress={() => setActiveSpecialty(activeSpecialty === "Cardiologist" ? null : "Cardiologist")}
@@ -251,7 +248,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="heartbeat" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.specialtyLabel}>Cardiology</Text>
+            <Text style={[styles.specialtyLabel, { color: theme.text }]}>Cardiology</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -264,7 +261,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="baby" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.specialtyLabel}>Pediatrics</Text>
+            <Text style={[styles.specialtyLabel, { color: theme.text }]}>Pediatrics</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -277,7 +274,7 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="brain" size={18} color={COLORS.primary} />
             </View>
-            <Text style={styles.specialtyLabel}>Neurology</Text>
+            <Text style={[styles.specialtyLabel, { color: theme.text }]}>Neurology</Text>
           </TouchableOpacity>
         </ScrollView>
 
@@ -427,7 +424,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    backgroundColor: COLORS.primary,
     paddingTop: LAYOUT.statusBarHeight,
     height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
   },
@@ -443,7 +439,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   appTitle: {
-    color: "#FFFFFF",
     fontSize: 22,
     fontWeight: "bold",
     marginLeft: 10,
