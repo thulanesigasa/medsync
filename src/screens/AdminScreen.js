@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LineChart, PieChart } from 'react-native-chart-kit';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
+import BottomTabBar from '../components/BottomTabBar';
 import { useAuth } from '../context/AuthContext';
 import { useClinic } from '../context/ClinicContext';
 import { useAppointment } from '../context/AppointmentContext';
@@ -158,10 +159,10 @@ export default function AdminScreen({ navigation }) {
   const screenWidth = Dimensions.get('window').width;
 
   const pieData = [
-    { name: "General", population: 45, color: "#3B82F6", legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "Dental", population: 28, color: "#10B981", legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "Cardio", population: 15, color: "#F59E0B", legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "Pediatrics", population: 12, color: "#EF4444", legendFontColor: "#7F7F7F", legendFontSize: 12 }
+    { name: "General", population: 45, color: COLORS.primary, legendFontColor: "#7F7F7F", legendFontSize: 12 },
+    { name: "Dental", population: 28, color: COLORS.accent, legendFontColor: "#7F7F7F", legendFontSize: 12 },
+    { name: "Cardio", population: 15, color: COLORS.success, legendFontColor: "#7F7F7F", legendFontSize: 12 },
+    { name: "Pediatrics", population: 12, color: "#8B5CF6", legendFontColor: "#7F7F7F", legendFontSize: 12 }
   ];
 
   return (
@@ -905,6 +906,8 @@ export default function AdminScreen({ navigation }) {
           </View>
         )}
       </ScrollView>
+
+      <BottomTabBar navigation={navigation} activeTab="Dashboard" isAdmin={true} />
 
       {/* -------------------- LIVE CHAT MODAL -------------------- */}
       <Modal

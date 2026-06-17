@@ -98,7 +98,7 @@ export default function ProfileScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
         {/* Premium Profile Card */}
-        <View style={styles.premiumProfileCard}>
+        <View style={[styles.premiumProfileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.cardTopRow}>
             <View style={styles.avatarContainer}>
               <View style={styles.avatar}>
@@ -112,8 +112,8 @@ export default function ProfileScreen({ navigation }) {
             </View>
             
             <View style={styles.profileMeta}>
-              <Text style={styles.profileName}>{currentUser?.name || 'Kiddo'}</Text>
-              <Text style={styles.profileEmail}>{currentUser?.email || 'kiddo@hokmatech.com'}</Text>
+              <Text style={[styles.profileName, { color: theme.text }]}>{currentUser?.name || 'Kiddo'}</Text>
+              <Text style={[styles.profileEmail, { color: theme.subtext }]}>{currentUser?.email || 'kiddo@hokmatech.com'}</Text>
               
               <View style={styles.goldBadge}>
                 <Ionicons name="ribbon" size={13} color="#D97706" style={{ marginRight: 4 }} />
@@ -133,7 +133,7 @@ export default function ProfileScreen({ navigation }) {
         {/* Section 1: Account Settings */}
         <Text style={[styles.sectionHeader, { color: theme.text }]}>ACCOUNT SETTINGS</Text>
         <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
             <View style={styles.menuIconBox}>
               <Ionicons name="person-outline" size={20} color={COLORS.primary} />
             </View>
@@ -141,7 +141,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
             <View style={styles.menuIconBox}>
               <Ionicons name="card-outline" size={20} color={COLORS.primary} />
             </View>
@@ -149,7 +149,7 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}>
             <View style={styles.menuIconBox}>
               <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
             </View>
