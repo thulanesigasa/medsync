@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
 
-export default function BottomTabBar({ navigation, activeTab, isAdmin = false }) {
+export default function BottomTabBar({ navigation, activeTab, isAdmin = false, onTabPress }) {
   const { theme, isDark } = useTheme();
   
   const activeColor = isDark ? '#3B82F6' : COLORS.primary;
@@ -15,21 +15,21 @@ export default function BottomTabBar({ navigation, activeTab, isAdmin = false })
   const isProf = activeTab === 'Profile';
 
   if (isAdmin) {
-    const isDash = activeTab === 'Dashboard';
-    const isAdminAppt = activeTab === 'Appointments';
-    const isPat = activeTab === 'Patients';
-    const isAdminChat = activeTab === 'Chats';
-    const isAdminProf = activeTab === 'Profile';
+    const isDash = activeTab === 'overview';
+    const isAdminAppt = activeTab === 'bookings';
+    const isPat = activeTab === 'patients';
+    const isAdminChat = activeTab === 'chats';
+    const isAdminProf = activeTab === 'manage';
 
     return (
       <View style={[styles.tabBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Admin')}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => onTabPress ? onTabPress('overview') : navigation.navigate('Admin')}>
           <Ionicons name={isDash ? "grid" : "grid-outline"} size={22} color={isDash ? activeColor : '#94A3B8'} />
           <Text style={[isDash ? styles.tabTextActive : styles.tabText, isDash && { color: activeColor }]}>Dashboard</Text>
           {isDash && <View style={[styles.activeDot, { backgroundColor: activeColor }]} />}
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Appointments')}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => onTabPress ? onTabPress('bookings') : navigation.navigate('Appointments')}>
           <View style={styles.activeTabIcon}>
             <Ionicons name={isAdminAppt ? "calendar" : "calendar-outline"} size={22} color={isAdminAppt ? activeColor : '#94A3B8'} />
           </View>
@@ -37,21 +37,21 @@ export default function BottomTabBar({ navigation, activeTab, isAdmin = false })
           {isAdminAppt && <View style={[styles.activeDot, { backgroundColor: activeColor }]} />}
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Records')}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => onTabPress ? onTabPress('patients') : navigation.navigate('Records')}>
           <Ionicons name={isPat ? "people" : "people-outline"} size={22} color={isPat ? activeColor : '#94A3B8'} />
           <Text style={[isPat ? styles.tabTextActive : styles.tabText, isPat && { color: activeColor }]}>Patients</Text>
           {isPat && <View style={[styles.activeDot, { backgroundColor: activeColor }]} />}
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Chats')}>
+        <TouchableOpacity style={styles.tabItem} onPress={() => onTabPress ? onTabPress('chats') : navigation.navigate('Chats')}>
           <Ionicons name={isAdminChat ? "chatbubbles" : "chatbubbles-outline"} size={22} color={isAdminChat ? activeColor : '#94A3B8'} />
           <Text style={[isAdminChat ? styles.tabTextActive : styles.tabText, isAdminChat && { color: activeColor }]}>Chats</Text>
           {isAdminChat && <View style={[styles.activeDot, { backgroundColor: activeColor }]} />}
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.tabItem} onPress={() => navigation.navigate('Profile')}>
-          <Ionicons name={isAdminProf ? "person" : "person-outline"} size={22} color={isAdminProf ? activeColor : '#94A3B8'} />
-          <Text style={[isAdminProf ? styles.tabTextActive : styles.tabText, isAdminProf && { color: activeColor }]}>Profile</Text>
+        <TouchableOpacity style={styles.tabItem} onPress={() => onTabPress ? onTabPress('manage') : navigation.navigate('Profile')}>
+          <Ionicons name={isAdminProf ? "settings" : "settings-outline"} size={22} color={isAdminProf ? activeColor : '#94A3B8'} />
+          <Text style={[isAdminProf ? styles.tabTextActive : styles.tabText, isAdminProf && { color: activeColor }]}>Manage</Text>
           {isAdminProf && <View style={[styles.activeDot, { backgroundColor: activeColor }]} />}
         </TouchableOpacity>
       </View>
