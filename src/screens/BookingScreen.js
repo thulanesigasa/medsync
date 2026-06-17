@@ -8,7 +8,8 @@ import {
   ScrollView,
 } from "react-native";
 
-import { useStateContext } from "../context/StateContext";
+import { useAuth } from '../context/AuthContext';
+import { useAppointment } from '../context/AppointmentContext';
 
 import { Ionicons, Feather } from "@expo/vector-icons";
 
@@ -17,7 +18,8 @@ import { Calendar } from "react-native-calendars";
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 
 export default function BookingScreen({ navigation, route }) {
-  const { addAppointment, currentUser } = useStateContext();
+  const { currentUser } = useAuth();
+  const { addAppointment } = useAppointment();
   const doctor = route?.params?.doctor;
 
   const [selectedDate, setSelectedDate] = useState(
@@ -125,10 +127,9 @@ export default function BookingScreen({ navigation, route }) {
         {/* TIME */}
         <Text style={styles.sectionLabel}>Select time</Text>
 
-        <View style={styles.matrixContainer}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.matrixContainer}>
           {timeSlots.map((time) => {
             const disabled = isPastTime(time);
-
             const active = selectedTime === time;
 
             return (
@@ -150,7 +151,7 @@ export default function BookingScreen({ navigation, route }) {
               </TouchableOpacity>
             );
           })}
-        </View>
+        </ScrollView>
 
         {/* CONFIRM */}
         <TouchableOpacity style={styles.button} onPress={handleConfirm}>
@@ -241,9 +242,9 @@ const styles = StyleSheet.create({
 
   matrixContainer: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
+    gap: 12,
     marginBottom: 20,
+    paddingVertical: 5,
   },
 
   timeBox: {

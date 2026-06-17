@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  RefreshControl,
 } from "react-native";
 import {
   MaterialCommunityIcons,
@@ -19,23 +20,32 @@ import {
 
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 import BottomTabBar from "../components/BottomTabBar";
-import { useStateContext } from "../context/StateContext";
+import { useAuth } from '../context/AuthContext';
+import { useAppointment } from '../context/AppointmentContext';
+import { useTheme } from '../context/ThemeContext';
+import { useClinic } from '../context/ClinicContext';
+import { useChat } from '../context/ChatContext';
+import EmptyAppointmentsSVG from '../components/EmptyAppointmentsSVG';
 
 export default function AppointmentsScreen({ navigation }) {
-  const {
-    appointments = [],
-    patients = [],
-    messages = [],
-    sendMessage,
-    updateAppointmentStatus,
-    isDark,
-    toggleTheme,
-    theme
-  } = useStateContext();
+  const { currentUser } = useAuth();
+  const { appointments, updateAppointmentStatus } = useAppointment();
+  const { patients } = useClinic();
+  const { messages, sendMessage } = useChat();
+  const { isDark, theme, toggleTheme } = useTheme();
 
   const [selectedNoteApptId, setSelectedNoteApptId] = useState(null);
   const [activeChatApptId, setActiveChatApptId] = useState(null);
   const [chatText, setChatText] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -43,22 +53,24 @@ export default function AppointmentsScreen({ navigation }) {
   const upcomingAppointments = appointments.filter((appt) => {
     const appointmentDate = new Date(appt.date);
     appointmentDate.setHours(0, 0, 0, 0);
+    const matchesSearch = appt.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) || appt.clinicName.toLowerCase().includes(searchQuery.toLowerCase());
 
     return (
       appointmentDate >= today &&
-      (appt.status === "Confirmed" || appt.status === "Pending")
+      (appt.status === "Confirmed" || appt.status === "Pending") && matchesSearch
     );
   });
 
   const pastAppointments = appointments.filter((appt) => {
     const appointmentDate = new Date(appt.date);
     appointmentDate.setHours(0, 0, 0, 0);
+    const matchesSearch = appt.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) || appt.clinicName.toLowerCase().includes(searchQuery.toLowerCase());
 
     return (
-      appointmentDate < today ||
+      (appointmentDate < today ||
       appt.status === "Completed" ||
       appt.status === "Declined" ||
-      appt.status === "Cancelled"
+      appt.status === "Cancelled") && matchesSearch
     );
   });
 
@@ -149,7 +161,7 @@ export default function AppointmentsScreen({ navigation }) {
   };
 
   const renderAppointmentCard = (appt) => (
-    <View key={appt.id} style={styles.premiumCard}>
+    <View key={appt.id} style={[styles.premiumCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       <View style={styles.cardHeader}>
         <View style={styles.doctorBadge}>
           <Text style={styles.doctorBadgeText}>
@@ -158,10 +170,10 @@ export default function AppointmentsScreen({ navigation }) {
         </View>
 
         <View style={styles.doctorMeta}>
-          <Text style={styles.doctorNameText}>
+          <Text style={[styles.doctorNameText, { color: theme.text }]}>
             {appt.doctorName || "Doctor"}
           </Text>
-          <Text style={styles.doctorSpecText}>
+          <Text style={[styles.doctorSpecText, { color: theme.subtext }]}>
             {appt.doctorTitle || appt.type || "Specialist"}
           </Text>
         </View>
@@ -180,14 +192,14 @@ export default function AppointmentsScreen({ navigation }) {
       <View style={styles.infoRow}>
         <View style={styles.infoCol}>
           <Ionicons name="location-sharp" size={16} color={COLORS.primary} />
-          <Text style={styles.infoColText}>
+          <Text style={[styles.infoColText, { color: theme.subtext }]}>
             {appt.clinicName || "Clinic unavailable"}
           </Text>
         </View>
 
         <View style={styles.infoCol}>
           <Ionicons name="time" size={16} color={COLORS.primary} />
-          <Text style={styles.infoColText}>
+          <Text style={[styles.infoColText, { color: theme.subtext }]}>
             {appt.date || "Date not set"} at {appt.time || "Time not set"}
           </Text>
         </View>
@@ -201,11 +213,22 @@ export default function AppointmentsScreen({ navigation }) {
           <Text style={styles.outlineActionText}>Cancel</Text>
         </TouchableOpacity>
 
+        {appt.status === "Confirmed" && (
+          <TouchableOpacity
+            style={[styles.primaryActionBtn, { backgroundColor: '#10B981', marginRight: 8 }]}
+            onPress={() => navigation.navigate("Telehealth", { doctorName: appt.doctorName })}
+          >
+            <Ionicons name="videocam" size={16} color="#fff" style={{ marginRight: 4 }} />
+            <Text style={styles.primaryActionText}>Join Call</Text>
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={styles.primaryActionBtn}
           onPress={() => setActiveChatApptId(appt.id)}
         >
-          <Text style={styles.primaryActionText}>Chat Support</Text>
+          <Ionicons name="chatbubble" size={16} color="#fff" style={{ marginRight: 4 }} />
+          <Text style={styles.primaryActionText}>Chat</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -218,7 +241,7 @@ export default function AppointmentsScreen({ navigation }) {
 
     return (
       <View key={appt.id} style={styles.pastWrapper}>
-        <View style={[styles.ticketCard, { opacity: 0.85 }]}>
+        <View style={[styles.ticketCard, { opacity: 0.85, backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={[styles.dateBlock, { backgroundColor: "#64748B" }]}>
             <Text style={styles.dateWeekday}>{weekday}</Text>
             <Text style={styles.dateDay}>{day}</Text>
@@ -326,22 +349,24 @@ export default function AppointmentsScreen({ navigation }) {
             <Text style={styles.appTitle}>MedSync</Text>
           </View>
 
-          <TouchableOpacity
-            onPress={toggleTheme}
-            style={styles.actionButton}
-          >
-            <Ionicons
-              name={isDark ? "sunny-outline" : "moon-outline"}
-              size={24}
-              color="#FFFFFF"
-            />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.bellIconContainer}
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              <View style={styles.badge} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
       >
         <View style={styles.calendarStrip}>
           <ScrollView
@@ -386,11 +411,25 @@ export default function AppointmentsScreen({ navigation }) {
           </ScrollView>
         </View>
 
-        <Text style={styles.sectionTitle}>Upcoming Appointments</Text>
+        <View style={[styles.searchContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Ionicons name="search" size={20} color="#94A3B8" style={styles.searchIcon} />
+          <TextInput
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="Search by doctor or clinic..."
+            placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Upcoming Appointments</Text>
+          <View style={styles.countBadge}><Text style={styles.countBadgeText}>{upcomingAppointments.length}</Text></View>
+        </View>
 
         {upcomingAppointments.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={36} color="#94A3B8" />
+            <EmptyAppointmentsSVG width={140} height={140} />
             <Text style={styles.emptyText}>
               No upcoming appointments scheduled
             </Text>
@@ -399,10 +438,11 @@ export default function AppointmentsScreen({ navigation }) {
           upcomingAppointments.map(renderAppointmentCard)
         )}
 
-        <Text style={styles.sectionTitle}>Past Appointments</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Past Appointments</Text>
 
         {pastAppointments.length === 0 ? (
           <View style={styles.emptyContainer}>
+            <EmptyAppointmentsSVG width={140} height={140} />
             <Text style={styles.emptyText}>No past appointments found</Text>
           </View>
         ) : (
@@ -535,7 +575,25 @@ const styles = StyleSheet.create({
   },
   headerBrand: {
     flexDirection: "row",
-    alignItems: "center",
+    fontFamily: "System",
+  },
+  headerActions: {
+    flexDirection: 'row',
+  },
+  bellIconContainer: {
+    position: 'relative',
+    padding: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   actionButton: {
     padding: 4,
@@ -811,6 +869,7 @@ const styles = StyleSheet.create({
   },
   btnViewSummary: {
     flexDirection: "row",
+    justifyContent: "flex-end",
     alignItems: "center",
     marginTop: 8,
     gap: 4,
@@ -947,6 +1006,52 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#F1F5F9",
     gap: 8,
+  },
+  chatInputStyle: {
+    flex: 1,
+    height: 40,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    marginRight: 10,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 50,
+    marginHorizontal: SIZES.margin,
+    marginTop: 10,
+    marginBottom: 5,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: COLORS.primary,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingRight: SIZES.margin,
+  },
+  countBadge: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  countBadgeText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   chatInputField: {
     flex: 1,

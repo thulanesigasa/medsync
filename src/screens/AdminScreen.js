@@ -1,30 +1,20 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, KeyboardAvoidingView, Switch, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Platform, KeyboardAvoidingView, Switch, Modal, Dimensions } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { LineChart, PieChart } from 'react-native-chart-kit';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
+import { useClinic } from '../context/ClinicContext';
+import { useAppointment } from '../context/AppointmentContext';
+import { useChat } from '../context/ChatContext';
+import { useTheme } from '../context/ThemeContext';
 
 export default function AdminScreen({ navigation }) {
-  const { 
-    currentUser, 
-    clinics,
-    doctors,
-    patients,
-    appointments, 
-    updates, 
-    messages,
-    adminNotifications,
-    updateAppointmentStatus, 
-    addUpdate, 
-    deleteUpdate, 
-    addDoctor,
-    updateDoctorShift,
-    updateClinicSettings,
-    addMedicalNote,
-    sendMessage,
-    clearNotifications,
-    logout 
-  } = useStateContext();
+  const { currentUser, logout } = useAuth();
+  const { clinics, doctors, patients, updates, addUpdate, deleteUpdate, addDoctor, updateDoctorShift, updateClinicSettings, addMedicalNote } = useClinic();
+  const { appointments, updateAppointmentStatus } = useAppointment();
+  const { messages, sendMessage, adminNotifications, clearNotifications } = useChat();
+  const { isDark, theme, toggleTheme } = useTheme();
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'bookings', 'doctors', 'patients', 'updates', 'settings'
   const [bookingFilter, setBookingFilter] = useState('Pending'); // 'Pending' or 'Confirmed'
@@ -165,13 +155,13 @@ export default function AdminScreen({ navigation }) {
     Alert.alert('Success', 'Bulletin published successfully.');
   };
 
-  // Mock Bar Chart Values (Height representation)
-  const monthlyMetrics = [
-    { month: 'Jan', count: 42, height: 60 },
-    { month: 'Feb', count: 56, height: 80 },
-    { month: 'Mar', count: 68, height: 95 },
-    { month: 'Apr', count: 48, height: 68 },
-    { month: 'May', count: 72, height: 110 }
+  const screenWidth = Dimensions.get('window').width;
+
+  const pieData = [
+    { name: "General", population: 45, color: "#3B82F6", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+    { name: "Dental", population: 28, color: "#10B981", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+    { name: "Cardio", population: 15, color: "#F59E0B", legendFontColor: "#7F7F7F", legendFontSize: 12 },
+    { name: "Pediatrics", population: 12, color: "#EF4444", legendFontColor: "#7F7F7F", legendFontSize: 12 }
   ];
 
   return (
@@ -253,18 +243,46 @@ export default function AdminScreen({ navigation }) {
               </View>
             </View>
 
-            {/* Performance Bar Chart */}
+            {/* Performance Line Chart */}
             <View style={styles.card}>
               <Text style={styles.cardHeaderTitle}>Monthly Traffic Analytics</Text>
-              <View style={styles.chartContainer}>
-                {monthlyMetrics.map((item, index) => (
-                  <View key={index} style={styles.chartCol}>
-                    <Text style={styles.chartValText}>{item.count}</Text>
-                    <View style={[styles.chartBar, { height: item.height }]} />
-                    <Text style={styles.chartLabelText}>{item.month}</Text>
-                  </View>
-                ))}
-              </View>
+              <LineChart
+                data={{
+                  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+                  datasets: [{ data: [20, 45, 28, 80, 99, 43] }]
+                }}
+                width={screenWidth - 64}
+                height={220}
+                yAxisSuffix="k"
+                chartConfig={{
+                  backgroundColor: COLORS.surface,
+                  backgroundGradientFrom: COLORS.surface,
+                  backgroundGradientTo: COLORS.surface,
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(59, 130, 246, ${opacity})`,
+                  labelColor: (opacity = 1) => `rgba(148, 163, 184, ${opacity})`,
+                  style: { borderRadius: 16 },
+                  propsForDots: { r: "6", strokeWidth: "2", stroke: COLORS.primary }
+                }}
+                bezier
+                style={{ marginVertical: 8, borderRadius: 16 }}
+              />
+            </View>
+
+            {/* Specialties Pie Chart */}
+            <View style={styles.card}>
+              <Text style={styles.cardHeaderTitle}>Patient Distribution</Text>
+              <PieChart
+                data={pieData}
+                width={screenWidth - 64}
+                height={200}
+                chartConfig={{ color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})` }}
+                accessor={"population"}
+                backgroundColor={"transparent"}
+                paddingLeft={"0"}
+                center={[10, 0]}
+                absolute
+              />
             </View>
 
             {/* Admin Alerts Notifications Feed */}
@@ -290,6 +308,50 @@ export default function AdminScreen({ navigation }) {
                         <Text style={styles.alertTitle}>{notif.title}</Text>
                         <Text style={styles.alertBody}>{notif.body}</Text>
                         <Text style={styles.alertTime}>{notif.time}</Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+
+            {/* Quick Action Pending Appointments */}
+            <View style={styles.card}>
+              <Text style={styles.cardHeaderTitle}>Action Required: Pending Bookings</Text>
+              
+              {clinicAppointments.filter(a => a.status === 'Pending').length === 0 ? (
+                <View style={styles.emptyContainer}>
+                  <Ionicons name="checkmark-done-circle-outline" size={40} color="#10B981" />
+                  <Text style={styles.emptyText}>All caught up!</Text>
+                </View>
+              ) : (
+                <View style={{ gap: 12 }}>
+                  {clinicAppointments.filter(a => a.status === 'Pending').slice(0, 3).map((appt) => (
+                    <View key={appt.id} style={styles.bookingCard}>
+                      <View style={styles.bookingCardHeader}>
+                        <View style={styles.avatarCircle}>
+                          <Text style={styles.avatarCircleText}>{appt.patientName.charAt(0)}</Text>
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.bookingPatientName}>{appt.patientName}</Text>
+                          <Text style={styles.bookingDoctorName}>{appt.doctorName} • {appt.date}</Text>
+                        </View>
+                      </View>
+
+                      <View style={[styles.bookingActionRow, { marginTop: 12 }]}>
+                        <TouchableOpacity 
+                          style={styles.btnDecline}
+                          onPress={() => updateAppointmentStatus(appt.id, 'Declined')}
+                        >
+                          <Text style={styles.btnDeclineText}>Decline</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                          style={styles.btnAccept}
+                          onPress={() => updateAppointmentStatus(appt.id, 'Confirmed')}
+                        >
+                          <Text style={styles.btnAcceptText}>Approve</Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
                   ))}

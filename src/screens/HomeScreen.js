@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  RefreshControl,
 } from "react-native";
 import {
   Ionicons,
@@ -15,35 +16,62 @@ import {
 
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 import BottomTabBar from "../components/BottomTabBar";
-import { useStateContext } from "../context/StateContext";
+import SkeletonLoader from '../components/SkeletonLoader';
+import { useClinic } from '../context/ClinicContext';
+import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
+import { useAppointment } from '../context/AppointmentContext';
 
 export default function HomeScreen({ navigation }) {
-  const {
-    currentUser,
-    appointments = [],
-    doctors = [],
-    isDark,
-    theme,
-    toggleTheme,
-  } = useStateContext();
+  const { clinics, doctors } = useClinic();
+  const { currentUser } = useAuth();
+  const { appointments = [] } = useAppointment();
+  const { isDark, theme, toggleTheme } = useTheme();
 
-  
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+  const [activeSpecialty, setActiveSpecialty] = useState(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const handleBookAppointment = (doctor) => {
-    navigation.navigate("Booking", { doctor });
+    navigation.navigate("DoctorProfile", { doctor });
   };
 
   const filteredDoctors = doctors.filter((doctor) => {
-    const query = searchQuery.trim().toLowerCase();
-
-    if (!query) return true;
-
-    return (
+    const query = debouncedSearchQuery.trim().toLowerCase();
+    
+    const matchesSearch = !query || (
       doctor.name?.toLowerCase().includes(query) ||
       doctor.specialty?.toLowerCase().includes(query) ||
       doctor.clinic?.toLowerCase().includes(query)
     );
+
+    const matchesSpecialty = !activeSpecialty || 
+      doctor.specialty?.toLowerCase().includes(activeSpecialty.toLowerCase());
+
+    return matchesSearch && matchesSpecialty;
   });
 
   const today = new Date();
@@ -65,26 +93,18 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.surface }]}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
             <MaterialCommunityIcons
               name="shield-plus"
               size={28}
-              color="#FFFFFF"
+              color={theme.text}
             />
-            <Text style={styles.appTitle}>MedSync</Text>
+            <Text style={[styles.appTitle, { color: theme.text }]}>MedSync</Text>
           </View>
 
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={toggleTheme} style={styles.actionButton}>
-              <Ionicons
-                name={isDark ? "sunny-outline" : "moon-outline"}
-                size={24}
-                color="#FFFFFF"
-              />
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.bellIconContainer}
               onPress={() => navigation.navigate("Notifications")}
@@ -92,7 +112,7 @@ export default function HomeScreen({ navigation }) {
               <Ionicons
                 name="notifications-outline"
                 size={24}
-                color="#FFFFFF"
+                color={theme.text}
               />
               <View style={styles.badge} />
             </TouchableOpacity>
@@ -104,19 +124,22 @@ export default function HomeScreen({ navigation }) {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
       >
         {/* Greeting */}
         <View style={styles.greetingContainer}>
-          <Text style={styles.greetingTitle}>
+          <Text style={[styles.greetingTitle, { color: theme.text }]}>
             Hello, {currentUser?.name || "Kiddo"}!
           </Text>
-          <Text style={styles.greetingSubline}>
+          <Text style={[styles.greetingSubline, { color: theme.subtext }]}>
             Find your local doctor easily
           </Text>
         </View>
 
         {/* Search */}
-        <View style={styles.searchBar}>
+        <View style={[styles.searchBar, { backgroundColor: theme.surface }]}>
           <Ionicons name="search-outline" size={20} color="#94A3B8" />
           {searchQuery.length > 0 && (
             <Text style={styles.searchResultText}>
@@ -124,17 +147,17 @@ export default function HomeScreen({ navigation }) {
             </Text>
           )}
           {searchQuery.length > 0 && (
-            <View style={styles.searchResultsBox}>
+            <View style={[styles.searchResultsBox, { backgroundColor: theme.surface }]}>
               {filteredDoctors.length > 0 ? (
                 filteredDoctors.map((doctor) => (
                   <TouchableOpacity
                     key={doctor.id}
-                    style={styles.searchResultItem}
+                    style={[styles.searchResultItem, { borderBottomColor: theme.border }]}
                     onPress={() => handleBookAppointment(doctor)}
                   >
                     <View>
-                      <Text style={styles.searchResultName}>{doctor.name}</Text>
-                      <Text style={styles.searchResultDetails}>
+                      <Text style={[styles.searchResultName, { color: theme.text }]}>{doctor.name}</Text>
+                      <Text style={[styles.searchResultDetails, { color: theme.subtext }]}>
                         {doctor.specialty} • {doctor.clinic}
                       </Text>
                     </View>
@@ -155,7 +178,7 @@ export default function HomeScreen({ navigation }) {
           )}
           <TextInput
             placeholder="Search doctor, clinic or specialty..."
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: theme.text }]}
             placeholderTextColor="#94A3B8"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -174,7 +197,7 @@ export default function HomeScreen({ navigation }) {
 
         {/* Specialties */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Specialties</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Specialties</Text>
           <TouchableOpacity onPress={() => navigation.navigate("Clinics")}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
@@ -186,8 +209,11 @@ export default function HomeScreen({ navigation }) {
           contentContainerStyle={styles.specialtiesScroll}
         >
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("General")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "General" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "General" ? null : "General")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5
@@ -196,54 +222,66 @@ export default function HomeScreen({ navigation }) {
                 color={COLORS.primary}
               />
             </View>
-            <Text style={styles.specialtyLabel}>General</Text>
+            <Text style={[styles.specialtyLabel, { color: theme.text }]}>General</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("Dentist")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "Dentist" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "Dentist" ? null : "Dentist")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="tooth" size={18} color={COLORS.primary} />
             </View>
-            <Text style={styles.specialtyLabel}>Dentistry</Text>
+            <Text style={[styles.specialtyLabel, { color: theme.text }]}>Dentistry</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("Cardiologist")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "Cardiologist" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "Cardiologist" ? null : "Cardiologist")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="heartbeat" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.specialtyLabel}>Cardiology</Text>
+            <Text style={[styles.specialtyLabel, { color: theme.text }]}>Cardiology</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("Pediatrics")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "Pediatrics" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "Pediatrics" ? null : "Pediatrics")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="baby" size={20} color={COLORS.primary} />
             </View>
-            <Text style={styles.specialtyLabel}>Pediatrics</Text>
+            <Text style={[styles.specialtyLabel, { color: theme.text }]}>Pediatrics</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.specialtyItem}
-            onPress={() => setSearchQuery("Neurology")}
+            style={[
+              styles.specialtyItem,
+              activeSpecialty === "Neurology" && { backgroundColor: COLORS.primary + "20", borderColor: COLORS.primary, borderWidth: 1 }
+            ]}
+            onPress={() => setActiveSpecialty(activeSpecialty === "Neurology" ? null : "Neurology")}
           >
             <View style={styles.specialtyIconBox}>
               <FontAwesome5 name="brain" size={18} color={COLORS.primary} />
             </View>
-            <Text style={styles.specialtyLabel}>Neurology</Text>
+            <Text style={[styles.specialtyLabel, { color: theme.text }]}>Neurology</Text>
           </TouchableOpacity>
         </ScrollView>
 
         {upcomingAppt && (
           <>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Upcoming Schedule</Text>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Upcoming Schedule</Text>
             </View>
 
             <View
@@ -303,7 +341,7 @@ export default function HomeScreen({ navigation }) {
 
         {/* Top Doctors */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>
             {searchQuery ? "Search Results" : "Top Doctors"}
           </Text>
           <TouchableOpacity onPress={() => navigation.navigate("Clinics")}>
@@ -312,11 +350,24 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         <View style={styles.doctorsList}>
-          {filteredDoctors.length > 0 ? (
+          {isLoading ? (
+            <>
+              {[1, 2, 3].map((i) => (
+                <View key={i} style={[styles.doctorCard, { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <SkeletonLoader width={56} height={56} borderRadius={28} isDark={isDark} />
+                  <View style={{ marginLeft: 16, flex: 1, gap: 8 }}>
+                    <SkeletonLoader width={120} height={16} isDark={isDark} />
+                    <SkeletonLoader width={100} height={12} isDark={isDark} />
+                    <SkeletonLoader width={140} height={12} isDark={isDark} />
+                  </View>
+                </View>
+              ))}
+            </>
+          ) : filteredDoctors.length > 0 ? (
             filteredDoctors.map((doctor) => (
               <TouchableOpacity
                 key={doctor.id}
-                style={styles.doctorCard}
+                style={[styles.doctorCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
                 onPress={() => handleBookAppointment(doctor)}
               >
                 <View style={styles.doctorAvatarLarge}>
@@ -328,8 +379,8 @@ export default function HomeScreen({ navigation }) {
                 </View>
 
                 <View style={styles.doctorInfo}>
-                  <Text style={styles.doctorName}>{doctor.name}</Text>
-                  <Text style={styles.doctorTitle}>{doctor.specialty}</Text>
+                  <Text style={[styles.doctorName, { color: theme.text }]}>{doctor.name}</Text>
+                  <Text style={[styles.doctorTitle, { color: theme.subtext }]}>{doctor.specialty}</Text>
 
                   <View style={styles.doctorStats}>
                     <Ionicons name="star" size={14} color="#F59E0B" />
@@ -338,7 +389,7 @@ export default function HomeScreen({ navigation }) {
                     </Text>
                   </View>
 
-                  <Text style={styles.doctorClinic}>{doctor.clinic}</Text>
+                  <Text style={[styles.doctorClinic, { color: theme.subtext }]}>{doctor.clinic}</Text>
                 </View>
 
                 <View style={styles.doctorAction}>
@@ -373,7 +424,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    backgroundColor: COLORS.primary,
     paddingTop: LAYOUT.statusBarHeight,
     height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
   },
@@ -389,7 +439,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   appTitle: {
-    color: "#FFFFFF",
     fontSize: 22,
     fontWeight: "bold",
     marginLeft: 10,

@@ -3,17 +3,49 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
-import { useStateContext } from '../context/StateContext';
+import { useClinic } from '../context/ClinicContext';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { useTheme } from '../context/ThemeContext';
+import { ActivityIndicator } from 'react-native';
 
 export default function RecordsScreen({ navigation }) {
-  const { updates } = useStateContext();
-  const [isDark, setIsDark] = useState(false);
+  const { updates, patients } = useClinic();
+  const { currentUser } = useAuth();
+  const { showToast } = useToast();
+  const { theme, isDark } = useTheme();
   const [activeCategory, setActiveCategory] = useState('All');
+  const [downloadingId, setDownloadingId] = useState(null);
+  const [refillingId, setRefillingId] = useState(null);
 
   const categories = ['All', 'Schedules', 'Vaccines', 'Campaigns'];
 
+  const currentUserData = patients?.find(p => p.name.toLowerCase() === currentUser?.name?.toLowerCase());
+  const myRecords = currentUserData?.medicalNotes || [];
+
+  const handleDownload = (recordId) => {
+    setDownloadingId(recordId);
+    setTimeout(() => {
+      setDownloadingId(null);
+      showToast("Medical Record downloaded successfully!", "success", "Download Complete");
+    }, 1500);
+  };
+
+  const handleRefill = (prescId) => {
+    setRefillingId(prescId);
+    setTimeout(() => {
+      setRefillingId(null);
+      showToast("Refill request sent to clinic pharmacy.", "success", "Request Sent");
+    }, 1500);
+  };
+
+  const activePrescriptions = [
+    { id: 1, name: 'Amoxicillin 500mg', dosage: '1 capsule 3x a day', remaining: '2 Refills left' },
+    { id: 2, name: 'Lisinopril 10mg', dosage: '1 tablet daily', remaining: '1 Refill left' },
+  ];
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -22,26 +54,30 @@ export default function RecordsScreen({ navigation }) {
             <Text style={styles.appTitle}>MedSync</Text>
           </View>
           <View style={styles.headerActions}>
-            <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
-              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
+            <TouchableOpacity
+              style={styles.bellIconContainer}
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              <View style={styles.badge} />
             </TouchableOpacity>
           </View>
         </View>
       </View>
       
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.searchBar}>
+        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Ionicons name="search" size={20} color="#94A3B8" />
-          <Text style={styles.searchText}>Search clinic updates...</Text>
+          <Text style={[styles.searchText, { color: theme.text }]}>Search clinic updates...</Text>
         </View>
 
         {/* Featured Announcement Card */}
-        <View style={styles.featuredCard}>
+        <View style={[styles.featuredCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.featuredBadge}>
             <Text style={styles.featuredBadgeText}>Featured</Text>
           </View>
-          <Text style={styles.featuredTitle}>Free Flu Vaccine Drive 2026</Text>
-          <Text style={styles.featuredDesc}>
+          <Text style={[styles.featuredTitle, { color: theme.text }]}>Free Flu Vaccine Drive 2026</Text>
+          <Text style={[styles.featuredDesc, { color: theme.subtext }]}>
             Walk-ins are now welcome at Unjani Clinic Germiston for the annual influenza vaccine. Protect your family this winter season.
           </Text>
           <TouchableOpacity style={styles.featuredBtn}>
@@ -57,10 +93,10 @@ export default function RecordsScreen({ navigation }) {
             return (
               <TouchableOpacity 
                 key={index} 
-                style={[styles.categoryBtn, isActive && styles.categoryBtnActive]}
+                style={[styles.categoryBtn, { backgroundColor: theme.surface, borderColor: theme.border }, isActive && styles.categoryBtnActive]}
                 onPress={() => setActiveCategory(cat)}
               >
-                <Text style={[styles.categoryBtnText, isActive && styles.categoryBtnTextActive]}>
+                <Text style={[styles.categoryBtnText, { color: theme.subtext }, isActive && styles.categoryBtnTextActive]}>
                   {cat}
                 </Text>
               </TouchableOpacity>
@@ -68,7 +104,7 @@ export default function RecordsScreen({ navigation }) {
           })}
         </ScrollView>
 
-        <Text style={styles.sectionTitle}>Local Clinic Bulletins</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Local Clinic Bulletins</Text>
         
         <View style={styles.bulletinsContainer}>
           {updates
@@ -78,7 +114,7 @@ export default function RecordsScreen({ navigation }) {
               return item.category.toLowerCase() === activeCategory.toLowerCase();
             })
             .map((item) => (
-              <View key={item.id} style={styles.updateCard}>
+              <View key={item.id} style={[styles.updateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <View style={styles.iconBox}>
                   <Ionicons 
                     name={
@@ -91,14 +127,71 @@ export default function RecordsScreen({ navigation }) {
                   />
                 </View>
                 <View style={styles.updateInfo}>
-                  <Text style={styles.updateTitle}>{item.title}</Text>
-                  <Text style={styles.updateDesc}>{item.desc}</Text>
-                  <Text style={styles.updateDate}>{item.date} • {item.clinic}</Text>
+                  <Text style={[styles.updateTitle, { color: theme.text }]}>{item.title}</Text>
+                  <Text style={[styles.updateDesc, { color: theme.subtext }]}>{item.desc}</Text>
+                  <Text style={[styles.updateDate, { color: theme.subtext }]}>{item.date} • {item.clinic}</Text>
                 </View>
               </View>
-            ))
-          }
+            ))}
         </View>
+
+        {myRecords.length > 0 && (
+          <>
+            <Text style={[styles.sectionTitle, { marginTop: 20, color: theme.text }]}>My Medical Records</Text>
+            <View style={styles.bulletinsContainer}>
+              {myRecords.map((record, index) => (
+                <View key={index} style={[styles.updateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <View style={[styles.iconBox, { backgroundColor: '#F0FDF4' }]}>
+                    <Ionicons name="document-text" size={22} color="#10B981" />
+                  </View>
+                  <View style={styles.updateInfo}>
+                    <Text style={[styles.updateTitle, { color: theme.text }]}>{record.diagnosis}</Text>
+                    <Text style={[styles.updateDesc, { color: theme.subtext }]}>Dr. {record.doctorName} • {record.clinicName}</Text>
+                    <Text style={[styles.updateDate, { color: theme.subtext }]}>{record.date}</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={styles.downloadBtn} 
+                    onPress={() => handleDownload(index)}
+                    disabled={downloadingId === index}
+                  >
+                    {downloadingId === index ? (
+                      <ActivityIndicator size="small" color={COLORS.primary} />
+                    ) : (
+                      <Ionicons name="download-outline" size={24} color={COLORS.primary} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+
+            <Text style={[styles.sectionTitle, { marginTop: 20, color: theme.text }]}>Active Prescriptions</Text>
+            <View style={styles.bulletinsContainer}>
+              {activePrescriptions.map((presc) => (
+                <View key={presc.id} style={[styles.updateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <View style={[styles.iconBox, { backgroundColor: '#EFF6FF' }]}>
+                    <Ionicons name="medical" size={22} color="#3B82F6" />
+                  </View>
+                  <View style={styles.updateInfo}>
+                    <Text style={[styles.updateTitle, { color: theme.text }]}>{presc.name}</Text>
+                    <Text style={[styles.updateDesc, { color: theme.subtext }]}>{presc.dosage}</Text>
+                    <Text style={[styles.updateDate, { color: '#F59E0B' }]}>{presc.remaining}</Text>
+                  </View>
+                  <TouchableOpacity 
+                    style={[styles.downloadBtn, { backgroundColor: '#3B82F6', width: 'auto', paddingHorizontal: 12, borderRadius: 20 }]} 
+                    onPress={() => handleRefill(presc.id)}
+                    disabled={refillingId === presc.id}
+                  >
+                    {refillingId === presc.id ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>Refill</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
         
       </ScrollView>
       
@@ -130,8 +223,21 @@ const styles = StyleSheet.create({
   },
   headerActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
+  },
+  bellIconContainer: {
+    position: 'relative',
+    padding: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   actionButton: {
     padding: 4,
@@ -287,5 +393,11 @@ const styles = StyleSheet.create({
     fontSize: 11, 
     color: '#94A3B8',
     fontWeight: '500',
+  },
+  downloadBtn: {
+    padding: 10,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    marginLeft: 10,
   }
 });

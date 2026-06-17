@@ -1,13 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import { useStateContext } from '../context/StateContext';
+import { useClinic } from '../context/ClinicContext';
+import { useTheme } from '../context/ThemeContext';
+import MapView, { Marker } from 'react-native-maps';
 
 export default function ClinicsScreen({ navigation }) {
-  const { clinics, doctors } = useStateContext();
+  const { clinics, doctors } = useClinic();
+  const { theme } = useTheme();
+  const [activeFilter, setActiveFilter] = useState('All');
+  
+  const filters = ['All', 'Top Rated', 'Closest Distance', 'Open Now'];
+
+  const getSortedClinics = () => {
+    let sorted = [...clinics];
+    if (activeFilter === 'Top Rated') {
+      sorted.reverse(); // Just mock sorting for now
+    } else if (activeFilter === 'Closest Distance') {
+      sorted = [sorted[1], sorted[0], ...sorted.slice(2)];
+    } else if (activeFilter === 'Open Now') {
+      sorted = sorted.filter(c => c.hours.includes('24/7') || c.hours.includes('Mon-Sat'));
+    }
+    return sorted;
+  };
+
+  const displayedClinics = getSortedClinics();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -15,17 +36,69 @@ export default function ClinicsScreen({ navigation }) {
             <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.appTitle}>Clinics Near Me</Text>
-          <View style={{ width: 24 }} />
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.bellIconContainer}
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              <View style={styles.badge} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
       
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.searchBar}>
+        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Ionicons name="search" size={20} color="#94A3B8" />
-          <TextInput placeholder="Search by name or specialty..." style={styles.searchInput} placeholderTextColor="#94A3B8" />
+          <TextInput placeholder="Search by name or specialty..." style={[styles.searchInput, { color: theme.text }]} placeholderTextColor="#94A3B8" />
         </View>
 
-        {clinics.map((clinic, index) => {
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterChipsContainer}>
+          {filters.map(filter => (
+            <TouchableOpacity 
+              key={filter} 
+              style={[styles.filterChip, { backgroundColor: theme.surface, borderColor: theme.border }, activeFilter === filter && styles.filterChipActive]}
+              onPress={() => setActiveFilter(filter)}
+            >
+              <Text style={[styles.filterChipText, { color: theme.subtext }, activeFilter === filter && styles.filterChipTextActive]}>
+                {filter}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        <View style={styles.mapContainer}>
+          <MapView 
+            style={styles.map}
+            initialRegion={{
+              latitude: -26.1906,
+              longitude: 28.2612,
+              latitudeDelta: 0.1,
+              longitudeDelta: 0.1,
+            }}
+          >
+            {clinics.map((clinic, index) => {
+              const coords = [
+                { latitude: -26.182, longitude: 28.243 },
+                { latitude: -26.191, longitude: 28.312 },
+                { latitude: -26.205, longitude: 28.256 },
+                { latitude: -26.180, longitude: 28.280 },
+              ];
+              const coord = coords[index % coords.length];
+              return (
+                <Marker
+                  key={clinic.id}
+                  coordinate={coord}
+                  title={clinic.name}
+                  description={clinic.address}
+                />
+              );
+            })}
+          </MapView>
+        </View>
+
+        {displayedClinics.map((clinic, index) => {
           const isDental = clinic.name.toLowerCase().includes('benoni');
           const isHeart = clinic.name.toLowerCase().includes('unjani');
           const iconName = isDental ? "heart" : (isHeart ? "pulse" : "medical");
@@ -33,7 +106,7 @@ export default function ClinicsScreen({ navigation }) {
           return (
             <TouchableOpacity 
               key={clinic.id} 
-              style={styles.clinicCard} 
+              style={[styles.clinicCard, { backgroundColor: theme.surface, borderColor: theme.border }]} 
               onPress={() => {
                 const clinicDoc = doctors?.find(d => d.clinic === clinic.name) || doctors?.[0];
                 navigation.navigate('Booking', { doctor: clinicDoc });
@@ -43,8 +116,8 @@ export default function ClinicsScreen({ navigation }) {
                 <Ionicons name={iconName} size={32} color={COLORS.primary} />
               </View>
               <View style={styles.clinicInfo}>
-                <Text style={styles.clinicName}>{clinic.name}</Text>
-                <Text style={styles.clinicType}>{clinic.address} • Hours: {clinic.hours}</Text>
+                <Text style={[styles.clinicName, { color: theme.text }]}>{clinic.name}</Text>
+                <Text style={[styles.clinicType, { color: theme.subtext }]}>{clinic.address} • Hours: {clinic.hours}</Text>
                 <View style={styles.ratingRow}>
                   <Ionicons name="star" size={14} color="#F59E0B" />
                   <Text style={styles.ratingText}>{ratingText}</Text>
@@ -74,6 +147,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SIZES.margin,
+    fontFamily: "System",
+  },
+  headerActions: {
+    flexDirection: 'row',
+  },
+  bellIconContainer: {
+    position: 'relative',
+    padding: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   backButton: {
     padding: 4,
@@ -96,6 +188,41 @@ const styles = StyleSheet.create({
     borderRadius: SIZES.radius, 
     borderWidth: 1, 
     borderColor: COLORS.border, 
+  },
+  mapContainer: {
+    height: 200,
+    borderRadius: SIZES.radius,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  map: {
+    flex: 1,
+  },
+  filterChipsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  filterChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  filterChipText: {
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  filterChipTextActive: {
+    color: '#FFFFFF',
   },
   searchInput: { 
     flex: 1, 

@@ -3,12 +3,12 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
+import { useAppointment } from '../context/AppointmentContext';
 
 export default function ConfirmationScreen({ navigation, route }) {
-  const { appointments } = useStateContext();
-
-  const { currentUser } = useStateContext();
+  const { appointments } = useAppointment();
+  const { currentUser } = useAuth();
 
   const bookingData = route?.params || {};
 

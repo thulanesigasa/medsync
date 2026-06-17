@@ -1,14 +1,31 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Modal, KeyboardAvoidingView, Platform, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
-import { useStateContext } from '../context/StateContext';
+import { useAuth } from '../context/AuthContext';
+import { useClinic } from '../context/ClinicContext';
+import { useChat } from '../context/ChatContext';
+import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../context/ToastContext';
+import EmptyChatsSVG from '../components/EmptyChatsSVG';
 
 export default function ChatsScreen({ navigation }) {
-  const { currentUser, clinics, messages, sendMessage, isDark, toggleTheme, theme } = useStateContext();
+  const { currentUser } = useAuth();
+  const { clinics } = useClinic();
+  const { messages, sendMessage } = useChat();
+  const { isDark, toggleTheme, theme } = useTheme();
+  const { showToast } = useToast();
   const [activeClinicName, setActiveClinicName] = useState(null);
   const [chatText, setChatText] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const patientName = currentUser?.name || 'Kiddo';
 
@@ -16,6 +33,12 @@ export default function ChatsScreen({ navigation }) {
     if (!chatText.trim() || !activeClinicName) return;
     sendMessage(activeClinicName, patientName, 'patient', chatText.trim(), null);
     setChatText('');
+  };
+
+  const handleSendAttachment = () => {
+    if (!activeClinicName) return;
+    sendMessage(activeClinicName, patientName, 'patient', "📷 [Image Attached]", null);
+    showToast("Image attachment sent successfully.", "success", "Attachment Sent");
   };
 
   return (
@@ -27,16 +50,28 @@ export default function ChatsScreen({ navigation }) {
             <Ionicons name="chatbubbles" size={28} color="#FFFFFF" />
             <Text style={styles.appTitle}>My Chats</Text>
           </View>
-          <TouchableOpacity onPress={toggleTheme} style={styles.actionButton}>
-            <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              style={styles.bellIconContainer}
+              onPress={() => navigation.navigate("Notifications")}
+            >
+              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
+              <View style={styles.badge} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
       {/* Main Content Area */}
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionTitle}>Clinic Support Channels</Text>
-        <Text style={styles.sectionSubtitle}>Start a conversation with any of our branches for support.</Text>
+      <ScrollView 
+        contentContainerStyle={styles.content} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
+      >
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Clinic Support Channels</Text>
+        <Text style={[styles.sectionSubtitle, { color: theme.subtext }]}>Start a conversation with any of our branches for support.</Text>
 
         <View style={styles.channelsList}>
           {clinics.map((clinic) => {
@@ -55,7 +90,7 @@ export default function ChatsScreen({ navigation }) {
             return (
               <TouchableOpacity 
                 key={clinic.id} 
-                style={styles.channelCard}
+                style={[styles.channelCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
                 onPress={() => setActiveClinicName(clinic.name)}
               >
                 <View style={styles.channelIconContainer}>
@@ -64,7 +99,7 @@ export default function ChatsScreen({ navigation }) {
                 
                 <View style={styles.channelInfo}>
                   <View style={styles.channelHeaderRow}>
-                    <Text style={styles.clinicName} numberOfLines={1}>{clinic.name}</Text>
+                    <Text style={[styles.clinicName, { color: theme.text }]} numberOfLines={1}>{clinic.name}</Text>
                     {lastMsg ? (
                       <Text style={styles.messageTime}>{lastMsg.time}</Text>
                     ) : null}
@@ -92,10 +127,10 @@ export default function ChatsScreen({ navigation }) {
         <View style={styles.modalOverlay}>
           <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.chatModalContainer}
+            style={[styles.chatModalContainer, { backgroundColor: theme.background }]}
           >
             {/* Modal Header */}
-            <View style={styles.modalHeader}>
+            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
               <TouchableOpacity 
                 style={styles.modalBackBtn}
                 onPress={() => setActiveClinicName(null)}
@@ -103,8 +138,8 @@ export default function ChatsScreen({ navigation }) {
                 <Ionicons name="chevron-back" size={24} color={COLORS.primary} />
               </TouchableOpacity>
               <View style={styles.modalHeaderTitleBox}>
-                <Text style={styles.modalTitle} numberOfLines={1}>{activeClinicName}</Text>
-                <Text style={styles.modalSubtitle}>Support Live Chat</Text>
+                <Text style={[styles.modalTitle, { color: theme.text }]} numberOfLines={1}>{activeClinicName}</Text>
+                <Text style={[styles.modalSubtitle, { color: theme.subtext }]}>Support Live Chat</Text>
               </View>
               <TouchableOpacity style={styles.phoneBtn}>
                 <Ionicons name="call-outline" size={20} color={COLORS.primary} />
@@ -117,7 +152,14 @@ export default function ChatsScreen({ navigation }) {
               showsVerticalScrollIndicator={false}
               ref={ref => { if (ref) ref.scrollToEnd({ animated: true }); }}
             >
-              {activeClinicName && messages
+              {activeClinicName && messages.filter(
+                  m => m.clinicName === activeClinicName && m.patientName === patientName
+                ).length === 0 ? (
+                  <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 100 }}>
+                    <EmptyChatsSVG width={140} height={140} />
+                    <Text style={{ color: '#94A3B8', marginTop: 16, fontSize: 16 }}>No messages yet</Text>
+                  </View>
+                ) : activeClinicName && messages
                 .filter(
                   m => m.clinicName === activeClinicName && m.patientName === patientName
                 )
@@ -155,12 +197,15 @@ export default function ChatsScreen({ navigation }) {
             </ScrollView>
 
             {/* Input Row */}
-            <View style={styles.chatInputRow}>
+            <View style={[styles.chatInputRow, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
+              <TouchableOpacity accessibilityLabel="attach-button" style={styles.chatAttachBtn} onPress={handleSendAttachment}>
+                <Ionicons name="add" size={24} color="#94A3B8" />
+              </TouchableOpacity>
               <TextInput
                 placeholder="Type your message..."
                 value={chatText}
                 onChangeText={setChatText}
-                style={styles.chatInputField}
+                style={[styles.chatInputField, { color: theme.text, backgroundColor: theme.background, borderColor: theme.border }]}
                 placeholderTextColor="#94A3B8"
               />
               <TouchableOpacity accessibilityLabel="send-button" style={styles.chatSendBtn} onPress={handleSendChatMessage}>
@@ -204,7 +249,25 @@ const styles = StyleSheet.create({
   appTitle: {
     color: '#FFFFFF',
     fontSize: 22,
-    fontWeight: 'bold',
+    fontFamily: "System",
+  },
+  headerActions: {
+    flexDirection: 'row',
+  },
+  bellIconContainer: {
+    position: 'relative',
+    padding: 4,
+  },
+  badge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: COLORS.primary,
   },
   actionButton: {
     padding: 4,
@@ -400,6 +463,14 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 22,
     backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chatAttachBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
   },
