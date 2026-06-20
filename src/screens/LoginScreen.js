@@ -52,7 +52,7 @@ export default function LoginScreen({ navigation }) {
 
     showToast("Login successful!", 'success');
     
-    if (role === "admin") {
+    if (result.role === "admin" || result.role === "receptionist" || result.role === "hr") {
       navigation.replace("Admin");
     } else {
       navigation.replace("Home");

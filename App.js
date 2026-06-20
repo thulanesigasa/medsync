@@ -62,7 +62,7 @@ function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator 
-        initialRouteName={currentUser ? (currentUser.role === 'admin' ? 'Admin' : 'Home') : 'Login'}
+        initialRouteName={currentUser ? (['admin', 'hr', 'receptionist'].includes(currentUser.role) ? 'Admin' : 'Home') : 'Login'}
         screenOptions={{ headerShown: false }}
       >
         <Stack.Screen name="Login" component={LoginScreen} />

@@ -44,6 +44,11 @@ export default function AdminScreen({ navigation }) {
   const [selectedChatPatientName, setSelectedChatPatientName] = useState(null);
   const [adminChatText, setAdminChatText] = useState('');
 
+  // Staff Management State
+  const [staffEmail, setStaffEmail] = useState('');
+  const [staffRole, setStaffRole] = useState('receptionist');
+  const { grantStaffAccess } = useAuth();
+
   // Clinic Association Details
   const clinicName = currentUser?.clinic || 'Dawn Park Clinic';
   const activeClinicInfo = clinics.find(c => c.name.toLowerCase().includes(clinicName.toLowerCase())) || clinics[0];
@@ -73,15 +78,28 @@ export default function AdminScreen({ navigation }) {
     navigation.replace('Login');
   };
 
-  const handleSaveSettings = () => {
-    updateClinicSettings(activeClinicInfo.name, {
+  const handleSaveSettings = async () => {
+    await updateClinicSettings(clinicName, {
       address: settingsAddress,
-      phone: settingsPhone,
-      hours: settingsHours,
-      website: settingsWebsite,
-      slotDuration: parseInt(settingsSlot, 10) || 30
+      phone_number: settingsPhone,
+      hours_of_operation: settingsHours,
+      email: settingsWebsite
     });
-    Alert.alert('Settings Saved', 'Clinic settings have been dynamically updated.');
+    Alert.alert("Success", "Clinic configurations saved!");
+  };
+
+  const handleGrantStaffAccess = async () => {
+    if (!staffEmail || !staffEmail.includes('@')) {
+      Alert.alert("Error", "Please enter a valid email address.");
+      return;
+    }
+    const response = await grantStaffAccess(staffEmail, staffRole);
+    if (response.success) {
+      Alert.alert("Success", response.message);
+      setStaffEmail('');
+    } else {
+      Alert.alert("Error", response.message || "Failed to grant access.");
+    }
   };
 
   const handleAddNewDoctor = () => {
@@ -819,60 +837,110 @@ export default function AdminScreen({ navigation }) {
         {/* -------------------- 6. SETTINGS TAB -------------------- */}
         {activeTab === 'manage' && (
           <View style={styles.sectionGap}>
-            <View style={styles.card}>
-              <Text style={styles.cardHeaderTitle}>Clinic Configurations</Text>
-              <Text style={styles.cardDesc}>Modify clinic profile values. Updates dynamically synchronize to patient listings.</Text>
-              
-              <View style={{ marginTop: 14 }}>
-                <Text style={styles.formFieldLabel}>Clinic Name (Non-editable)</Text>
-                <TextInput 
-                  value={activeClinicInfo.name}
-                  editable={false}
-                  style={[styles.formInput, { backgroundColor: '#F1F5F9', color: '#64748B' }]}
-                />
+            {/* --- CLINIC CONFIGURATIONS (Admin/HR Only) --- */}
+            {(currentUser?.role === 'admin' || currentUser?.role === 'hr') ? (
+              <View style={styles.card}>
+                <Text style={styles.cardHeaderTitle}>Clinic Configurations</Text>
+                <Text style={styles.cardDesc}>Modify clinic profile values. Updates dynamically synchronize to patient listings.</Text>
+                
+                <View style={{ marginTop: 14 }}>
+                  <Text style={styles.formFieldLabel}>Clinic Name (Non-editable)</Text>
+                  <TextInput 
+                    value={activeClinicInfo.name}
+                    editable={false}
+                    style={[styles.formInput, { backgroundColor: '#F1F5F9', color: '#64748B' }]}
+                  />
 
-                <Text style={styles.formFieldLabel}>Clinic Location Address</Text>
-                <TextInput 
-                  value={settingsAddress}
-                  onChangeText={setSettingsAddress}
-                  style={styles.formInput}
-                />
+                  <Text style={styles.formFieldLabel}>Clinic Location Address</Text>
+                  <TextInput 
+                    value={settingsAddress}
+                    onChangeText={setSettingsAddress}
+                    style={styles.formInput}
+                  />
 
-                <Text style={styles.formFieldLabel}>Contact Number</Text>
-                <TextInput 
-                  value={settingsPhone}
-                  onChangeText={setSettingsPhone}
-                  style={styles.formInput}
-                />
+                  <Text style={styles.formFieldLabel}>Contact Number</Text>
+                  <TextInput 
+                    value={settingsPhone}
+                    onChangeText={setSettingsPhone}
+                    style={styles.formInput}
+                  />
 
-                <Text style={styles.formFieldLabel}>Operating Hours</Text>
-                <TextInput 
-                  value={settingsHours}
-                  onChangeText={setSettingsHours}
-                  style={styles.formInput}
-                />
+                  <Text style={styles.formFieldLabel}>Operating Hours</Text>
+                  <TextInput 
+                    value={settingsHours}
+                    onChangeText={setSettingsHours}
+                    style={styles.formInput}
+                  />
 
-                <Text style={styles.formFieldLabel}>Clinic Website Portal</Text>
-                <TextInput 
-                  value={settingsWebsite}
-                  onChangeText={setSettingsWebsite}
-                  style={styles.formInput}
-                />
+                  <Text style={styles.formFieldLabel}>Clinic Website Portal</Text>
+                  <TextInput 
+                    value={settingsWebsite}
+                    onChangeText={setSettingsWebsite}
+                    style={styles.formInput}
+                  />
 
-                <Text style={styles.formFieldLabel}>Booking Slot Duration (Minutes)</Text>
-                <TextInput 
-                  value={settingsSlot}
-                  onChangeText={setSettingsSlot}
-                  keyboardType="numeric"
-                  style={styles.formInput}
-                />
+                  <Text style={styles.formFieldLabel}>Booking Slot Duration (Minutes)</Text>
+                  <TextInput 
+                    value={settingsSlot}
+                    onChangeText={setSettingsSlot}
+                    keyboardType="numeric"
+                    style={styles.formInput}
+                  />
 
-                <TouchableOpacity style={styles.btnSaveForm} onPress={handleSaveSettings}>
-                  <Ionicons name="checkmark-done-circle" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
-                  <Text style={styles.btnSaveFormText}>Save Configurations</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity style={styles.btnSaveForm} onPress={handleSaveSettings}>
+                    <Ionicons name="checkmark-done-circle" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={styles.btnSaveFormText}>Save Configurations</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
+            ) : (
+              <View style={styles.card}>
+                <Text style={styles.cardHeaderTitle}>Receptionist Profile</Text>
+                <Text style={styles.cardDesc}>You are logged in as a Clinic Receptionist. Your access is limited to Managing Appointments, Live Chats, and Viewing Patient EHRs. Clinic configuration and staff management are restricted to HR/Admins.</Text>
+              </View>
+            )}
+
+            {/* --- STAFF ACCESS MANAGEMENT (HR/Admin Only) --- */}
+            {(currentUser?.role === 'admin' || currentUser?.role === 'hr') && (
+              <View style={[styles.card, { marginTop: 16 }]}>
+                <Text style={styles.cardHeaderTitle}>Manage Staff Access</Text>
+                <Text style={styles.cardDesc}>Grant receptionist or admin privileges to newly signed-up staff.</Text>
+                
+                <View style={{ marginTop: 14 }}>
+                  <Text style={styles.formFieldLabel}>Staff Email Address</Text>
+                  <TextInput 
+                    value={staffEmail}
+                    onChangeText={setStaffEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    placeholder="e.g. jane@clinic.com"
+                    style={styles.formInput}
+                  />
+
+                  <Text style={styles.formFieldLabel}>Role to Grant</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <TouchableOpacity 
+                      style={[styles.roleSelectBtn, staffRole === 'receptionist' && styles.roleSelectBtnActive]}
+                      onPress={() => setStaffRole('receptionist')}
+                    >
+                      <Text style={[styles.roleSelectText, staffRole === 'receptionist' && styles.roleSelectTextActive]}>Receptionist</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.roleSelectBtn, staffRole === 'admin' && styles.roleSelectBtnActive]}
+                      onPress={() => setStaffRole('admin')}
+                    >
+                      <Text style={[styles.roleSelectText, staffRole === 'admin' && styles.roleSelectTextActive]}>Admin</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity style={[styles.btnSaveForm, { backgroundColor: '#10B981' }]} onPress={handleGrantStaffAccess}>
+                    <Ionicons name="shield-checkmark" size={18} color="#FFFFFF" style={{ marginRight: 6 }} />
+                    <Text style={styles.btnSaveFormText}>Grant Access</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
           </View>
         )}
       </ScrollView>
@@ -1856,5 +1924,25 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     lineHeight: 16,
+  },
+  roleSelectBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  roleSelectBtnActive: {
+    borderColor: '#3B82F6',
+    backgroundColor: '#EFF6FF',
+  },
+  roleSelectText: {
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  roleSelectTextActive: {
+    color: '#3B82F6',
   },
 });

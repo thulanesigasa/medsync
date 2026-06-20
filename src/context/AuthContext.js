@@ -170,13 +170,11 @@ export const AuthProvider = ({ children }) => {
       
       const userMeta = data.user?.user_metadata || {};
       
-      // Role checking
-      if (userMeta.role && userMeta.role !== role) {
-        await supabase.auth.signOut();
-        return { success: false, message: `Account is not registered as a ${role}.` };
-      }
+      // Fetch the actual role from profiles table
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', data.user.id).single();
+      const actualRole = profile?.role || 'patient';
 
-      return { success: true, user: data.user };
+      return { success: true, user: data.user, role: actualRole };
     } catch (error) {
       const isFallback = error.message === 'FallbackToMock' || 
                          String(error).includes('URL') || 
@@ -203,15 +201,19 @@ export const AuthProvider = ({ children }) => {
           email: user.email,
           role: user.role,
           clinic: user.clinic || "",
-          phone: user.phone || "",
+          name: userAccount.name,
+          email: userAccount.email,
+          role: userAccount.role,
+          clinic: userAccount.clinic || "",
+          phone: userAccount.phone || "",
           isMock: true
         };
         setCurrentUser(loggedInUser);
         AsyncStorage.setItem("currentUser", JSON.stringify(loggedInUser));
-        return { success: true, user };
+        return { success: true, user: userAccount, role: userAccount.role };
       }
 
-      console.log("Login Error:", error);
+      console.log('Login error:', error.message);
       return { success: false, message: error.message };
     }
   };
@@ -289,6 +291,52 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateProfile = async (updates) => {
+    // Check if user is mock
+    if (currentUser?.isMock) {
+      const updatedUser = { ...currentUser, ...updates };
+      setCurrentUser(updatedUser);
+      AsyncStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      return { success: true };
+    }
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', currentUser.id);
+
+      if (error) throw error;
+      
+      const updatedUser = { ...currentUser, ...updates };
+      setCurrentUser(updatedUser);
+      return { success: true };
+    } catch (error) {
+      console.log('Update profile error:', error.message);
+      return { success: false, message: error.message };
+    }
+  };
+
+  const grantStaffAccess = async (targetEmail, targetRole) => {
+    if (currentUser?.isMock) {
+      return { success: true, message: `(Mock) Granted ${targetRole} access to ${targetEmail}` };
+    }
+    
+    try {
+      // Call our secure RPC function created via rbac_upgrade.sql
+      const { data, error } = await supabase.rpc('grant_staff_role', {
+        target_email: targetEmail.trim().toLowerCase(),
+        new_role: targetRole
+      });
+      
+      if (error) throw error;
+      return { success: true, message: `Successfully granted ${targetRole} access to ${targetEmail}!` };
+    } catch (error) {
+      console.log('Grant staff access error:', error.message);
+      return { success: false, message: error.message };
+    }
+  };
+
   const resetPassword = async (email, newPassword, role) => {
     return { success: false, message: "Password reset via email link is required in Supabase." };
   };
@@ -304,7 +352,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, isAuthLoaded, userAccounts, login, signup, resetPassword, logout }}>
+    <AuthContext.Provider value={{ currentUser, isAuthLoaded, userAccounts, login, signup, resetPassword, logout, updateProfile, grantStaffAccess }}>
       {children}
     </AuthContext.Provider>
   );
