@@ -530,7 +530,7 @@ export const StateProvider = ({ children }) => {
       clinic: user.clinic || "",
       phone: user.phone || "",
     });
-    
+
     return {
       success: true,
       user,
@@ -645,7 +645,12 @@ export const StateProvider = ({ children }) => {
       message: "Password reset successful.",
     };
   };
-
+  const updateCurrentUser = (updatedFields) => {
+    setCurrentUser((prev) => ({
+      ...prev,
+      ...updatedFields,
+    }));
+  };
   const logout = () => {
     setCurrentUser(null);
   };
@@ -680,6 +685,7 @@ export const StateProvider = ({ children }) => {
         isDark,
         theme,
         toggleTheme,
+        updateCurrentUser,
       }}
     >
       {children}

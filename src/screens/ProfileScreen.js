@@ -1,438 +1,409 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platform } from 'react-native';
-import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
-import { COLORS, SIZES, LAYOUT } from '../constants/theme';
-import BottomTabBar from '../components/BottomTabBar';
-import { useStateContext } from '../context/StateContext';
-
-const CustomSwitch = ({ value, onValueChange }) => {
-  const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
-
-  useEffect(() => {
-    Animated.spring(animatedValue, {
-      toValue: value ? 1 : 0,
-      friction: 8,
-      tension: 55,
-      useNativeDriver: false,
-    }).start();
-  }, [value]);
-
-  const translateX = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: [2, 20] // adjusted to fit track width 44 and thumb width 20 inside 1px borders
-  });
-
-  const backgroundColor = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#F1F5F9', '#EFF6FF']
-  });
-
-  const thumbColor = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#94A3B8', COLORS.primary]
-  });
-
-  const borderColor = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['#CBD5E1', '#D3E2F2']
-  });
-
-  return (
-    <TouchableOpacity 
-      activeOpacity={0.9} 
-      onPress={() => onValueChange(!value)}
-      style={styles.switchContainer}
-    >
-      <Animated.View style={[styles.switchTrack, { backgroundColor, borderColor, borderWidth: 1 }]}>
-        <Animated.View style={[styles.switchThumb, { transform: [{ translateX }], backgroundColor: thumbColor }]} />
-      </Animated.View>
-    </TouchableOpacity>
-  );
-};
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+} from "react-native";
+import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
+import { COLORS, SIZES, LAYOUT } from "../constants/theme";
+import BottomTabBar from "../components/BottomTabBar";
+import { useStateContext } from "../context/StateContext";
 
 export default function ProfileScreen({ navigation }) {
-  const { currentUser, logout } = useStateContext();
-  const [isDark, setIsDark] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const { currentUser, updateCurrentUser, logout } = useStateContext();
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [form, setForm] = useState({
+    name: currentUser?.name || "",
+    email: currentUser?.email || "",
+    phone: currentUser?.phone || "",
+    emergencyContact: currentUser?.emergencyContact || "",
+    medicalAidProvider: currentUser?.medicalAidProvider || "",
+    medicalAidNumber: currentUser?.medicalAidNumber || "",
+    bloodType: currentUser?.bloodType || "",
+    allergies: currentUser?.allergies || "",
+    chronicConditions: currentUser?.chronicConditions || "",
+  });
+
+  const updateField = (field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSave = () => {
+    updateCurrentUser(form);
+    setIsEditing(false);
+    Alert.alert("Profile Updated", "Your profile details have been saved.");
+  };
 
   const handleLogout = () => {
     logout();
-    navigation.replace('Login');
+    navigation.replace("Login");
   };
+
+  const renderField = (label, field, placeholder) => (
+    <View style={styles.fieldGroup}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      {isEditing ? (
+        <TextInput
+          value={form[field]}
+          onChangeText={(value) => updateField(field, value)}
+          placeholder={placeholder}
+          placeholderTextColor="#94A3B8"
+          style={styles.input}
+        />
+      ) : (
+        <Text style={styles.fieldValue}>{form[field] || "Not added yet"}</Text>
+      )}
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerBrand}>
-            <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
+            <MaterialCommunityIcons
+              name="shield-plus"
+              size={28}
+              color="#FFFFFF"
+            />
             <Text style={styles.appTitle}>MedSync</Text>
-          </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity onPress={() => setIsDark(!isDark)} style={styles.actionButton}>
-              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color="#FFFFFF" />
-            </TouchableOpacity>
           </View>
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        
-        {/* Premium Profile Card */}
-        <View style={styles.premiumProfileCard}>
-          <View style={styles.cardTopRow}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {(currentUser?.name || 'Kiddo').charAt(0)}
-                </Text>
-              </View>
-              <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark" size={12} color="#FFFFFF" />
-              </View>
-            </View>
-            
-            <View style={styles.profileMeta}>
-              <Text style={styles.profileName}>{currentUser?.name || 'Kiddo'}</Text>
-              <Text style={styles.profileEmail}>{currentUser?.email || 'kiddo@hokmatech.com'}</Text>
-              
-              <View style={styles.goldBadge}>
-                <Ionicons name="ribbon" size={13} color="#D97706" style={{ marginRight: 4 }} />
-                <Text style={styles.goldBadgeText}>
-                  {currentUser?.role === 'admin' ? 'Clinic Partner' : 'Gold Care Member'}
-                </Text>
-              </View>
-            </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.profileCard}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {(form.name || "P").charAt(0).toUpperCase()}
+            </Text>
           </View>
 
-          <TouchableOpacity style={styles.editBtn}>
-            <Text style={styles.editBtnText}>Edit Profile Details</Text>
-            <Ionicons name="create-outline" size={16} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
+          <Text style={styles.profileName}>{form.name || "Patient Name"}</Text>
+          <Text style={styles.profileEmail}>
+            {form.email || "No email added"}
+          </Text>
 
-        {/* Section 1: Account Settings */}
-        <Text style={styles.sectionHeader}>ACCOUNT SETTINGS</Text>
-        <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="person-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.menuText}>Personal Information</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="card-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.menuText}>Payment Methods</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.menuText}>Insurance Details</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-        </View>
+          <View style={styles.memberBadge}>
+            <Ionicons name="heart-circle-outline" size={16} color="#D97706" />
+            <Text style={styles.memberBadgeText}>Gold Care Member</Text>
+          </View>
 
-        {/* Section 2: Preferences */}
-        <Text style={styles.sectionHeader}>PREFERENCES</Text>
-        <View style={styles.menuSection}>
-          <View style={styles.menuItemNonClickable}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="notifications-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.menuText}>Push Notifications</Text>
-            <CustomSwitch 
-              value={notificationsEnabled} 
-              onValueChange={setNotificationsEnabled} 
+          <TouchableOpacity
+            style={styles.editBtn}
+            onPress={() => (isEditing ? handleSave() : setIsEditing(true))}
+          >
+            <Text style={styles.editBtnText}>
+              {isEditing ? "Save Profile" : "Edit Profile Details"}
+            </Text>
+            <Ionicons
+              name={isEditing ? "checkmark-outline" : "create-outline"}
+              size={16}
+              color={COLORS.primary}
             />
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.sectionHeader}>PERSONAL INFORMATION</Text>
+        <View style={styles.sectionCard}>
+          {renderField("Full Name", "name", "Enter full name")}
+          {renderField("Email Address", "email", "Enter email address")}
+          {renderField("Phone Number", "phone", "Enter phone number")}
+          {renderField(
+            "Emergency Contact",
+            "emergencyContact",
+            "Enter emergency contact",
+          )}
+        </View>
+
+        <Text style={styles.sectionHeader}>MEDICAL INFORMATION</Text>
+        <View style={styles.sectionCard}>
+          {renderField(
+            "Medical Aid Provider",
+            "medicalAidProvider",
+            "Enter medical aid provider",
+          )}
+          {renderField(
+            "Medical Aid Number",
+            "medicalAidNumber",
+            "Enter medical aid number",
+          )}
+          {renderField("Blood Type", "bloodType", "Example: O+")}
+          {renderField(
+            "Allergies",
+            "allergies",
+            "Example: Penicillin, peanuts",
+          )}
+          {renderField(
+            "Chronic Conditions",
+            "chronicConditions",
+            "Example: Asthma, diabetes",
+          )}
+        </View>
+
+        <Text style={styles.sectionHeader}>PREFERENCES</Text>
+        <View style={styles.sectionCard}>
+          <View style={styles.infoRow}>
+            <View style={styles.iconBox}>
+              <Ionicons
+                name="notifications-outline"
+                size={20}
+                color={COLORS.primary}
+              />
+            </View>
+            <Text style={styles.infoText}>Push Notifications</Text>
+            <Text style={styles.infoValue}>ON</Text>
           </View>
-          
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="globe-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={styles.menuText}>Language</Text>
-            <View style={styles.rightValueContainer}>
-              <Text style={styles.rightValueText}>English (SA)</Text>
-              <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-            </View>
-          </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]} onPress={() => setIsDark(!isDark)}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={20} color={COLORS.primary} />
+          <View style={styles.infoRow}>
+            <View style={styles.iconBox}>
+              <Ionicons
+                name="language-outline"
+                size={20}
+                color={COLORS.primary}
+              />
             </View>
-            <Text style={styles.menuText}>Dark Mode (Visual Mock)</Text>
-            <Text style={styles.rightValueText}>{isDark ? 'ON' : 'OFF'}</Text>
-          </TouchableOpacity>
+            <Text style={styles.infoText}>Language</Text>
+            <Text style={styles.infoValue}>English (SA)</Text>
+          </View>
         </View>
 
-        {/* Section 3: Support */}
         <Text style={styles.sectionHeader}>HELP & SUPPORT</Text>
-        <View style={styles.menuSection}>
-          <TouchableOpacity style={styles.menuItem}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="help-circle-outline" size={20} color={COLORS.primary} />
+        <View style={styles.sectionCard}>
+          <TouchableOpacity style={styles.infoRow}>
+            <View style={styles.iconBox}>
+              <Ionicons
+                name="help-circle-outline"
+                size={20}
+                color={COLORS.primary}
+              />
             </View>
-            <Text style={styles.menuText}>Help Center & FAQ</Text>
+            <Text style={styles.infoText}>Help Center & FAQ</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="document-text-outline" size={20} color={COLORS.primary} />
+          <TouchableOpacity style={styles.infoRow}>
+            <View style={styles.iconBox}>
+              <Ionicons
+                name="document-text-outline"
+                size={20}
+                color={COLORS.primary}
+              />
             </View>
-            <Text style={styles.menuText}>Terms of Service & Privacy Policy</Text>
+            <Text style={styles.infoText}>Terms & Privacy Policy</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
         <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
           <Ionicons name="log-out-outline" size={20} color="#EF4444" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
-
       </ScrollView>
-      
+
       <BottomTabBar navigation={navigation} activeTab="Profile" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: COLORS.background 
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
-  header: { 
+  header: {
     backgroundColor: COLORS.primary,
     paddingTop: LAYOUT.statusBarHeight,
     height: LAYOUT.statusBarHeight + LAYOUT.headerHeight,
   },
   headerContent: {
     height: LAYOUT.headerHeight,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SIZES.margin,
   },
-  headerBrand: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
+  headerBrand: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
+  appTitle: {
+    color: "#FFFFFF",
+    fontSize: 22,
+    fontWeight: "bold",
+    marginLeft: 10,
   },
-  actionButton: {
-    padding: 4,
-  },
-  appTitle: { 
-    color: '#FFFFFF', 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    marginLeft: 10 
-  },
-  content: { 
+  content: {
     padding: SIZES.margin,
     paddingBottom: 120,
     gap: 12,
   },
-  premiumProfileCard: {
+  profileCard: {
     backgroundColor: COLORS.surface,
     borderRadius: 20,
-    padding: 16,
+    padding: 18,
     borderWidth: 1,
-    borderColor: '#EAE8FC',
-    shadowColor: '#0F2C59',
+    borderColor: "#EAE8FC",
+    alignItems: "center",
+    shadowColor: "#0F2C59",
     shadowOpacity: 0.04,
     shadowRadius: 10,
     elevation: 2,
-    marginBottom: 8,
   },
-  cardTopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
+  avatar: {
+    width: 74,
+    height: 74,
+    borderRadius: 37,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
   },
-  avatarContainer: {
-    position: 'relative',
-    marginRight: 16,
+  avatarText: {
+    fontSize: 30,
+    fontWeight: "bold",
+    color: "#FFFFFF",
   },
-  avatar: { 
-    width: 68, 
-    height: 68, 
-    borderRadius: 34, 
-    backgroundColor: COLORS.primary, 
-    alignItems: 'center', 
-    justifyContent: 'center', 
+  profileName: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: COLORS.primary,
   },
-  avatarText: { 
-    fontSize: 26, 
-    fontWeight: 'bold', 
-    color: '#FFFFFF' 
+  profileEmail: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 3,
   },
-  verifiedBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.success,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+  memberBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    marginTop: 10,
+    gap: 4,
   },
-  profileMeta: {
-    flex: 1,
+  memberBadgeText: {
+    color: "#D97706",
+    fontSize: 12,
+    fontWeight: "bold",
   },
-  profileName: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: COLORS.primary, 
-    marginBottom: 2 
-  },
-  profileEmail: { 
-    fontSize: 13, 
-    color: '#64748B', 
-    marginBottom: 6 
-  },
-  goldBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  goldBadgeText: {
-    color: '#D97706',
-    fontSize: 11,
-    fontWeight: 'bold',
-  },
-  editBtn: { 
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#EFF6FF', 
-    paddingVertical: 10,
+  editBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EFF6FF",
+    paddingVertical: 11,
+    paddingHorizontal: 16,
     borderRadius: 12,
     gap: 6,
+    marginTop: 14,
+    width: "100%",
   },
-  editBtnText: { 
-    color: COLORS.primary, 
+  editBtnText: {
+    color: COLORS.primary,
     fontSize: 13,
-    fontWeight: 'bold' 
+    fontWeight: "bold",
   },
   sectionHeader: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#64748B',
+    fontWeight: "700",
+    color: "#64748B",
     marginTop: 10,
-    marginBottom: 4,
     marginLeft: 4,
     letterSpacing: 0.8,
   },
-  menuSection: { 
-    backgroundColor: COLORS.surface, 
-    borderRadius: 16, 
-    borderWidth: 1, 
-    borderColor: '#EAE8FC', 
-    paddingVertical: 4, 
-    shadowColor: '#0F2C59',
+  sectionCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#EAE8FC",
+    padding: 14,
+    gap: 12,
+    shadowColor: "#0F2C59",
     shadowOpacity: 0.02,
     shadowRadius: 5,
     elevation: 1,
   },
-  menuItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1, 
-    borderBottomColor: '#F1F5F9' 
+  fieldGroup: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+    paddingBottom: 10,
   },
-  menuItemNonClickable: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1, 
-    borderBottomColor: '#F1F5F9'
+  fieldLabel: {
+    fontSize: 12,
+    color: "#64748B",
+    fontWeight: "700",
+    marginBottom: 5,
   },
-  menuIconBox: { 
-    width: 36, 
-    height: 36, 
-    borderRadius: 18, 
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginRight: 12 
+  fieldValue: {
+    fontSize: 15,
+    color: COLORS.primary,
+    fontWeight: "600",
   },
-  menuText: { 
-    flex: 1, 
-    fontSize: 14, 
-    color: COLORS.primary, 
-    fontWeight: '600' 
+  input: {
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    color: COLORS.primary,
+    fontSize: 14,
   },
-  rightValueContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+    gap: 10,
   },
-  rightValueText: {
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
+  infoValue: {
     fontSize: 13,
-    color: '#64748B',
-    marginRight: 2,
+    color: "#64748B",
+    fontWeight: "600",
   },
-  logoutBtn: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    backgroundColor: '#FEF2F2', 
-    paddingVertical: 14, 
-    borderRadius: 16, 
-    borderWidth: 1, 
-    borderColor: '#FECACA',
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FEF2F2",
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#FECACA",
     marginTop: 16,
     gap: 8,
   },
-  logoutText: { 
-    color: '#EF4444', 
-    fontSize: 15, 
-    fontWeight: 'bold', 
+  logoutText: {
+    color: "#EF4444",
+    fontSize: 15,
+    fontWeight: "bold",
   },
-  switchContainer: {
-    width: 44,
-    height: 24,
-    justifyContent: 'center',
-  },
-  switchTrack: {
-    width: 44,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-  },
-  switchThumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    shadowColor: '#0F2C59',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  }
 });
