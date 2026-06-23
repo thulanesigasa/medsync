@@ -1,4 +1,5 @@
 import React from 'react';
+import MedicalRecordsScreen from "./src/screens/MedicalRecordsScreen";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StateProvider } from './src/context/StateContext';
@@ -22,10 +23,14 @@ export default function App() {
   return (
     <StateProvider>
       <NavigationContainer>
-        <Stack.Navigator 
+        <Stack.Navigator
           initialRouteName="Login"
           screenOptions={{ headerShown: false }}
         >
+          <Stack.Screen
+            name="MedicalRecords"
+            component={MedicalRecordsScreen}
+          />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="Admin" component={AdminScreen} />

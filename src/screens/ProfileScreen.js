@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -29,6 +29,22 @@ export default function ProfileScreen({ navigation }) {
     allergies: currentUser?.allergies || "",
     chronicConditions: currentUser?.chronicConditions || "",
   });
+
+  useEffect(() => {
+    if (currentUser) {
+      setForm({
+        name: currentUser?.name || "",
+        email: currentUser?.email || "",
+        phone: currentUser?.phone || "",
+        emergencyContact: currentUser?.emergencyContact || "",
+        medicalAidProvider: currentUser?.medicalAidProvider || "",
+        medicalAidNumber: currentUser?.medicalAidNumber || "",
+        bloodType: currentUser?.bloodType || "",
+        allergies: currentUser?.allergies || "",
+        chronicConditions: currentUser?.chronicConditions || "",
+      });
+    }
+  }, [currentUser]);
 
   const updateField = (field, value) => {
     setForm((prev) => ({
@@ -179,6 +195,20 @@ export default function ProfileScreen({ navigation }) {
             <Text style={styles.infoValue}>English (SA)</Text>
           </View>
         </View>
+        <TouchableOpacity
+          style={styles.infoRow}
+          onPress={() => navigation.navigate("MedicalRecords")}
+        >
+          <View style={styles.iconBox}>
+            <Ionicons
+              name="document-text-outline"
+              size={20}
+              color={COLORS.primary}
+            />
+          </View>
+          <Text style={styles.infoText}>View Medical Records</Text>
+          <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+        </TouchableOpacity>
 
         <Text style={styles.sectionHeader}>HELP & SUPPORT</Text>
         <View style={styles.sectionCard}>

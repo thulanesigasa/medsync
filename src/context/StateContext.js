@@ -6,34 +6,25 @@ const StateContext = createContext();
 
 export const StateProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [isStorageLoaded, setIsStorageLoaded] = useState(false);
 
   const [isDark, setIsDark] = useState(false);
 
   const theme = isDark
     ? {
         background: "#0F172A",
-
         surface: "#1E293B",
-
         text: "#F8FAFC",
-
         subtext: "#CBD5E1",
-
         border: "#334155",
-
         primary: COLORS.primary,
       }
     : {
         background: COLORS.background,
-
         surface: COLORS.surface,
-
         text: COLORS.primary,
-
         subtext: "#64748B",
-
         border: "#EAE8FC",
-
         primary: COLORS.primary,
       };
 
@@ -57,23 +48,39 @@ export const StateProvider = ({ children }) => {
       clinic: "Dawn Park Clinic",
     },
   ]);
+
   useEffect(() => {
-    loadUserAccounts();
+    loadStoredData();
   }, []);
 
   useEffect(() => {
-    saveUserAccounts();
-  }, [userAccounts]);
+    if (isStorageLoaded) {
+      saveUserAccounts();
+    }
+  }, [userAccounts, isStorageLoaded]);
 
-  const loadUserAccounts = async () => {
+  useEffect(() => {
+    if (isStorageLoaded && currentUser) {
+      AsyncStorage.setItem("currentUser", JSON.stringify(currentUser));
+    }
+  }, [currentUser, isStorageLoaded]);
+
+  const loadStoredData = async () => {
     try {
       const storedAccounts = await AsyncStorage.getItem("userAccounts");
+      const storedCurrentUser = await AsyncStorage.getItem("currentUser");
 
       if (storedAccounts) {
         setUserAccounts(JSON.parse(storedAccounts));
       }
+
+      if (storedCurrentUser) {
+        setCurrentUser(JSON.parse(storedCurrentUser));
+      }
     } catch (error) {
-      console.log("Error loading user accounts:", error);
+      console.log("Error loading stored user data:", error);
+    } finally {
+      setIsStorageLoaded(true);
     }
   };
 
@@ -523,13 +530,8 @@ export const StateProvider = ({ children }) => {
       };
     }
 
-    setCurrentUser({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      clinic: user.clinic || "",
-      phone: user.phone || "",
-    });
+    setCurrentUser(user);
+    AsyncStorage.setItem("currentUser", JSON.stringify(user));
 
     return {
       success: true,
@@ -589,13 +591,8 @@ export const StateProvider = ({ children }) => {
       ]);
     }
 
-    setCurrentUser({
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-      clinic: newUser.clinic,
-      phone: newUser.phone,
-    });
+    setCurrentUser(newUser);
+    AsyncStorage.setItem("currentUser", JSON.stringify(newUser));
 
     return {
       success: true,
@@ -645,14 +642,29 @@ export const StateProvider = ({ children }) => {
       message: "Password reset successful.",
     };
   };
-  const updateCurrentUser = (updatedFields) => {
-    setCurrentUser((prev) => ({
-      ...prev,
-      ...updatedFields,
-    }));
-  };
-  const logout = () => {
+
+  const logout = async () => {
+    await AsyncStorage.removeItem("currentUser");
     setCurrentUser(null);
+  };
+
+  const updateCurrentUser = async (updatedFields) => {
+    const updatedUser = {
+      ...(currentUser || {}),
+      ...updatedFields,
+    };
+
+    setCurrentUser(updatedUser);
+
+    await AsyncStorage.setItem("currentUser", JSON.stringify(updatedUser));
+
+    setUserAccounts((prev) =>
+      prev.map((account) =>
+        account.email?.toLowerCase() === updatedUser.email?.toLowerCase()
+          ? { ...account, ...updatedUser }
+          : account,
+      ),
+    );
   };
 
   return (
