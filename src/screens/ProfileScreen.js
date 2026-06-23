@@ -13,11 +13,15 @@ import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 import BottomTabBar from "../components/BottomTabBar";
 import { useStateContext } from "../context/StateContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProfileScreen({ navigation }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const { currentUser, updateCurrentUser, logout } = useStateContext();
 
-  const [isEditing, setIsEditing] = useState(false);
+
+
 
   const [form, setForm] = useState({
     name: currentUser?.name || "",
@@ -30,7 +34,36 @@ export default function ProfileScreen({ navigation }) {
     allergies: currentUser?.allergies || "",
     chronicConditions: currentUser?.chronicConditions || "",
   });
+useEffect(() => {
+  const loadNotificationPreference = async () => {
+    try {
+      const savedValue = await AsyncStorage.getItem("notificationsEnabled");
 
+      if (savedValue !== null) {
+        setNotificationsEnabled(JSON.parse(savedValue));
+      }
+    } catch (error) {
+      console.log("Error loading notification preference:", error);
+    }
+  };
+
+  loadNotificationPreference();
+}, []);
+
+useEffect(() => {
+  const saveNotificationPreference = async () => {
+    try {
+      await AsyncStorage.setItem(
+        "notificationsEnabled",
+        JSON.stringify(notificationsEnabled),
+      );
+    } catch (error) {
+      console.log("Error saving notification preference:", error);
+    }
+  };
+
+  saveNotificationPreference();
+}, [notificationsEnabled]);
   useEffect(() => {
     if (currentUser) {
       setForm({
@@ -185,20 +218,30 @@ export default function ProfileScreen({ navigation }) {
 
             <TouchableOpacity
               onPress={() => {
+                const newValue = !notificationsEnabled;
+
+                setNotificationsEnabled(newValue);
+
                 if (Platform.OS === "web") {
                   window.alert(
-                    "Push notifications will be enabled in the next update.",
+                    newValue
+                      ? "Notifications enabled."
+                      : "Notifications disabled.",
                   );
                   return;
                 }
 
                 Alert.alert(
                   "Notifications",
-                  "Push notifications will be enabled in the next update.",
+                  newValue
+                    ? "Notifications enabled."
+                    : "Notifications disabled.",
                 );
               }}
             >
-              <Text style={styles.infoValue}>Enable</Text>
+              <Text style={styles.infoValue}>
+                {notificationsEnabled ? "ON" : "Enable"}
+              </Text>
             </TouchableOpacity>
           </View>
 
