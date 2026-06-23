@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  Platform,
 } from "react-native";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
@@ -179,8 +180,26 @@ export default function ProfileScreen({ navigation }) {
                 color={COLORS.primary}
               />
             </View>
+
             <Text style={styles.infoText}>Push Notifications</Text>
-            <Text style={styles.infoValue}>ON</Text>
+
+            <TouchableOpacity
+              onPress={() => {
+                if (Platform.OS === "web") {
+                  window.alert(
+                    "Push notifications will be enabled in the next update.",
+                  );
+                  return;
+                }
+
+                Alert.alert(
+                  "Notifications",
+                  "Push notifications will be enabled in the next update.",
+                );
+              }}
+            >
+              <Text style={styles.infoValue}>Enable</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.infoRow}>
