@@ -6,8 +6,8 @@ const StateContext = createContext();
 
 export const StateProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [isStorageLoaded, setIsStorageLoaded] = useState(false);
-
   const [isDark, setIsDark] = useState(false);
 
   const theme = isDark
@@ -65,10 +65,22 @@ export const StateProvider = ({ children }) => {
     }
   }, [currentUser, isStorageLoaded]);
 
+  useEffect(() => {
+    if (isStorageLoaded) {
+      AsyncStorage.setItem(
+        "notificationsEnabled",
+        JSON.stringify(notificationsEnabled),
+      );
+    }
+  }, [notificationsEnabled, isStorageLoaded]);
+
   const loadStoredData = async () => {
     try {
       const storedAccounts = await AsyncStorage.getItem("userAccounts");
       const storedCurrentUser = await AsyncStorage.getItem("currentUser");
+      const storedNotifications = await AsyncStorage.getItem(
+        "notificationsEnabled",
+      );
 
       if (storedAccounts) {
         setUserAccounts(JSON.parse(storedAccounts));
@@ -76,6 +88,10 @@ export const StateProvider = ({ children }) => {
 
       if (storedCurrentUser) {
         setCurrentUser(JSON.parse(storedCurrentUser));
+      }
+
+      if (storedNotifications !== null) {
+        setNotificationsEnabled(JSON.parse(storedNotifications));
       }
     } catch (error) {
       console.log("Error loading stored user data:", error);
@@ -335,6 +351,12 @@ export const StateProvider = ({ children }) => {
 
   const isValidEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const updateNotificationPreference = async (value) => {
+    setNotificationsEnabled(value);
+
+    await AsyncStorage.setItem("notificationsEnabled", JSON.stringify(value));
   };
 
   const addAppointment = (newAppt) => {
@@ -671,6 +693,8 @@ export const StateProvider = ({ children }) => {
     <StateContext.Provider
       value={{
         currentUser,
+        notificationsEnabled,
+        updateNotificationPreference,
         userAccounts,
         clinics,
         doctors,

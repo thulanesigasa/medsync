@@ -13,14 +13,18 @@ import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { COLORS, SIZES, LAYOUT } from "../constants/theme";
 import BottomTabBar from "../components/BottomTabBar";
 import { useStateContext } from "../context/StateContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 export default function ProfileScreen({ navigation }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const { currentUser, updateCurrentUser, logout } = useStateContext();
-
-
+ 
+  const {
+  currentUser,
+  updateCurrentUser,
+  logout,
+  notificationsEnabled,
+  updateNotificationPreference,
+} = useStateContext();
 
 
   const [form, setForm] = useState({
@@ -34,36 +38,8 @@ export default function ProfileScreen({ navigation }) {
     allergies: currentUser?.allergies || "",
     chronicConditions: currentUser?.chronicConditions || "",
   });
-useEffect(() => {
-  const loadNotificationPreference = async () => {
-    try {
-      const savedValue = await AsyncStorage.getItem("notificationsEnabled");
 
-      if (savedValue !== null) {
-        setNotificationsEnabled(JSON.parse(savedValue));
-      }
-    } catch (error) {
-      console.log("Error loading notification preference:", error);
-    }
-  };
 
-  loadNotificationPreference();
-}, []);
-
-useEffect(() => {
-  const saveNotificationPreference = async () => {
-    try {
-      await AsyncStorage.setItem(
-        "notificationsEnabled",
-        JSON.stringify(notificationsEnabled),
-      );
-    } catch (error) {
-      console.log("Error saving notification preference:", error);
-    }
-  };
-
-  saveNotificationPreference();
-}, [notificationsEnabled]);
   useEffect(() => {
     if (currentUser) {
       setForm({
@@ -220,7 +196,7 @@ useEffect(() => {
               onPress={() => {
                 const newValue = !notificationsEnabled;
 
-                setNotificationsEnabled(newValue);
+                updateNotificationPreference(newValue);
 
                 if (Platform.OS === "web") {
                   window.alert(
