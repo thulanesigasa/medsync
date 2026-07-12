@@ -52,7 +52,7 @@ export default function DoctorProfileScreen({ navigation, route }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Availability</Text>
           <View style={styles.shiftsGrid}>
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => (
+            {(doctor.shifts ? Object.keys(doctor.shifts).filter(day => doctor.shifts[day]) : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']).map(day => (
               <View key={day} style={styles.shiftCard}>
                 <Text style={styles.shiftDay}>{day}</Text>
                 <Text style={styles.shiftTime}>08:00 - 16:00</Text>

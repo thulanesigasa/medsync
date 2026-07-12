@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Platform } from 'react-native';
 import { MaterialCommunityIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
@@ -17,6 +17,7 @@ export default function RecordsScreen({ navigation }) {
   const [activeCategory, setActiveCategory] = useState('All');
   const [downloadingId, setDownloadingId] = useState(null);
   const [refillingId, setRefillingId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const categories = ['All', 'Schedules', 'Vaccines', 'Campaigns'];
 
@@ -68,7 +69,13 @@ export default function RecordsScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Ionicons name="search" size={20} color="#94A3B8" />
-          <Text style={[styles.searchText, { color: theme.text }]}>Search clinic updates...</Text>
+          <TextInput
+            style={{ color: theme.text, flex: 1, marginLeft: 10, paddingVertical: Platform.OS === 'ios' ? 8 : 4, fontSize: 15 }}
+            placeholder="Search clinic updates..."
+            placeholderTextColor="#94A3B8"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
         </View>
 
         {/* Featured Announcement Card */}
@@ -109,9 +116,14 @@ export default function RecordsScreen({ navigation }) {
         <View style={styles.bulletinsContainer}>
           {updates
             .filter(item => {
-              if (activeCategory === 'All') return true;
-              if (activeCategory === 'Campaigns') return item.category === 'Campaign';
-              return item.category.toLowerCase() === activeCategory.toLowerCase();
+              const matchesCategory = activeCategory === 'All' || 
+                (activeCategory === 'Campaigns' && item.category === 'Campaign') ||
+                item.category.toLowerCase() === activeCategory.toLowerCase();
+              const matchesSearch = !searchQuery.trim() || 
+                item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.clinic.toLowerCase().includes(searchQuery.toLowerCase());
+              return matchesCategory && matchesSearch;
             })
             .map((item) => (
               <View key={item.id} style={[styles.updateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>

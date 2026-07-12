@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Platform, KeyboardAvoidingView, ActivityIndicator, Modal } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,8 @@ export default function LoginScreen({ navigation }) {
   const [showClinicDropdown, setShowClinicDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
+  const [isResetModalVisible, setIsResetModalVisible] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
 
   const clinics = [
     'Dawn Park Clinic',
@@ -257,16 +259,7 @@ export default function LoginScreen({ navigation }) {
                 showToast("Please enter your email first.", 'error');
                 return;
               }
-
-              const newPassword = prompt("Enter your new password");
-
-              if (!newPassword) {
-                return;
-              }
-
-              const result = resetPassword(email, newPassword, role);
-
-              showToast(result.message, result.success ? 'success' : 'error');
+              setIsResetModalVisible(true);
             }}
           >
             <Text style={styles.forgotText}>Forgot Password?</Text>
@@ -333,6 +326,53 @@ export default function LoginScreen({ navigation }) {
         {/* Footer */}
         <Text style={styles.footerText}>Powered by Hokma Tech</Text>
       </ScrollView>
+      <Modal
+        visible={isResetModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsResetModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Reset Password</Text>
+            <Text style={styles.modalSubtitle}>Enter your new password for {email}:</Text>
+            <TextInput
+              secureTextEntry
+              style={styles.modalInput}
+              placeholder="New Password (min 6 chars)"
+              placeholderTextColor="#94A3B8"
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => {
+                  setIsResetModalVisible(false);
+                  setNewPassword('');
+                }}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.modalConfirmBtn}
+                onPress={async () => {
+                  if (!newPassword || newPassword.length < 6) {
+                    showToast("Password must be at least 6 characters.", "error");
+                    return;
+                  }
+                  setIsResetModalVisible(false);
+                  const result = await resetPassword(email, newPassword, role);
+                  showToast(result.message, result.success ? 'success' : 'error');
+                  setNewPassword('');
+                }}
+              >
+                <Text style={styles.modalConfirmText}>Reset</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -566,5 +606,73 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#94A3B8',
     marginTop: 10,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    maxWidth: 340,
+    borderWidth: 1,
+    borderColor: '#EAE8FC',
+    shadowColor: '#0F2C59',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 16,
+  },
+  modalInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 15,
+    color: COLORS.primary,
+    marginBottom: 20,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  modalCancelBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+  },
+  modalCancelText: {
+    color: '#64748B',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  modalConfirmBtn: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  modalConfirmText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

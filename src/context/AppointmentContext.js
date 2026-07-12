@@ -1,41 +1,15 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { supabase } from '../config/supabase';
 import { useAuth } from './AuthContext';
-import { useChat } from "./ChatContext";
 
 const AppointmentContext = createContext();
 
 export const AppointmentProvider = ({ children }) => {
   const { currentUser, isAuthLoaded } = useAuth();
-  const { addAdminNotification } = useChat();
-  
-  const [appointments, setAppointments] = useState([
-    {
-      id: "appt-1",
-      patientName: "Kiddo",
-      doctorName: "Dr. Chris Nkwanyana",
-      doctorTitle: "Dentist Specialist",
-      clinicName: "Dawn Park Clinic",
-      date: "2026-05-28",
-      time: "10:00 AM",
-      type: "Dentist Appointment",
-      status: "Confirmed",
-    },
-    {
-      id: "appt-2",
-      patientName: "Kiddo",
-      doctorName: "Dr. Lerato Mokoena",
-      doctorTitle: "General Practitioner",
-      clinicName: "Unjani Clinic Germiston",
-      date: "2026-04-12",
-      time: "02:30 PM",
-      type: "General Checkup",
-      status: "Confirmed",
-    },
-  ]);
+  const [appointments, setAppointments] = useState([]);
 
   useEffect(() => {
-    if (isAuthLoaded && currentUser && !currentUser.isMock) {
+    if (isAuthLoaded && currentUser) {
       fetchAppointments();
     }
   }, [isAuthLoaded, currentUser]);
@@ -56,12 +30,9 @@ export const AppointmentProvider = ({ children }) => {
           clinics (name)
         `);
 
-      if (error) {
-         if (error.message.includes('URL') || error.message.includes('fetch')) throw new Error('FallbackToMock');
-         throw error;
-      }
+      if (error) throw error;
 
-      if (data && data.length > 0) {
+      if (data) {
         const formatted = data.map(appt => ({
           id: appt.id,
           patientName: appt.profiles?.full_name || 'Patient',
@@ -76,81 +47,81 @@ export const AppointmentProvider = ({ children }) => {
         setAppointments(formatted);
       }
     } catch (error) {
-      console.log('Error fetching appointments (falling back to mock):', error.message);
+      console.log('Error fetching appointments:', error.message);
     }
   };
 
   const addAppointment = async (newAppt) => {
-    if (!currentUser?.isMock) {
-      try {
-        const { error } = await supabase
-          .from('appointments')
-          .insert([{
-            patient_id: currentUser.id,
-            doctor_id: newAppt.doctorId || null,
-            clinic_id: newAppt.clinicId || null,
-            appointment_date: newAppt.date,
-            appointment_time: newAppt.time,
-            type: newAppt.type || 'In-person',
-            status: 'Pending'
-          }]);
+    try {
+      let clinicId = null;
+      let doctorId = null;
 
-        if (!error) {
-          fetchAppointments();
-          return;
+      // 1. Resolve clinicId
+      if (newAppt.clinicName) {
+        const { data: clinic } = await supabase
+          .from('clinics')
+          .select('id')
+          .ilike('name', `%${newAppt.clinicName}%`)
+          .limit(1);
+        if (clinic && clinic.length > 0) {
+          clinicId = clinic[0].id;
         }
-      } catch (error) {}
-    }
+      }
 
-    // Fallback Mock Logic
-    const id = `appt-${Date.now()}`;
-    const newAppointment = {
-      id,
-      status: "Pending",
-      ...newAppt,
-    };
+      // 2. Resolve doctorId (clinic_staff.id)
+      if (newAppt.doctorName) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .ilike('full_name', `%${newAppt.doctorName}%`)
+          .limit(1);
+        if (profile && profile.length > 0) {
+          const { data: staff } = await supabase
+            .from('clinic_staff')
+            .select('id')
+            .eq('profile_id', profile[0].id)
+            .limit(1);
+          if (staff && staff.length > 0) {
+            doctorId = staff[0].id;
+          }
+        }
+      }
 
-    setAppointments((prev) => [newAppointment, ...prev]);
+      if (!clinicId || !doctorId) {
+        console.log("Could not resolve clinic or doctor ID for appointment insertion.");
+        return;
+      }
 
-    if (addAdminNotification) {
-      addAdminNotification({
-        title: "New Booking Request",
-        body: `${newAppt.patientName} requested an appointment with ${newAppt.doctorName}.`,
-        time: "Just now",
-      });
+      const { error } = await supabase
+        .from('appointments')
+        .insert([{
+          patient_id: currentUser.id,
+          doctor_id: doctorId,
+          clinic_id: clinicId,
+          appointment_date: newAppt.date,
+          appointment_time: newAppt.time,
+          type: newAppt.type || 'In-person',
+          status: 'Pending'
+        }]);
+
+      if (error) throw error;
+      fetchAppointments();
+    } catch (error) {
+      console.log("Error inserting appointment:", error.message);
     }
   };
 
   const updateAppointmentStatus = async (id, status) => {
-    if (!currentUser?.isMock && !id.startsWith('appt-')) {
-      try {
-        const { error } = await supabase
-          .from('appointments')
-          .update({ status })
-          .eq('id', id);
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .update({ status })
+        .eq('id', id);
 
-        if (!error) {
-          fetchAppointments();
-          return;
-        }
-      } catch (error) {}
-    }
-
-    // Fallback Mock Logic
-    setAppointments((prev) =>
-      prev.map((appt) => (appt.id === id ? { ...appt, status } : appt)),
-    );
-
-    const targetAppt = appointments.find((a) => a.id === id);
-
-    if (targetAppt && addAdminNotification) {
-      addAdminNotification({
-        title: `Appointment ${status}`,
-        body: `Booking for ${targetAppt.patientName} with ${
-          targetAppt.doctorName
-        } is now ${status.toLowerCase()}.`,
-        time: "Just now",
-      });
+      if (error) throw error;
+      fetchAppointments();
+    } catch (error) {
+      console.log("Error updating appointment status:", error.message);
     }
   };
 

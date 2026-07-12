@@ -54,7 +54,7 @@ const CustomSwitch = ({ value, onValueChange }) => {
 };
 
 export default function ProfileScreen({ navigation }) {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, updateProfile } = useAuth();
   const { isDark, toggleTheme, theme } = useTheme();
   const { showToast } = useToast();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -68,10 +68,21 @@ export default function ProfileScreen({ navigation }) {
     navigation.replace('Login');
   };
 
-  const handleSaveProfile = () => {
-    // In a real app we'd update AuthContext. For now, mock success.
-    setEditModalVisible(false);
-    showToast("Profile details updated successfully!", "success", "Profile Saved");
+  const handleSaveProfile = async () => {
+    if (!editName.trim()) {
+      showToast("Name cannot be empty.", "error");
+      return;
+    }
+    const result = await updateProfile({
+      full_name: editName.trim(),
+      email: editEmail.trim()
+    });
+    if (result && result.success) {
+      setEditModalVisible(false);
+      showToast("Profile details updated successfully!", "success", "Profile Saved");
+    } else {
+      showToast(result?.message || "Failed to update profile details.", "error");
+    }
   };
 
   return (
@@ -133,27 +144,11 @@ export default function ProfileScreen({ navigation }) {
         {/* Section 1: Account Settings */}
         <Text style={[styles.sectionHeader, { color: theme.text }]}>ACCOUNT SETTINGS</Text>
         <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}>
             <View style={styles.menuIconBox}>
               <Ionicons name="person-outline" size={20} color={COLORS.primary} />
             </View>
             <Text style={[styles.menuText, { color: theme.text }]}>Personal Information</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="card-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Payment Methods</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-          
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Insurance Details</Text>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
         </View>

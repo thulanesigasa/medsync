@@ -22,3 +22,7 @@ CREATE POLICY "Users can view messages they sent or received"
 CREATE POLICY "Users can insert messages" 
   ON public.messages FOR INSERT 
   WITH CHECK (auth.uid() = sender_id);
+
+-- Enable Realtime Replication
+ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
+

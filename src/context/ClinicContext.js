@@ -7,113 +7,9 @@ const ClinicContext = createContext();
 export const ClinicProvider = ({ children }) => {
   const { currentUser, isAuthLoaded } = useAuth();
   
-  const [clinics, setClinics] = useState([
-    {
-      id: "clinic-1",
-      name: "Dawn Park Clinic",
-      address: "Cason Road Boksburg 1459",
-      phone: "011 862 1007",
-      hours: "08:00 - 17:00",
-      website: "www.dawnparkclinic.co.za",
-      slotDuration: 30,
-    },
-    {
-      id: "clinic-2",
-      name: "Benoni Health Centre",
-      address: "54 Harpur Avenue Benoni 1501",
-      phone: "011 845 3564",
-      hours: "08:30 - 17:00",
-      website: "https://benonihealth.co.za",
-      slotDuration: 30,
-    },
-    {
-      id: "clinic-3",
-      name: "Unjani Clinic Germiston",
-      address: "250 Victoria Street Germiston 1401",
-      phone: "011 776 9151",
-      hours: "08:00 - 17:00",
-      website: "http://www.unjaniclinic.co.za",
-      slotDuration: 30,
-    },
-  ]);
-
-  const [doctors, setDoctors] = useState([
-    {
-      id: "doc-1",
-      name: "Dr. Chris Nkwanyana",
-      specialty: "Dentist Specialist",
-      clinic: "Dawn Park Clinic",
-      avatarText: "C",
-      rating: "4.8",
-      reviews: "64",
-      shifts: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false },
-    },
-    {
-      id: "doc-2",
-      name: "Dr. Lerato Mokoena",
-      specialty: "General Practitioner",
-      clinic: "Dawn Park Clinic",
-      avatarText: "L",
-      rating: "4.9",
-      reviews: "110",
-      shifts: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: true, Sun: false },
-    },
-    {
-      id: "doc-3",
-      name: "Dr. Pieter Naude",
-      specialty: "Senior Surgeon",
-      clinic: "Benoni Health Centre",
-      avatarText: "P",
-      rating: "5.0",
-      reviews: "95",
-      shifts: { Mon: true, Tue: false, Wed: true, Thu: false, Fri: true, Sat: false, Sun: false },
-    },
-    {
-      id: "doc-4",
-      name: "Dr. Sipho Gumede",
-      specialty: "Senior Cardiologist",
-      clinic: "Unjani Clinic Germiston",
-      avatarText: "S",
-      rating: "5.0",
-      reviews: "120",
-      shifts: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false },
-    },
-  ]);
-
-  const [patients, setPatients] = useState([
-    {
-      id: "pat-1",
-      name: "Kiddo",
-      email: "patient@medsync.co.za",
-      phone: "071 234 5678",
-      medicalNotes: [
-        {
-          id: "note-mock-1",
-          date: "2026-04-12",
-          doctorName: "Dr. Lerato Mokoena",
-          clinicName: "Unjani Clinic Germiston",
-          diagnosis: "Acute Seasonal Influenza",
-          treatment: "Prescribed Paracetamol & Cough Syrup. Recommended 3 days rest.",
-          notes: "Patient was showing mild dehydration. Advised to increase fluid intake.",
-        },
-      ],
-    },
-    {
-      id: "pat-2",
-      name: "Thabo Mokoena",
-      email: "thabo@gmail.com",
-      phone: "083 456 7890",
-      medicalNotes: [],
-    },
-    {
-      id: "pat-3",
-      name: "Pieter van der Merwe",
-      email: "pieter@webmail.co.za",
-      phone: "072 987 6543",
-      medicalNotes: [],
-    },
-  ]);
-
+  const [clinics, setClinics] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [patients, setPatients] = useState([]);
   const [updates, setUpdates] = useState([
     {
       id: "updt-1",
@@ -150,25 +46,20 @@ export const ClinicProvider = ({ children }) => {
   ]);
 
   useEffect(() => {
-    if (isAuthLoaded && currentUser && !currentUser.isMock) {
+    if (isAuthLoaded && currentUser) {
       fetchClinics();
       fetchDoctors();
-      if (currentUser?.role === 'admin' || currentUser?.role === 'doctor') {
-        fetchPatients();
-      }
+      fetchPatients();
     }
   }, [isAuthLoaded, currentUser]);
 
   const fetchClinics = async () => {
     try {
       const { data, error } = await supabase.from('clinics').select('*').eq('is_active', true);
-      if (error) {
-         if (error.message.includes('URL') || error.message.includes('fetch')) throw new Error('FallbackToMock');
-         throw error;
-      }
-      if (data && data.length > 0) setClinics(data);
+      if (error) throw error;
+      if (data) setClinics(data);
     } catch (error) {
-      console.log('Error fetching clinics (falling back to mock):', error.message);
+      console.log('Error fetching clinics:', error.message);
     }
   };
 
@@ -184,12 +75,9 @@ export const ClinicProvider = ({ children }) => {
           clinics (name),
           profiles (full_name, avatar_url)
         `);
-      if (error) {
-         if (error.message.includes('URL') || error.message.includes('fetch')) throw new Error('FallbackToMock');
-         throw error;
-      }
+      if (error) throw error;
       
-      if (data && data.length > 0) {
+      if (data) {
         const formattedDoctors = data.map(d => ({
           id: d.id,
           name: d.profiles?.full_name || 'Unknown Doctor',
@@ -203,7 +91,7 @@ export const ClinicProvider = ({ children }) => {
         setDoctors(formattedDoctors);
       }
     } catch (error) {
-      console.log('Error fetching doctors (falling back to mock):', error.message);
+      console.log('Error fetching doctors:', error.message);
     }
   };
 
@@ -211,37 +99,45 @@ export const ClinicProvider = ({ children }) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, phone_number')
+        .select(`
+          id,
+          full_name,
+          email,
+          phone_number,
+          medical_records (
+            id,
+            title,
+            description,
+            date_issued
+          )
+        `)
         .eq('role', 'patient');
-      if (error) {
-         if (error.message.includes('URL') || error.message.includes('fetch')) throw new Error('FallbackToMock');
-         throw error;
-      }
+      if (error) throw error;
       
-      if (data && data.length > 0) {
+      if (data) {
         const formattedPatients = data.map(p => ({
           id: p.id,
           name: p.full_name,
           email: p.email,
           phone: p.phone_number,
-          medicalNotes: []
+          medicalNotes: (p.medical_records || []).map(r => ({
+            id: r.id,
+            date: r.date_issued,
+            doctorName: 'Doctor',
+            diagnosis: r.title,
+            treatment: r.description.split('\nNotes:')[0]?.replace('Treatment: ', '') || '',
+            notes: r.description.split('\nNotes:')[1]?.trim() || ''
+          }))
         }));
         setPatients(formattedPatients);
       }
     } catch (error) {
-      console.log('Error fetching patients (falling back to mock):', error.message);
+      console.log('Error fetching patients:', error.message);
     }
   };
 
   const addPatient = async (patient) => {
-    setPatients(prev => [
-      ...prev,
-      {
-        id: `pat-${Date.now()}`,
-        medicalNotes: [],
-        ...patient,
-      }
-    ]);
+    fetchPatients();
   };
 
   const addUpdate = (newUpdate) => {
@@ -256,17 +152,44 @@ export const ClinicProvider = ({ children }) => {
   };
 
   const addDoctor = async (newDoc) => {
-    setDoctors((prev) => [
-      {
-        id: `doc-${Date.now()}`,
-        avatarText: newDoc.name.replace("Dr. ", "").charAt(0),
-        rating: "5.0",
-        reviews: "0",
-        shifts: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false },
-        ...newDoc,
-      },
-      ...prev,
-    ]);
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'doctor')
+        .ilike('full_name', `%${newDoc.name}%`)
+        .limit(1);
+
+      let doctorProfileId = profile && profile.length > 0 ? profile[0].id : null;
+
+      if (!doctorProfileId) {
+         console.log("Could not find registered profile for doctor name. They must sign up first.");
+         return;
+      }
+
+      const { data: clinic } = await supabase
+        .from('clinics')
+        .select('id')
+        .ilike('name', `%${newDoc.clinic}%`)
+        .limit(1);
+      
+      const clinicId = clinic && clinic.length > 0 ? clinic[0].id : null;
+
+      if (clinicId && doctorProfileId) {
+        const { error } = await supabase
+          .from('clinic_staff')
+          .insert([{
+            profile_id: doctorProfileId,
+            clinic_id: clinicId,
+            title: newDoc.specialty
+          }]);
+        if (!error) {
+          fetchDoctors();
+        }
+      }
+    } catch (error) {
+      console.log("Error adding doctor staff:", error.message);
+    }
   };
 
   const updateDoctorShift = (id, day, value) => {
@@ -278,43 +201,48 @@ export const ClinicProvider = ({ children }) => {
   };
 
   const updateClinicSettings = async (clinicName, updatedFields) => {
-    if (!currentUser?.isMock) {
-      try {
-        const { error } = await supabase
-          .from('clinics')
-          .update(updatedFields)
-          .eq('name', clinicName);
-        if (!error) {
-          fetchClinics();
-          return;
-        }
-      } catch (error) {}
+    try {
+      const { error } = await supabase
+        .from('clinics')
+        .update(updatedFields)
+        .eq('name', clinicName);
+      if (!error) {
+        fetchClinics();
+      }
+    } catch (error) {
+      console.log("Error updating clinic settings:", error.message);
     }
-    setClinics((prev) =>
-      prev.map((clinic) =>
-        clinic.name === clinicName ? { ...clinic, ...updatedFields } : clinic,
-      ),
-    );
   };
 
   const addMedicalNote = async (patientName, noteFields) => {
-    setPatients((prev) =>
-      prev.map((pat) =>
-        pat.name.toLowerCase() === patientName.toLowerCase()
-          ? {
-              ...pat,
-              medicalNotes: [
-                {
-                  id: `note-${Date.now()}`,
-                  date: new Date().toISOString().split("T")[0],
-                  ...noteFields,
-                },
-                ...pat.medicalNotes,
-              ],
-            }
-          : pat,
-      ),
-    );
+    try {
+      const { data: patient } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('role', 'patient')
+        .ilike('full_name', `%${patientName}%`)
+        .limit(1);
+
+      const patientId = patient && patient.length > 0 ? patient[0].id : null;
+
+      if (patientId) {
+        const { error } = await supabase
+          .from('medical_records')
+          .insert([{
+            patient_id: patientId,
+            record_type: 'Diagnosis',
+            title: noteFields.diagnosis,
+            description: `Treatment: ${noteFields.treatment}\nNotes: ${noteFields.notes || ''}`
+          }]);
+        if (!error) {
+          fetchPatients();
+        } else {
+          throw error;
+        }
+      }
+    } catch (error) {
+      console.log("Error saving medical record:", error.message);
+    }
   };
 
   return (

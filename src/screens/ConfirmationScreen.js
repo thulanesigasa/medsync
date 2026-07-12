@@ -41,7 +41,14 @@ export default function ConfirmationScreen({ navigation, route }) {
     "DEC",
   ];
   const month = months[parseInt(monthNum, 10) - 1] || "MAY";
-  const weekday = latestAppt.date === "2026-05-28" ? "Thu" : "Mon";
+  
+  const year = parseInt(dateParts[0] || "2026", 10);
+  const monthIdx = parseInt(monthNum, 10) - 1;
+  const dayNum = parseInt(day, 10);
+  const dateObj = new Date(year, monthIdx, dayNum);
+  const weekday = Number.isNaN(dateObj.getTime())
+    ? "Mon"
+    : dateObj.toLocaleDateString("en-US", { weekday: "short" });
   return (
     <View style={styles.container}>
       {/* Header */}

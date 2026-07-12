@@ -7,72 +7,18 @@ const ChatContext = createContext();
 export const ChatProvider = ({ children }) => {
   const { currentUser, isAuthLoaded } = useAuth();
   
-  const [messages, setMessages] = useState([
-    {
-      id: "msg-1",
-      clinicName: "Dawn Park Clinic",
-      patientName: "Kiddo",
-      apptId: "appt-1",
-      sender: "admin",
-      text: "Hello Kiddo! How are you feeling after your dentist appointment?",
-      time: "09:00 AM",
-    },
-    {
-      id: "msg-2",
-      clinicName: "Dawn Park Clinic",
-      patientName: "Kiddo",
-      apptId: "appt-1",
-      sender: "patient",
-      text: "Much better, thank you! The pain has subsided.",
-      time: "09:15 AM",
-    },
-    {
-      id: "msg-3",
-      clinicName: "Unjani Clinic Germiston",
-      patientName: "Kiddo",
-      apptId: "appt-2",
-      sender: "admin",
-      text: "Hi Kiddo, this is regarding your upcoming checkup.",
-      time: "10:30 AM",
-    },
-    {
-      id: "msg-4",
-      clinicName: "Dawn Park Clinic",
-      patientName: "Thabo Mokoena",
-      apptId: null,
-      sender: "admin",
-      text: "Mr. Mokoena, please remember to bring your latest X-rays.",
-      time: "11:00 AM",
-    },
-  ]);
-  
-  // Local state for admin notifications until Phase 2 Push Notifications are implemented
-  const [adminNotifications, setAdminNotifications] = useState([
-    {
-      id: "alert-1",
-      title: "New Booking Request",
-      body: "Thabo Mokoena requested an appointment with Dr. Nkwanyana.",
-      time: "2 mins ago",
-      read: false,
-    },
-    {
-      id: "alert-2",
-      title: "Message Received",
-      body: "Kiddo sent a new message regarding their recent checkup.",
-      time: "1 hour ago",
-      read: false,
-    },
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [adminNotifications, setAdminNotifications] = useState([]);
 
   useEffect(() => {
-    if (isAuthLoaded && currentUser && !currentUser.isMock) {
+    if (isAuthLoaded && currentUser) {
       fetchMessages();
       
       // Subscribe to real-time chat updates
       const channel = supabase
         .channel('public:messages')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-          fetchMessages(); // Simple refetch or optimistic append
+          fetchMessages();
         })
         .subscribe();
 
@@ -90,23 +36,22 @@ export const ChatProvider = ({ children }) => {
           id,
           text_content,
           created_at,
-          profiles!sender_id (id, full_name, role),
+          sender:profiles!sender_id (id, full_name, role),
+          receiver:profiles!receiver_id (id, full_name, role),
           clinics (name)
         `)
         .order('created_at', { ascending: true });
 
-      if (error) {
-         if (error.message.includes('URL') || error.message.includes('fetch')) throw new Error('FallbackToMock');
-         throw error;
-      }
+      if (error) throw error;
 
-      if (data && data.length > 0) {
+      if (data) {
         const formatted = data.map(m => {
-          const isSenderAdmin = m.profiles.role === 'admin' || m.profiles.role === 'doctor';
+          const isSenderAdmin = m.sender?.role === 'admin' || m.sender?.role === 'doctor';
+          const patientName = isSenderAdmin ? m.receiver?.full_name : m.sender?.full_name;
           return {
             id: m.id,
             clinicName: m.clinics?.name,
-            patientName: m.profiles?.full_name, // If admin sent it, this is admin name. In real app we'd join receiver_id too.
+            patientName: patientName || 'Patient',
             sender: isSenderAdmin ? 'admin' : 'patient',
             text: m.text_content,
             time: new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -115,45 +60,54 @@ export const ChatProvider = ({ children }) => {
         setMessages(formatted);
       }
     } catch (error) {
-      console.log('Error fetching messages (falling back to mock):', error.message);
+      console.log('Error fetching messages:', error.message);
     }
   };
 
   const sendMessage = async (clinicName, patientName, sender, text, apptId = null) => {
-    if (!currentUser?.isMock) {
-      try {
-        const { error } = await supabase
-          .from('messages')
-          .insert([{
-            sender_id: currentUser.id,
-            text_content: text
-          }]);
+    try {
+      let clinicId = null;
+      let receiverId = null;
 
-        if (!error) {
-          fetchMessages();
-          return;
+      // Resolve clinicId
+      if (clinicName) {
+        const { data: clinic } = await supabase
+          .from('clinics')
+          .select('id')
+          .ilike('name', `%${clinicName}%`)
+          .limit(1);
+        if (clinic && clinic.length > 0) {
+          clinicId = clinic[0].id;
         }
-      } catch (error) {}
+      }
+
+      // Resolve receiverId (patient) if sender is admin
+      if (sender === 'admin' && patientName) {
+        const { data: patientProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'patient')
+          .ilike('full_name', `%${patientName}%`)
+          .limit(1);
+        if (patientProfile && patientProfile.length > 0) {
+          receiverId = patientProfile[0].id;
+        }
+      }
+
+      const { error } = await supabase
+        .from('messages')
+        .insert([{
+          sender_id: currentUser.id,
+          receiver_id: receiverId,
+          clinic_id: clinicId,
+          text_content: text
+        }]);
+
+      if (error) throw error;
+      fetchMessages();
+    } catch (error) {
+      console.log('SendMessage error:', error.message);
     }
-
-    // Fallback Mock Logic
-    const time = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `msg-${Date.now()}`,
-        clinicName,
-        patientName,
-        apptId,
-        sender,
-        text,
-        time,
-      },
-    ]);
   };
 
   const addAdminNotification = (notif) => {

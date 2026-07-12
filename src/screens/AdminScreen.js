@@ -104,11 +104,11 @@ export default function AdminScreen({ navigation }) {
 
   const handleAddNewDoctor = () => {
     if (!docName.trim()) {
-      alert('Please enter doctor name');
+      Alert.alert('Required Field', 'Please enter doctor name');
       return;
     }
     if (!docSpecialty.trim()) {
-      alert('Please enter doctor specialty');
+      Alert.alert('Required Field', 'Please enter doctor specialty');
       return;
     }
     addDoctor({
@@ -123,7 +123,7 @@ export default function AdminScreen({ navigation }) {
 
   const handleSaveConsultation = (patientName) => {
     if (!diagnosis.trim()) {
-      alert('Please enter diagnosis');
+      Alert.alert('Required Field', 'Please enter diagnosis');
       return;
     }
     addMedicalNote(patientName, {
@@ -155,11 +155,11 @@ export default function AdminScreen({ navigation }) {
 
   const handlePublishUpdate = () => {
     if (!announcementTitle.trim()) {
-      alert('Please enter title');
+      Alert.alert('Required Field', 'Please enter title');
       return;
     }
     if (!announcementDesc.trim()) {
-      alert('Please enter announcement description');
+      Alert.alert('Required Field', 'Please enter announcement description');
       return;
     }
     addUpdate({

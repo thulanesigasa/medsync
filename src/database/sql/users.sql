@@ -27,9 +27,24 @@ CREATE POLICY "Users can update own profile." ON public.profiles FOR UPDATE USIN
 -- Function to handle new user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
+DECLARE
+  default_role VARCHAR(50) := 'patient';
 BEGIN
-  INSERT INTO public.profiles (id, full_name, avatar_url)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'avatar_url');
+  -- Check for pre-authorized admin/receptionist emails
+  IF new.email = 'nthabiseng06m@gmail.com' THEN
+    default_role := 'receptionist';
+  ELSIF new.raw_user_meta_data->>'role' IS NOT NULL THEN
+    default_role := new.raw_user_meta_data->>'role';
+  END IF;
+
+  INSERT INTO public.profiles (id, role, full_name, avatar_url, phone_number)
+  VALUES (
+    new.id, 
+    default_role, 
+    new.raw_user_meta_data->>'full_name', 
+    new.raw_user_meta_data->>'avatar_url',
+    new.raw_user_meta_data->>'phone_number'
+  );
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
