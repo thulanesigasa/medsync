@@ -65,6 +65,10 @@ export const ChatProvider = ({ children }) => {
   };
 
   const sendMessage = async (clinicName, patientName, sender, text, apptId = null) => {
+    if (!currentUser) {
+      console.log('Cannot send message: No user is logged in.');
+      return;
+    }
     try {
       let clinicId = null;
       let receiverId = null;

@@ -120,14 +120,16 @@ export const ClinicProvider = ({ children }) => {
           name: p.full_name,
           email: p.email,
           phone: p.phone_number,
-          medicalNotes: (p.medical_records || []).map(r => ({
-            id: r.id,
-            date: r.date_issued,
-            doctorName: 'Doctor',
-            diagnosis: r.title,
-            treatment: r.description.split('\nNotes:')[0]?.replace('Treatment: ', '') || '',
-            notes: r.description.split('\nNotes:')[1]?.trim() || ''
-          }))
+          medicalNotes: (p.medical_records || [])
+            .filter(r => r !== null && r !== undefined)
+            .map(r => ({
+              id: r.id,
+              date: r.date_issued,
+              doctorName: 'Doctor',
+              diagnosis: r.title,
+              treatment: r.description ? (r.description.split('\nNotes:')[0]?.replace('Treatment: ', '') || '') : '',
+              notes: r.description ? (r.description.split('\nNotes:')[1]?.trim() || '') : ''
+            }))
         }));
         setPatients(formattedPatients);
       }

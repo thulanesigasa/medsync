@@ -13,7 +13,7 @@ export default function ConfirmationScreen({ navigation, route }) {
   const bookingData = route?.params || {};
 
   const latestAppt = {
-    patientName: currentUser?.name || "Kiddo",
+    patientName: currentUser?.name || currentUser?.email?.split('@')[0] || "Patient",
     doctorName: bookingData.doctor?.name || bookingData.doctorName || "Doctor",
     clinicName:
       bookingData.doctor?.clinic || bookingData.clinicName || "Clinic",

@@ -27,7 +27,7 @@ export default function ChatsScreen({ navigation }) {
     }, 1500);
   }, []);
 
-  const patientName = currentUser?.name || 'Kiddo';
+  const patientName = currentUser?.name || currentUser?.email?.split('@')[0] || 'Patient';
 
   const handleSendChatMessage = () => {
     if (!chatText.trim() || !activeClinicName) return;
@@ -74,46 +74,56 @@ export default function ChatsScreen({ navigation }) {
         <Text style={[styles.sectionSubtitle, { color: theme.subtext }]}>Start a conversation with any of our branches for support.</Text>
 
         <View style={styles.channelsList}>
-          {clinics.map((clinic) => {
-            // Filter messages for this clinic and patient
-            const clinicMsgs = messages.filter(
-              m => m.clinicName === clinic.name && m.patientName === patientName
-            );
-            const lastMsg = clinicMsgs[clinicMsgs.length - 1];
+          {clinics.length === 0 ? (
+            <View style={{ alignItems: 'center', marginTop: 40, paddingHorizontal: 20 }}>
+              <Ionicons name="chatbubbles-outline" size={48} color="#94A3B8" />
+              <Text style={{ color: theme.text, marginTop: 8, fontWeight: '600', fontSize: 16 }}>No Active Channels</Text>
+              <Text style={{ color: theme.subtext, fontSize: 13, textAlign: 'center', marginTop: 4, lineHeight: 18 }}>
+                No clinic branches found in the database. Please ensure you have run the seed.sql script in your Supabase SQL Editor.
+              </Text>
+            </View>
+          ) : (
+            clinics.map((clinic) => {
+              // Filter messages for this clinic and patient
+              const clinicMsgs = messages.filter(
+                m => m.clinicName === clinic.name && m.patientName === patientName
+              );
+              const lastMsg = clinicMsgs[clinicMsgs.length - 1];
 
-            // Get clinic icon name based on specialty keywords
-            const nameLower = clinic.name.toLowerCase();
-            const isDental = nameLower.includes('benoni');
-            const isHeart = nameLower.includes('unjani');
-            const iconName = isDental ? "heart" : (isHeart ? "pulse" : "medical");
+              // Get clinic icon name based on specialty keywords
+              const nameLower = clinic.name.toLowerCase();
+              const isDental = nameLower.includes('benoni');
+              const isHeart = nameLower.includes('unjani');
+              const iconName = isDental ? "heart" : (isHeart ? "pulse" : "medical");
 
-            return (
-              <TouchableOpacity 
-                key={clinic.id} 
-                style={[styles.channelCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
-                onPress={() => setActiveClinicName(clinic.name)}
-              >
-                <View style={styles.channelIconContainer}>
-                  <Ionicons name={iconName} size={24} color={COLORS.primary} />
-                </View>
-                
-                <View style={styles.channelInfo}>
-                  <View style={styles.channelHeaderRow}>
-                    <Text style={[styles.clinicName, { color: theme.text }]} numberOfLines={1}>{clinic.name}</Text>
-                    {lastMsg ? (
-                      <Text style={styles.messageTime}>{lastMsg.time}</Text>
-                    ) : null}
+              return (
+                <TouchableOpacity 
+                  key={clinic.id} 
+                  style={[styles.channelCard, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                  onPress={() => setActiveClinicName(clinic.name)}
+                >
+                  <View style={styles.channelIconContainer}>
+                    <Ionicons name={iconName} size={24} color={COLORS.primary} />
                   </View>
                   
-                  <Text style={styles.messageSnippet} numberOfLines={1}>
-                    {lastMsg ? lastMsg.text : "No messages yet. Tap to start chatting."}
-                  </Text>
-                </View>
-                
-                <Ionicons name="chevron-forward" size={18} color="#94A3B8" style={styles.chevron} />
-              </TouchableOpacity>
-            );
-          })}
+                  <View style={styles.channelInfo}>
+                    <View style={styles.channelHeaderRow}>
+                      <Text style={[styles.clinicName, { color: theme.text }]} numberOfLines={1}>{clinic.name}</Text>
+                      {lastMsg ? (
+                        <Text style={styles.messageTime}>{lastMsg.time}</Text>
+                      ) : null}
+                    </View>
+                    
+                    <Text style={styles.messageSnippet} numberOfLines={1}>
+                      {lastMsg ? lastMsg.text : "No messages yet. Tap to start chatting."}
+                    </Text>
+                  </View>
+                  
+                  <Ionicons name="chevron-forward" size={18} color="#94A3B8" style={styles.chevron} />
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
       </ScrollView>
 

@@ -52,6 +52,10 @@ export const AppointmentProvider = ({ children }) => {
   };
 
   const addAppointment = async (newAppt) => {
+    if (!currentUser) {
+      console.log('Cannot add appointment: No user is logged in.');
+      return;
+    }
     try {
       let clinicId = null;
       let doctorId = null;

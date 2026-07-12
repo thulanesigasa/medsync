@@ -19,10 +19,17 @@
       "adaptiveIcon": {
         "foregroundImage": "./src/images/icon.jpeg",
         "backgroundColor": "#162A4A"
-      }
+      },
+      "package": "com.hokmatechsteam.medsync"
     },
     "web": {
       "favicon": "./src/images/favicon.jpeg"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7e123393-d7a5-4856-b1cc-d8a15e7fee3a"
+      }
+    },
+    "owner": "hokmatechs-team"
   }
 }

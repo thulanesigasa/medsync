@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platform, Modal } from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
@@ -60,8 +60,17 @@ export default function ProfileScreen({ navigation }) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   
   const [isEditModalVisible, setEditModalVisible] = useState(false);
-  const [editName, setEditName] = useState(currentUser?.name || '');
-  const [editEmail, setEditEmail] = useState(currentUser?.email || '');
+  const [editName, setEditName] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+
+  useEffect(() => {
+    if (currentUser) {
+      setEditName(currentUser.name || '');
+      setEditEmail(currentUser.email || '');
+      setEditPhone(currentUser.phone || '');
+    }
+  }, [currentUser]);
 
   const handleLogout = () => {
     logout();
@@ -75,7 +84,8 @@ export default function ProfileScreen({ navigation }) {
     }
     const result = await updateProfile({
       full_name: editName.trim(),
-      email: editEmail.trim()
+      email: editEmail.trim(),
+      phone_number: editPhone.trim()
     });
     if (result && result.success) {
       setEditModalVisible(false);
@@ -114,7 +124,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.avatarContainer}>
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
-                  {(currentUser?.name || 'Kiddo').charAt(0)}
+                  {(currentUser?.name || currentUser?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
                 </Text>
               </View>
               <View style={styles.verifiedBadge}>
@@ -123,8 +133,8 @@ export default function ProfileScreen({ navigation }) {
             </View>
             
             <View style={styles.profileMeta}>
-              <Text style={[styles.profileName, { color: theme.text }]}>{currentUser?.name || 'Kiddo'}</Text>
-              <Text style={[styles.profileEmail, { color: theme.subtext }]}>{currentUser?.email || 'kiddo@hokmatech.com'}</Text>
+              <Text style={[styles.profileName, { color: theme.text }]}>{currentUser?.name || currentUser?.email?.split('@')[0] || 'User'}</Text>
+              <Text style={[styles.profileEmail, { color: theme.subtext }]}>{currentUser?.email || ''}</Text>
               
               <View style={styles.goldBadge}>
                 <Ionicons name="ribbon" size={13} color="#D97706" style={{ marginRight: 4 }} />
@@ -144,7 +154,10 @@ export default function ProfileScreen({ navigation }) {
         {/* Section 1: Account Settings */}
         <Text style={[styles.sectionHeader, { color: theme.text }]}>ACCOUNT SETTINGS</Text>
         <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}
+            onPress={() => setEditModalVisible(true)}
+          >
             <View style={styles.menuIconBox}>
               <Ionicons name="person-outline" size={20} color={COLORS.primary} />
             </View>
@@ -218,46 +231,64 @@ export default function ProfileScreen({ navigation }) {
       <BottomTabBar navigation={navigation} activeTab="Profile" />
 
       {/* Edit Profile Modal */}
-      {isEditModalVisible && (
+      <Modal
+        visible={isEditModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setEditModalVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.modalContent}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={{ width: '100%' }}
           >
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Edit Profile</Text>
-              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Personal Information</Text>
+                <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Full Name</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={editName}
+                  onChangeText={setEditName}
+                  placeholder="Enter full name"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Email Address</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={editEmail}
+                  onChangeText={setEditEmail}
+                  keyboardType="email-address"
+                  placeholder="Enter email address"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Phone Number</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={editPhone}
+                  onChangeText={setEditPhone}
+                  keyboardType="phone-pad"
+                  placeholder="Enter phone number"
+                />
+              </View>
+
+              <TouchableOpacity style={styles.saveModalBtn} onPress={handleSaveProfile}>
+                <Text style={styles.saveModalBtnText}>Save Changes</Text>
               </TouchableOpacity>
             </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Full Name</Text>
-              <TextInput
-                style={styles.modalInput}
-                value={editName}
-                onChangeText={setEditName}
-                placeholder="Enter full name"
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Email Address</Text>
-              <TextInput
-                style={styles.modalInput}
-                value={editEmail}
-                onChangeText={setEditEmail}
-                keyboardType="email-address"
-                placeholder="Enter email address"
-              />
-            </View>
-
-            <TouchableOpacity style={styles.saveModalBtn} onPress={handleSaveProfile}>
-              <Text style={styles.saveModalBtnText}>Save Changes</Text>
-            </TouchableOpacity>
           </KeyboardAvoidingView>
         </View>
-      )}
+      </Modal>
     </View>
   );
 }

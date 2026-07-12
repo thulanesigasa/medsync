@@ -131,7 +131,7 @@ export default function HomeScreen({ navigation }) {
         {/* Greeting */}
         <View style={styles.greetingContainer}>
           <Text style={[styles.greetingTitle, { color: theme.text }]}>
-            Hello, {currentUser?.name || "Kiddo"}!
+            Hello, {currentUser?.name || currentUser?.email?.split('@')[0] || "User"}!
           </Text>
           <Text style={[styles.greetingSubline, { color: theme.subtext }]}>
             Find your local doctor easily

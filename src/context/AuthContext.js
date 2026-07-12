@@ -155,6 +155,7 @@ export const AuthProvider = ({ children }) => {
       
       const updatedUser = { ...currentUser, ...updates };
       if (updates.full_name) updatedUser.name = updates.full_name;
+      if (updates.phone_number) updatedUser.phone = updates.phone_number;
       setCurrentUser(updatedUser);
       return { success: true };
     } catch (error) {
