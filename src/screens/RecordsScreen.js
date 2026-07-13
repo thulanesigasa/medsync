@@ -40,10 +40,7 @@ export default function RecordsScreen({ navigation }) {
     }, 1500);
   };
 
-  const activePrescriptions = [
-    { id: 1, name: 'Amoxicillin 500mg', dosage: '1 capsule 3x a day', remaining: '2 Refills left' },
-    { id: 2, name: 'Lisinopril 10mg', dosage: '1 tablet daily', remaining: '1 Refill left' },
-  ];
+
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -78,20 +75,7 @@ export default function RecordsScreen({ navigation }) {
           />
         </View>
 
-        {/* Featured Announcement Card */}
-        <View style={[styles.featuredCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={styles.featuredBadge}>
-            <Text style={styles.featuredBadgeText}>Featured</Text>
-          </View>
-          <Text style={[styles.featuredTitle, { color: theme.text }]}>Free Flu Vaccine Drive 2026</Text>
-          <Text style={[styles.featuredDesc, { color: theme.subtext }]}>
-            Walk-ins are now welcome at Unjani Clinic Germiston for the annual influenza vaccine. Protect your family this winter season.
-          </Text>
-          <TouchableOpacity style={styles.featuredBtn}>
-            <Text style={styles.featuredBtnText}>Learn More</Text>
-            <Ionicons name="arrow-forward" size={16} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
+
 
         {/* Categories Scroll */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoriesScroll}>
@@ -112,40 +96,50 @@ export default function RecordsScreen({ navigation }) {
         </ScrollView>
 
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Local Clinic Bulletins</Text>
-        
-        <View style={styles.bulletinsContainer}>
-          {updates
-            .filter(item => {
-              const matchesCategory = activeCategory === 'All' || 
-                (activeCategory === 'Campaigns' && item.category === 'Campaign') ||
-                item.category.toLowerCase() === activeCategory.toLowerCase();
-              const matchesSearch = !searchQuery.trim() || 
-                item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.clinic.toLowerCase().includes(searchQuery.toLowerCase());
-              return matchesCategory && matchesSearch;
-            })
-            .map((item) => (
-              <View key={item.id} style={[styles.updateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <View style={styles.iconBox}>
-                  <Ionicons 
-                    name={
-                      item.category === 'Schedules' ? 'time' :
-                      item.category === 'Vaccines' ? 'medical' :
-                      item.category === 'Notice' ? 'pulse' : 'megaphone'
-                    } 
-                    size={22} 
-                    color={COLORS.primary} 
-                  />
+
+        {updates.length === 0 ? (
+          <View style={[styles.emptyBulletinsCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Ionicons name="megaphone-outline" size={36} color="#94A3B8" style={{ marginBottom: 10 }} />
+            <Text style={[styles.emptyBulletinsTitle, { color: theme.text }]}>No Bulletins Yet</Text>
+            <Text style={[styles.emptyBulletinsDesc, { color: theme.subtext }]}>
+              Clinic announcements, schedule changes, and health campaigns will appear here once published by your clinic.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.bulletinsContainer}>
+            {updates
+              .filter(item => {
+                const matchesCategory = activeCategory === 'All' ||
+                  (activeCategory === 'Campaigns' && item.category === 'Campaign') ||
+                  item.category.toLowerCase() === activeCategory.toLowerCase();
+                const matchesSearch = !searchQuery.trim() ||
+                  item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  item.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                  item.clinic.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCategory && matchesSearch;
+              })
+              .map((item) => (
+                <View key={item.id} style={[styles.updateCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <View style={styles.iconBox}>
+                    <Ionicons
+                      name={
+                        item.category === 'Schedules' ? 'time' :
+                        item.category === 'Vaccines' ? 'medical' :
+                        item.category === 'Notice' ? 'pulse' : 'megaphone'
+                      }
+                      size={22}
+                      color={COLORS.primary}
+                    />
+                  </View>
+                  <View style={styles.updateInfo}>
+                    <Text style={[styles.updateTitle, { color: theme.text }]}>{item.title}</Text>
+                    <Text style={[styles.updateDesc, { color: theme.subtext }]}>{item.desc}</Text>
+                    <Text style={[styles.updateDate, { color: theme.subtext }]}>{item.date} • {item.clinic}</Text>
+                  </View>
                 </View>
-                <View style={styles.updateInfo}>
-                  <Text style={[styles.updateTitle, { color: theme.text }]}>{item.title}</Text>
-                  <Text style={[styles.updateDesc, { color: theme.subtext }]}>{item.desc}</Text>
-                  <Text style={[styles.updateDate, { color: theme.subtext }]}>{item.date} • {item.clinic}</Text>
-                </View>
-              </View>
-            ))}
-        </View>
+              ))}
+          </View>
+        )}
 
         {myRecords.length > 0 && (
           <>
@@ -411,5 +405,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     borderRadius: 12,
     marginLeft: 10,
-  }
+  },
+  emptyBulletinsCard: {
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    padding: 28,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  emptyBulletinsTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyBulletinsDesc: {
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+    color: '#94A3B8',
+  },
 });

@@ -10,40 +10,7 @@ export const ClinicProvider = ({ children }) => {
   const [clinics, setClinics] = useState([]);
   const [doctors, setDoctors] = useState([]);
   const [patients, setPatients] = useState([]);
-  const [updates, setUpdates] = useState([
-    {
-      id: "updt-1",
-      title: "Dr. Lerato Mokoena's Saturday Shift",
-      desc: "GP checkups will be available on Saturdays from 8:00 AM - 12:00 PM at Dawn Park Clinic, Boksburg.",
-      date: "Posted today",
-      clinic: "Dawn Park Clinic",
-      category: "Schedules",
-    },
-    {
-      id: "updt-2",
-      title: "Benoni Health Centre Dental Wing",
-      desc: "Our expanded dental wing opens next Monday. Specialized care for all family members at 54 Harpur Ave, Benoni.",
-      date: "Posted yesterday",
-      clinic: "Benoni Health Centre",
-      category: "Campaign",
-    },
-    {
-      id: "updt-3",
-      title: "Dr. Sipho Gumede Summit Notice",
-      desc: "Dr. Gumede will be away at the South African Cardiology Summit (28 May - 2 Jun). Appointments during this period will be rescheduled.",
-      date: "Posted 4 days ago",
-      clinic: "Unjani Clinic Germiston",
-      category: "Notice",
-    },
-    {
-      id: "updt-4",
-      title: "Germiston Vaccine Drive Extended",
-      desc: "Free winter immunization drive at Unjani Clinic Germiston is extended until the end of next week. Walk-ins welcome.",
-      date: "Posted 5 days ago",
-      clinic: "Unjani Clinic Germiston",
-      category: "Vaccines",
-    },
-  ]);
+  const [updates, setUpdates] = useState([]);
 
   useEffect(() => {
     if (isAuthLoaded && currentUser) {
