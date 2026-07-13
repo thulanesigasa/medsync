@@ -30,7 +30,7 @@ import EmptyAppointmentsSVG from '../components/EmptyAppointmentsSVG';
 export default function AppointmentsScreen({ navigation }) {
   const { currentUser } = useAuth();
   const { appointments, updateAppointmentStatus } = useAppointment();
-  const { patients } = useClinic();
+  const { patients, doctors } = useClinic();
   const { messages, sendMessage } = useChat();
   const { isDark, theme, toggleTheme } = useTheme();
 
@@ -163,20 +163,36 @@ export default function AppointmentsScreen({ navigation }) {
   const renderAppointmentCard = (appt) => (
     <View key={appt.id} style={[styles.premiumCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       <View style={styles.cardHeader}>
-        <View style={styles.doctorBadge}>
+        <TouchableOpacity 
+          style={styles.doctorBadge}
+          onPress={() => {
+            const doctorObj = doctors.find(d => d.name?.toLowerCase() === appt.doctorName?.toLowerCase());
+            if (doctorObj) {
+              navigation.navigate("DoctorProfile", { doctor: doctorObj });
+            }
+          }}
+        >
           <Text style={styles.doctorBadgeText}>
             {appt.doctorName?.replace("Dr. ", "").charAt(0) || "D"}
           </Text>
-        </View>
+        </TouchableOpacity>
 
-        <View style={styles.doctorMeta}>
+        <TouchableOpacity 
+          style={styles.doctorMeta}
+          onPress={() => {
+            const doctorObj = doctors.find(d => d.name?.toLowerCase() === appt.doctorName?.toLowerCase());
+            if (doctorObj) {
+              navigation.navigate("DoctorProfile", { doctor: doctorObj });
+            }
+          }}
+        >
           <Text style={[styles.doctorNameText, { color: theme.text }]}>
             {appt.doctorName || "Doctor"}
           </Text>
           <Text style={[styles.doctorSpecText, { color: theme.subtext }]}>
             {appt.doctorTitle || appt.type || "Specialist"}
           </Text>
-        </View>
+        </TouchableOpacity>
 
         <View style={[styles.statusBadge, getStatusStyle(appt.status)]}>
           <Text
