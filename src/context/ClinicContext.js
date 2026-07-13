@@ -73,7 +73,7 @@ export const ClinicProvider = ({ children }) => {
           full_name,
           email,
           phone_number,
-          medical_records (
+          medical_records!patient_id (
             id,
             title,
             description,

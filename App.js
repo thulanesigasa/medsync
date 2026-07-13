@@ -44,50 +44,56 @@ function AppNavigator() {
     );
   }
 
-  // Show lock screen if user is logged in but app is locked
-  if (currentUser && isLocked) {
-    return (
-      <View style={styles.lockContainer}>
-        <Ionicons name="finger-print" size={80} color="#3B82F6" style={{ marginBottom: 20 }} />
-        <Text style={styles.lockTitle}>App Locked</Text>
-        <Text style={styles.lockSub}>Verify your identity to continue</Text>
-        
-        <TouchableOpacity style={styles.unlockBtn} onPress={() => setIsLocked(false)}>
-          <Text style={styles.unlockBtnText}>Use Face ID / Touch ID</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.pinBtn} onPress={() => setIsLocked(false)}>
-          <Text style={styles.pinBtnText}>Use PIN instead</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
     <NavigationContainer>
-      <Stack.Navigator 
-        initialRouteName={currentUser ? (['admin', 'hr', 'receptionist'].includes(currentUser.role) ? 'Admin' : 'Home') : 'Login'}
-        screenOptions={{ headerShown: false }}
-      >
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Signup" component={SignupScreen} />
-        <Stack.Screen name="Admin" component={AdminScreen} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="DoctorProfile" component={DoctorProfileScreen} />
-        <Stack.Screen name="Booking" component={BookingScreen} />
-        <Stack.Screen name="Confirmation" component={ConfirmationScreen} />
-        <Stack.Screen name="Appointments" component={AppointmentsScreen} />
-        <Stack.Screen name="Records" component={RecordsScreen} />
-        <Stack.Screen name="Chats" component={ChatsScreen} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="Clinics" component={ClinicsScreen} />
-        <Stack.Screen name="Notifications" component={NotificationsScreen} />
-        <Stack.Screen name="Telehealth" component={TelehealthScreen} options={{ presentation: 'fullScreenModal' }} />
-        <Stack.Screen name="AllDoctors" component={AllDoctorsScreen} />
-        <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
-        <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
-        <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
-      </Stack.Navigator>
+      <View style={{ flex: 1 }}>
+        <Stack.Navigator 
+          initialRouteName={currentUser ? (['admin', 'hr', 'receptionist'].includes(currentUser.role) ? 'Admin' : 'Home') : 'Login'}
+          screenOptions={{ headerShown: false }}
+        >
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="Admin" component={AdminScreen} />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="DoctorProfile" component={DoctorProfileScreen} />
+          <Stack.Screen name="Booking" component={BookingScreen} />
+          <Stack.Screen name="Confirmation" component={ConfirmationScreen} />
+          <Stack.Screen name="Appointments" component={AppointmentsScreen} />
+          <Stack.Screen name="Records" component={RecordsScreen} />
+          <Stack.Screen name="Chats" component={ChatsScreen} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Clinics" component={ClinicsScreen} />
+          <Stack.Screen name="Notifications" component={NotificationsScreen} />
+          <Stack.Screen name="Telehealth" component={TelehealthScreen} options={{ presentation: 'fullScreenModal' }} />
+          <Stack.Screen name="AllDoctors" component={AllDoctorsScreen} />
+          <Stack.Screen name="HelpCenter" component={HelpCenterScreen} />
+          <Stack.Screen name="TermsOfService" component={TermsOfServiceScreen} />
+          <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
+        </Stack.Navigator>
+
+        {/* Lock Screen Overlay (rendered as a Modal to prevent unmounting NavigationContainer) */}
+        {currentUser && isLocked && (
+          <Modal
+            visible={true}
+            animationType="fade"
+            transparent={false}
+          >
+            <View style={styles.lockContainer}>
+              <Ionicons name="finger-print" size={80} color="#3B82F6" style={{ marginBottom: 20 }} />
+              <Text style={styles.lockTitle}>App Locked</Text>
+              <Text style={styles.lockSub}>Verify your identity to continue</Text>
+              
+              <TouchableOpacity style={styles.unlockBtn} onPress={() => setIsLocked(false)}>
+                <Text style={styles.unlockBtnText}>Use Face ID / Touch ID</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.pinBtn} onPress={() => setIsLocked(false)}>
+                <Text style={styles.pinBtnText}>Use PIN instead</Text>
+              </TouchableOpacity>
+            </View>
+          </Modal>
+        )}
+      </View>
     </NavigationContainer>
   );
 }
