@@ -54,11 +54,21 @@ export default function AdminScreen({ navigation }) {
   const activeClinicInfo = clinics.find(c => c.name.toLowerCase().includes(clinicName.toLowerCase())) || clinics[0];
 
   // Form State for Settings Editor
-  const [settingsAddress, setSettingsAddress] = useState(activeClinicInfo.address);
-  const [settingsPhone, setSettingsPhone] = useState(activeClinicInfo.phone);
-  const [settingsHours, setSettingsHours] = useState(activeClinicInfo.hours);
-  const [settingsWebsite, setSettingsWebsite] = useState(activeClinicInfo.website);
-  const [settingsSlot, setSettingsSlot] = useState(activeClinicInfo.slotDuration.toString());
+  const [settingsAddress, setSettingsAddress] = useState(activeClinicInfo?.address || '');
+  const [settingsPhone, setSettingsPhone] = useState(activeClinicInfo?.phone || '');
+  const [settingsHours, setSettingsHours] = useState(activeClinicInfo?.hours || '');
+  const [settingsWebsite, setSettingsWebsite] = useState(activeClinicInfo?.website || '');
+  const [settingsSlot, setSettingsSlot] = useState(activeClinicInfo?.slotDuration ? activeClinicInfo.slotDuration.toString() : '30');
+
+  React.useEffect(() => {
+    if (activeClinicInfo) {
+      setSettingsAddress(activeClinicInfo.address || '');
+      setSettingsPhone(activeClinicInfo.phone || '');
+      setSettingsHours(activeClinicInfo.hours || '');
+      setSettingsWebsite(activeClinicInfo.website || '');
+      setSettingsSlot(activeClinicInfo.slotDuration ? activeClinicInfo.slotDuration.toString() : '30');
+    }
+  }, [activeClinicInfo]);
 
   // Filter lists for current clinic
   const clinicAppointments = appointments.filter(
@@ -114,7 +124,7 @@ export default function AdminScreen({ navigation }) {
     addDoctor({
       name: docName.startsWith('Dr. ') ? docName.trim() : `Dr. ${docName.trim()}`,
       specialty: docSpecialty.trim(),
-      clinic: activeClinicInfo.name
+      clinic: activeClinicInfo?.name || clinicName
     });
     setDocName('');
     setDocSpecialty('');
