@@ -9,6 +9,7 @@ import { useClinic } from '../context/ClinicContext';
 import { useAppointment } from '../context/AppointmentContext';
 import { useChat } from '../context/ChatContext';
 import { useTheme } from '../context/ThemeContext';
+import { useToast } from '../context/ToastContext';
 
 export default function AdminScreen({ navigation }) {
   const { currentUser, logout } = useAuth();
@@ -16,6 +17,7 @@ export default function AdminScreen({ navigation }) {
   const { appointments, updateAppointmentStatus } = useAppointment();
   const { messages, sendMessage, adminNotifications, clearNotifications } = useChat();
   const { isDark, theme, toggleTheme } = useTheme();
+  const { showToast } = useToast();
 
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'bookings', 'doctors', 'patients', 'updates', 'settings'
   const [bookingFilter, setBookingFilter] = useState('Pending'); // 'Pending' or 'Confirmed'
@@ -96,51 +98,59 @@ export default function AdminScreen({ navigation }) {
       hours_of_operation: settingsHours,
       email: settingsWebsite
     });
-    Alert.alert("Success", "Clinic configurations saved!");
+    showToast("Clinic configurations saved!", "success", "Success");
   };
 
   const handleGrantStaffAccess = async () => {
     if (!staffEmail || !staffEmail.includes('@')) {
-      Alert.alert("Error", "Please enter a valid email address.");
+      showToast("Please enter a valid email address.", "error", "Error");
       return;
     }
     const response = await grantStaffAccess(staffEmail, staffRole);
     if (response.success) {
-      Alert.alert("Success", response.message);
+      showToast(response.message, "success", "Success");
       setStaffEmail('');
     } else {
-      Alert.alert("Error", response.message || "Failed to grant access.");
+      showToast(response.message || "Failed to grant access.", "error", "Error");
     }
   };
 
-  const handleAddNewDoctor = () => {
+  const handleAddNewDoctor = async () => {
     if (!docName.trim()) {
-      Alert.alert('Required Field', 'Please enter doctor name');
+      showToast('Please enter doctor name', 'error', 'Required Field');
       return;
     }
     if (!docEmail.trim() || !docEmail.includes('@')) {
-      Alert.alert('Required Field', 'Please enter a valid doctor email address');
+      showToast('Please enter a valid doctor email address', 'error', 'Required Field');
       return;
     }
     if (!docSpecialty.trim()) {
-      Alert.alert('Required Field', 'Please enter doctor specialty');
+      showToast('Please enter doctor specialty', 'error', 'Required Field');
       return;
     }
-    addDoctor({
+    
+    showToast('Adding doctor to practice...', 'info', 'Please Wait');
+    
+    const result = await addDoctor({
       name: docName.startsWith('Dr. ') ? docName.trim() : `Dr. ${docName.trim()}`,
       email: docEmail.trim().toLowerCase(),
       specialty: docSpecialty.trim(),
       clinic: activeClinicInfo?.name || clinicName
     });
-    setDocName('');
-    setDocEmail('');
-    setDocSpecialty('');
-    Alert.alert('Success', 'New doctor added to directories.');
+    
+    if (result && result.success) {
+      setDocName('');
+      setDocEmail('');
+      setDocSpecialty('');
+      showToast('New doctor added to directories.', 'success', 'Success');
+    } else {
+      showToast(result?.message || 'Failed to add doctor to directories.', 'error', 'Error');
+    }
   };
 
   const handleSaveConsultation = (patientName) => {
     if (!diagnosis.trim()) {
-      Alert.alert('Required Field', 'Please enter diagnosis');
+      showToast('Please enter diagnosis', 'error', 'Required Field');
       return;
     }
     addMedicalNote(patientName, {
@@ -153,7 +163,7 @@ export default function AdminScreen({ navigation }) {
     setDiagnosis('');
     setTreatment('');
     setConsultNotes('');
-    Alert.alert('Consultation Saved', 'Record added to Patient EHR Dossier.');
+    showToast('Record added to Patient EHR Dossier.', 'success', 'Consultation Saved');
   };
 
   const handleSendChatMessage = () => {
@@ -172,11 +182,11 @@ export default function AdminScreen({ navigation }) {
 
   const handlePublishUpdate = () => {
     if (!announcementTitle.trim()) {
-      Alert.alert('Required Field', 'Please enter title');
+      showToast('Please enter title', 'error', 'Required Field');
       return;
     }
     if (!announcementDesc.trim()) {
-      Alert.alert('Required Field', 'Please enter announcement description');
+      showToast('Please enter announcement description', 'error', 'Required Field');
       return;
     }
     addUpdate({
@@ -188,7 +198,7 @@ export default function AdminScreen({ navigation }) {
     setAnnouncementTitle('');
     setAnnouncementDesc('');
     setAnnouncementCategory('Schedules');
-    Alert.alert('Success', 'Bulletin published successfully.');
+    showToast('Bulletin published successfully.', 'success', 'Success');
   };
 
   const screenWidth = Dimensions.get('window').width;
