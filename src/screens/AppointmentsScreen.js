@@ -34,6 +34,7 @@ export default function AppointmentsScreen({ navigation }) {
   const { messages, sendMessage } = useChat();
   const { isDark, theme, toggleTheme } = useTheme();
 
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const [selectedNoteApptId, setSelectedNoteApptId] = useState(null);
   const [activeChatApptId, setActiveChatApptId] = useState(null);
   const [chatText, setChatText] = useState("");
@@ -47,6 +48,29 @@ export default function AppointmentsScreen({ navigation }) {
     }, 1500);
   }, []);
 
+  const getWeekDates = () => {
+    const dates = [];
+    const todayDate = new Date();
+    
+    // Get the start of the current week (Sunday)
+    const startOfWeek = new Date(todayDate);
+    const dayOfWeek = todayDate.getDay(); 
+    startOfWeek.setDate(todayDate.getDate() - dayOfWeek);
+
+    const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      dates.push({
+        dateString: date.toISOString().split("T")[0],
+        day: date.getDate().toString(),
+        weekday: weekdays[i],
+      });
+    }
+    return dates;
+  };
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -54,10 +78,13 @@ export default function AppointmentsScreen({ navigation }) {
     const appointmentDate = new Date(appt.date);
     appointmentDate.setHours(0, 0, 0, 0);
     const matchesSearch = appt.doctorName.toLowerCase().includes(searchQuery.toLowerCase()) || appt.clinicName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDate = appt.date === selectedDate;
 
     return (
       appointmentDate >= today &&
-      (appt.status === "Confirmed" || appt.status === "Pending") && matchesSearch
+      (appt.status === "Confirmed" || appt.status === "Pending") && 
+      matchesSearch &&
+      matchesDate
     );
   });
 
@@ -390,40 +417,36 @@ export default function AppointmentsScreen({ navigation }) {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.calendarStripContent}
           >
-            {[
-              { day: "24", weekday: "Sun" },
-              { day: "25", weekday: "Mon" },
-              { day: "26", weekday: "Tue" },
-              { day: "27", weekday: "Wed", active: true },
-              { day: "28", weekday: "Thu" },
-              { day: "29", weekday: "Fri" },
-              { day: "30", weekday: "Sat" },
-            ].map((item) => (
-              <TouchableOpacity
-                key={`${item.weekday}-${item.day}`}
-                style={[
-                  styles.calendarDayBtn,
-                  item.active && styles.calendarDayBtnActive,
-                ]}
-              >
-                <Text
+            {getWeekDates().map((item) => {
+              const isActive = selectedDate === item.dateString;
+              return (
+                <TouchableOpacity
+                  key={item.dateString}
                   style={[
-                    styles.calendarDayText,
-                    item.active && styles.calendarDayTextActive,
+                    styles.calendarDayBtn,
+                    isActive && styles.calendarDayBtnActive,
                   ]}
+                  onPress={() => setSelectedDate(item.dateString)}
                 >
-                  {item.day}
-                </Text>
-                <Text
-                  style={[
-                    styles.calendarWeekdayText,
-                    item.active && styles.calendarWeekdayTextActive,
-                  ]}
-                >
-                  {item.weekday}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.calendarDayText,
+                      isActive && styles.calendarDayTextActive,
+                    ]}
+                  >
+                    {item.day}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.calendarWeekdayText,
+                      isActive && styles.calendarWeekdayTextActive,
+                    ]}
+                  >
+                    {item.weekday}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
 

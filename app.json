@@ -18,7 +18,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./src/images/icon.jpeg",
-        "backgroundColor": "#162A4A"
+        "backgroundColor": "#FFFFFF"
       },
       "package": "com.hokmatechsteam.medsync"
     },
