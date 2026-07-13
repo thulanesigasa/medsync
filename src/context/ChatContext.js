@@ -46,7 +46,7 @@ export const ChatProvider = ({ children }) => {
 
       if (data) {
         const formatted = data.map(m => {
-          const isSenderAdmin = m.sender?.role === 'admin' || m.sender?.role === 'doctor';
+          const isSenderAdmin = m.sender?.role === 'admin' || m.sender?.role === 'doctor' || m.sender?.role === 'receptionist' || m.sender?.role === 'hr';
           const patientName = isSenderAdmin ? m.receiver?.full_name : m.sender?.full_name;
           return {
             id: m.id,
