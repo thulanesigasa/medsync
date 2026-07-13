@@ -32,8 +32,17 @@ BEGIN
     RAISE EXCEPTION 'User with this email not found.';
   END IF;
 
-  -- 5. Update their role
+  -- 5. Update their role in profiles
   UPDATE public.profiles SET role = new_role WHERE id = target_id;
+
+  -- 6. Synchronize role in auth.users metadata so JWT claims update
+  UPDATE auth.users 
+  SET raw_user_meta_data = jsonb_set(
+    COALESCE(raw_user_meta_data, '{}'::jsonb),
+    '{role}',
+    to_jsonb(new_role)
+  ) 
+  WHERE id = target_id;
 
   RETURN TRUE;
 END;
