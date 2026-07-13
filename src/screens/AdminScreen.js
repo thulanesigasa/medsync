@@ -138,7 +138,7 @@ export default function AdminScreen({ navigation }) {
     }
     addMedicalNote(patientName, {
       doctorName: clinicDoctors[0]?.name || 'Dr. Chris Nkwanyana',
-      clinicName: activeClinicInfo.name,
+      clinicName: activeClinicInfo?.name || clinicName,
       diagnosis: diagnosis.trim(),
       treatment: treatment.trim(),
       notes: consultNotes.trim()
@@ -159,7 +159,7 @@ export default function AdminScreen({ navigation }) {
 
   const handleSendAdminChatMessage = () => {
     if (!adminChatText.trim() || !selectedChatPatientName) return;
-    sendMessage(activeClinicInfo.name, selectedChatPatientName, 'admin', adminChatText.trim(), null);
+    sendMessage(activeClinicInfo?.name || clinicName, selectedChatPatientName, 'admin', adminChatText.trim(), null);
     setAdminChatText('');
   };
 
@@ -201,7 +201,7 @@ export default function AdminScreen({ navigation }) {
           <View style={styles.headerBrand}>
             <MaterialCommunityIcons name="shield-account" size={32} color="#FFFFFF" />
             <View style={{ marginLeft: 10 }}>
-              <Text style={styles.appTitle}>{activeClinicInfo.name}</Text>
+              <Text style={styles.appTitle}>{activeClinicInfo?.name || clinicName}</Text>
               <Text style={styles.appSubtitle}>Clinic Management Console</Text>
             </View>
           </View>
@@ -451,7 +451,7 @@ export default function AdminScreen({ navigation }) {
               
               {(() => {
                 const clinicMessages = messages.filter(
-                  m => m.clinicName === activeClinicInfo.name
+                  m => m.clinicName === (activeClinicInfo?.name || clinicName)
                 );
                 const activePatients = Array.from(new Set(clinicMessages.map(m => m.patientName)));
 
@@ -856,7 +856,7 @@ export default function AdminScreen({ navigation }) {
                 <View style={{ marginTop: 14 }}>
                   <Text style={styles.formFieldLabel}>Clinic Name (Non-editable)</Text>
                   <TextInput 
-                    value={activeClinicInfo.name}
+                    value={activeClinicInfo?.name || clinicName}
                     editable={false}
                     style={[styles.formInput, { backgroundColor: '#F1F5F9', color: '#64748B' }]}
                   />
