@@ -282,6 +282,7 @@ export default function AppointmentsScreen({ navigation }) {
       </View>
     </View>
   );
+};
 
   const renderPastAppointment = (appt) => {
     const { day, month, weekday } = getDateDisplay(appt.date);
