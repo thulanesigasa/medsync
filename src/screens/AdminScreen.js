@@ -1012,6 +1012,12 @@ export default function AdminScreen({ navigation }) {
                       <Text style={[styles.roleSelectText, staffRole === 'receptionist' && styles.roleSelectTextActive]}>Receptionist</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
+                      style={[styles.roleSelectBtn, staffRole === 'doctor' && styles.roleSelectBtnActive]}
+                      onPress={() => setStaffRole('doctor')}
+                    >
+                      <Text style={[styles.roleSelectText, staffRole === 'doctor' && styles.roleSelectTextActive]}>Doctor</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
                       style={[styles.roleSelectBtn, staffRole === 'admin' && styles.roleSelectBtnActive]}
                       onPress={() => setStaffRole('admin')}
                     >

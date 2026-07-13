@@ -17,7 +17,7 @@ BEGIN
   END IF;
 
   -- 3. Verify the requested role is valid
-  IF new_role NOT IN ('receptionist', 'admin', 'hr', 'patient') THEN
+  IF new_role NOT IN ('receptionist', 'admin', 'hr', 'patient', 'doctor') THEN
     RAISE EXCEPTION 'Invalid role specified.';
   END IF;
 
