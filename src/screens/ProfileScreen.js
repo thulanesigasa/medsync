@@ -60,6 +60,9 @@ export default function ProfileScreen({ navigation }) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   
   const [isEditModalVisible, setEditModalVisible] = useState(false);
+  const [isHelpModalVisible, setHelpModalVisible] = useState(false);
+  const [isTermsModalVisible, setTermsModalVisible] = useState(false);
+  const [activeFaq, setActiveFaq] = useState(null);
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
@@ -203,7 +206,10 @@ export default function ProfileScreen({ navigation }) {
         {/* Section 3: Support */}
         <Text style={[styles.sectionHeader, { color: theme.text }]}>HELP & SUPPORT</Text>
         <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomColor: theme.border }]}
+            onPress={() => setHelpModalVisible(true)}
+          >
             <View style={styles.menuIconBox}>
               <Ionicons name="help-circle-outline" size={20} color={COLORS.primary} />
             </View>
@@ -211,7 +217,10 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}>
+          <TouchableOpacity 
+            style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}
+            onPress={() => setTermsModalVisible(true)}
+          >
             <View style={styles.menuIconBox}>
               <Ionicons name="document-text-outline" size={20} color={COLORS.primary} />
             </View>
@@ -304,6 +313,154 @@ export default function ProfileScreen({ navigation }) {
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Help Center & FAQ Modal */}
+      <Modal
+        visible={isHelpModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setHelpModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)' }}>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={() => setHelpModalVisible(false)}
+          />
+          <View style={styles.modalContent}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Help Center & FAQ</Text>
+              <TouchableOpacity onPress={() => setHelpModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* Contact Support Info Card */}
+              <View style={styles.supportCard}>
+                <Ionicons name="mail" size={24} color={COLORS.primary} style={{ marginRight: 12 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.supportCardTitle}>Need Support?</Text>
+                  <Text style={styles.supportCardDesc}>Our technical team is here to assist. Email us at:</Text>
+                  <Text style={styles.supportCardEmail}>support@hokmatech.com</Text>
+                </View>
+              </View>
+
+              {/* FAQs Accordion */}
+              <Text style={styles.modalSubheading}>Frequently Asked Questions</Text>
+
+              {[
+                {
+                  q: "How do I book an appointment?",
+                  a: "Go to the Home tab, search/select your preferred doctor, choose the associated clinic, select a date and time slot, and tap 'Confirm Booking'."
+                },
+                {
+                  q: "Can I cancel or reschedule my appointment?",
+                  a: "Yes. You can view all bookings in the 'Appointments' tab and cancel them directly. To reschedule, simply cancel the current slot and book a new one."
+                },
+                {
+                  q: "What is Telehealth and how does it work?",
+                  a: "Telehealth lets you consult with your doctor via a secure video call. If your appointment type is virtual, a 'Join Call' button will appear under the appointment on the schedule tab when it is time."
+                },
+                {
+                  q: "How do I view my medical records and updates?",
+                  a: "Go to the 'Records' tab. There you will find your secure medical records, active prescriptions, and updates/bulletins posted by your clinics."
+                },
+                {
+                  q: "Is my medical and personal data secure?",
+                  a: "Yes. MedSync complies fully with national health privacy regulations (POPIA and HIPAA) using row-level security policy encryption for all database records."
+                }
+              ].map((faq, index) => {
+                const isOpen = activeFaq === index;
+                return (
+                  <View key={index} style={styles.faqItem}>
+                    <TouchableOpacity 
+                      style={styles.faqQuestionRow} 
+                      onPress={() => setActiveFaq(isOpen ? null : index)}
+                    >
+                      <Text style={styles.faqQuestionText}>{faq.q}</Text>
+                      <Ionicons 
+                        name={isOpen ? "chevron-up" : "chevron-down"} 
+                        size={18} 
+                        color={COLORS.primary} 
+                      />
+                    </TouchableOpacity>
+                    {isOpen && (
+                      <View style={styles.faqAnswerContainer}>
+                        <Text style={styles.faqAnswerText}>{faq.a}</Text>
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+              
+              <View style={{ height: 20 }} />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Terms of Service & Privacy Policy Modal */}
+      <Modal
+        visible={isTermsModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setTermsModalVisible(false)}
+      >
+        <View style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)' }}>
+          <TouchableOpacity
+            style={{ flex: 1 }}
+            activeOpacity={1}
+            onPress={() => setTermsModalVisible(false)}
+          />
+          <View style={styles.modalContent}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Terms & Privacy Policy</Text>
+              <TouchableOpacity onPress={() => setTermsModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <Text style={styles.policyTitle}>1. Terms of Service</Text>
+              <Text style={styles.policySectionHeader}>Acceptance of Terms</Text>
+              <Text style={styles.policyText}>
+                By accessing or using the MedSync application, you agree to comply with and be bound by these terms. If you do not agree, please do not use the service.
+              </Text>
+              
+              <Text style={styles.policySectionHeader}>Medical Disclaimer</Text>
+              <Text style={styles.policyText}>
+                MedSync is a platform designed to facilitate bookings, telehealth consulting, and health record organization. MedSync is NOT a medical care provider. In the event of a medical emergency, please dial emergency services immediately.
+              </Text>
+              
+              <Text style={styles.policySectionHeader}>Account Responsibility</Text>
+              <Text style={styles.policyText}>
+                You are responsible for keeping your login credentials confidential and secure. All activities occurring under your account are your sole responsibility.
+              </Text>
+
+              <Text style={[styles.policyTitle, { marginTop: 24 }]}>2. Privacy Policy</Text>
+              <Text style={styles.policySectionHeader}>Data Collection</Text>
+              <Text style={styles.policyText}>
+                We collect personal registration details (name, email address, phone number) and medical information uploaded by authorized healthcare clinic personnel to link appointments and manage records.
+              </Text>
+              
+              <Text style={styles.policySectionHeader}>How We Use Data</Text>
+              <Text style={styles.policyText}>
+                Your data is exclusively used to facilitate healthcare services, video telehealth consultations, notifications, and appointment management. We do not sell, distribute, or expose your data to third parties.
+              </Text>
+              
+              <Text style={styles.policySectionHeader}>POPIA Compliance (South Africa)</Text>
+              <Text style={styles.policyText}>
+                MedSync is designed in full compliance with the Protection of Personal Information Act (POPIA). Your information is stored securely in encrypted databases, and you retain full rights to request correction or removal of your details.
+              </Text>
+
+              <View style={{ height: 20 }} />
+            </ScrollView>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -615,5 +772,85 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  }
+  },
+  supportCard: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  supportCardTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 4,
+  },
+  supportCardDesc: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 18,
+  },
+  supportCardEmail: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginTop: 4,
+  },
+  modalSubheading: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 12,
+  },
+  faqItem: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    paddingVertical: 14,
+  },
+  faqQuestionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  faqQuestionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1E293B',
+    flex: 1,
+    marginRight: 12,
+  },
+  faqAnswerContainer: {
+    marginTop: 10,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    padding: 12,
+  },
+  faqAnswerText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#475569',
+  },
+  policyTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginBottom: 12,
+  },
+  policySectionHeader: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#334155',
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  policyText: {
+    fontSize: 13,
+    lineHeight: 20,
+    color: '#64748B',
+    marginBottom: 10,
+  },
 });
