@@ -110,6 +110,10 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  // Cohesive icon background and text colors based on current theme
+  const iconBg = isDark ? '#334155' : '#EFF6FF';
+  const iconColor = isDark ? '#F8FAFC' : COLORS.primary;
+
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
@@ -154,7 +158,7 @@ export default function ProfileScreen({ navigation }) {
 
           {/* Large Avatar */}
           <View style={styles.avatarWrapper}>
-            <View style={styles.avatarMain}>
+            <View style={[styles.avatarMain, { backgroundColor: COLORS.primary }]}>
               <Text style={styles.avatarMainText}>
                 {(currentUser?.name || currentUser?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
               </Text>
@@ -173,7 +177,7 @@ export default function ProfileScreen({ navigation }) {
           </Text>
         </View>
 
-        {/* WhatsApp-Style Informative Menu List */}
+        {/* All settings under one unified card category */}
         <View style={[styles.listCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           
           {/* Account */}
@@ -181,8 +185,8 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.menuRow, { borderBottomColor: theme.border }]} 
             onPress={() => setEditModalVisible(true)}
           >
-            <View style={[styles.menuIconContainer, { backgroundColor: '#EFF6FF' }]}>
-              <Ionicons name="key" size={20} color="#3B82F6" />
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="key" size={20} color={iconColor} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuTitleText, { color: theme.text }]}>Account</Text>
@@ -196,8 +200,8 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.menuRow, { borderBottomColor: theme.border }]} 
             onPress={() => navigation.navigate("PrivacyPolicy")}
           >
-            <View style={[styles.menuIconContainer, { backgroundColor: '#F0FDF4' }]}>
-              <Ionicons name="lock-closed" size={20} color="#10B981" />
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="lock-closed" size={20} color={iconColor} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuTitleText, { color: theme.text }]}>Privacy</Text>
@@ -211,8 +215,8 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.menuRow, { borderBottomColor: theme.border }]} 
             onPress={() => navigation.navigate("Appointments")}
           >
-            <View style={[styles.menuIconContainer, { backgroundColor: '#FAF5FF' }]}>
-              <Ionicons name="calendar" size={20} color="#8B5CF6" />
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="calendar" size={20} color={iconColor} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuTitleText, { color: theme.text }]}>Appointments</Text>
@@ -226,8 +230,8 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.menuRow, { borderBottomColor: theme.border }]} 
             onPress={() => navigation.navigate("Chats")}
           >
-            <View style={[styles.menuIconContainer, { backgroundColor: '#ECFDF5' }]}>
-              <Ionicons name="chatbubble-ellipses" size={20} color="#059669" />
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="chatbubble-ellipses" size={20} color={iconColor} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuTitleText, { color: theme.text }]}>Chats</Text>
@@ -238,8 +242,8 @@ export default function ProfileScreen({ navigation }) {
 
           {/* Notifications */}
           <View style={[styles.menuRow, { borderBottomColor: theme.border }]}>
-            <View style={[styles.menuIconContainer, { backgroundColor: '#FFF5F5' }]}>
-              <Ionicons name="notifications" size={20} color="#EF4444" />
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="notifications" size={20} color={iconColor} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuTitleText, { color: theme.text }]}>Notifications</Text>
@@ -251,10 +255,27 @@ export default function ProfileScreen({ navigation }) {
             />
           </View>
 
+          {/* Dark Mode - Unified in one card list */}
+          <TouchableOpacity 
+            style={[styles.menuRow, { borderBottomColor: theme.border }]}
+            onPress={toggleTheme}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name={isDark ? "sunny" : "moon"} size={20} color={iconColor} />
+            </View>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Dark Mode</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Toggle dark slate/light theme preference</Text>
+            </View>
+            <Text style={[styles.themeStateValue, { color: theme.text }]}>
+              {isDark ? 'ON' : 'OFF'}
+            </Text>
+          </TouchableOpacity>
+
           {/* App Language */}
           <View style={[styles.menuRow, { borderBottomColor: theme.border }]}>
-            <View style={[styles.menuIconContainer, { backgroundColor: '#F8FAFC' }]}>
-              <Ionicons name="earth" size={20} color="#64748B" />
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="earth" size={20} color={iconColor} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuTitleText, { color: theme.text }]}>App Language</Text>
@@ -268,8 +289,8 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.menuRow, { borderBottomColor: theme.border }]} 
             onPress={() => navigation.navigate("HelpCenter")}
           >
-            <View style={[styles.menuIconContainer, { backgroundColor: '#F5F3FF' }]}>
-              <Ionicons name="help-circle" size={20} color="#7C3AED" />
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="help-circle" size={20} color={iconColor} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuTitleText, { color: theme.text }]}>Help and Feedback</Text>
@@ -283,8 +304,8 @@ export default function ProfileScreen({ navigation }) {
             style={[styles.menuRow, { borderBottomColor: theme.border }]} 
             onPress={() => navigation.navigate("TermsOfService")}
           >
-            <View style={[styles.menuIconContainer, { backgroundColor: '#EFF6FF' }]}>
-              <Ionicons name="document-text" size={20} color="#2563EB" />
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="document-text" size={20} color={iconColor} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuTitleText, { color: theme.text }]}>Terms of Service</Text>
@@ -293,13 +314,28 @@ export default function ProfileScreen({ navigation }) {
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
 
+          {/* Privacy Policy Link - Separate Row */}
+          <TouchableOpacity 
+            style={[styles.menuRow, { borderBottomColor: theme.border }]} 
+            onPress={() => navigation.navigate("PrivacyPolicy")}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="shield-checkmark" size={20} color={iconColor} />
+            </View>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Privacy Policy</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>POPIA declarations, security controls</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
           {/* App Updates */}
           <TouchableOpacity 
-            style={styles.menuRow} 
+            style={[styles.menuRow, { borderBottomColor: theme.border }]} 
             onPress={() => showToast("MedSync is up to date with the latest preview build!", "success")}
           >
-            <View style={[styles.menuIconContainer, { backgroundColor: '#FEF3C7' }]}>
-              <Ionicons name="cloud-download" size={20} color="#D97706" />
+            <View style={[styles.menuIconContainer, { backgroundColor: iconBg }]}>
+              <Ionicons name="cloud-download" size={20} color={iconColor} />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuTitleText, { color: theme.text }]}>App Updates</Text>
@@ -307,21 +343,20 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
-        </View>
 
-        {/* Theme Preferences Card */}
-        <View style={[styles.themeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity style={styles.themeToggleRow} onPress={toggleTheme}>
-            <View style={[styles.menuIconContainer, { backgroundColor: isDark ? '#FFFBEB' : '#F1F5F9' }]}>
-              <Ionicons name={isDark ? "sunny" : "moon"} size={20} color={isDark ? "#D97706" : "#475569"} />
+          {/* Log Out - Unified at the bottom of settings category */}
+          <TouchableOpacity 
+            style={styles.menuRow} 
+            onPress={handleLogout}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: isDark ? '#451A1A' : '#FEF2F2' }]}>
+              <Ionicons name="log-out" size={20} color="#EF4444" />
             </View>
             <View style={styles.menuTextContainer}>
-              <Text style={[styles.menuTitleText, { color: theme.text }]}>Dark Mode</Text>
-              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Toggle dark slate/light theme preference</Text>
+              <Text style={[styles.menuTitleText, { color: '#EF4444' }]}>Log Out</Text>
+              <Text style={[styles.menuSubtextText, { color: '#F87171' }]}>Sign out of your MedSync account securely</Text>
             </View>
-            <Text style={[styles.themeStateValue, { color: COLORS.primary }]}>
-              {isDark ? 'ON' : 'OFF'}
-            </Text>
+            <Ionicons name="chevron-forward" size={18} color="#F87171" />
           </TouchableOpacity>
         </View>
 
@@ -338,17 +373,11 @@ export default function ProfileScreen({ navigation }) {
                   showToast(`Opening MedSync ${destinations[idx]} page...`, "info");
                 }}
               >
-                <Ionicons name={iconName} size={20} color={COLORS.primary} />
+                <Ionicons name={iconName} size={20} color={theme.text} />
               </TouchableOpacity>
             ))}
           </View>
         </View>
-
-        {/* Logout Button */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={20} color="#EF4444" />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
 
         <View style={{ height: 20 }} />
       </ScrollView>
@@ -447,7 +476,7 @@ export default function ProfileScreen({ navigation }) {
             {/* QR Scanner Mock Card */}
             <View style={styles.qrCardBody}>
               <View style={styles.qrIconWrapper}>
-                <MaterialCommunityIcons name="qrcode-scan" size={160} color={theme.text} />
+                <MaterialCommunityIcons name="qrcode-scan" size={160} color="#0F2C59" />
               </View>
               <Text style={[styles.qrPatientName, { color: theme.text }]}>
                 {currentUser?.name || 'User'}
@@ -543,7 +572,6 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: '#8B5CF6',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -614,14 +642,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginRight: 4,
   },
-  themeCard: {
-    borderRadius: SIZES.radius,
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.02,
-    shadowRadius: 5,
-    elevation: 1,
-  },
   themeToggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -660,23 +680,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.01,
     shadowRadius: 3,
     elevation: 1,
-  },
-  logoutBtn: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    backgroundColor: '#FEF2F2', 
-    paddingVertical: 14, 
-    borderRadius: 16, 
-    borderWidth: 1, 
-    borderColor: '#FECACA',
-    marginTop: 10,
-    gap: 8,
-  },
-  logoutText: { 
-    color: '#EF4444', 
-    fontSize: 15, 
-    fontWeight: 'bold', 
   },
   switchContainer: {
     width: 44,
