@@ -64,7 +64,7 @@ export default function BookingScreen({ navigation, route }) {
         type: "Checkup",
         date: selectedDate,
         time: selectedTime,
-        status: "Confirmed",
+        status: "Pending",
       };
 
       addAppointment(appointment);

@@ -73,11 +73,19 @@ export default function ConfirmationScreen({ navigation, route }) {
       <ScrollView contentContainerStyle={styles.content}>
         {/* Success Header */}
         <View style={styles.successHeader}>
-          <Ionicons name="checkmark-circle" size={28} color={COLORS.success} />
-          <Text style={styles.successTitle}>Appointment Confirmed!</Text>
+          <Ionicons 
+            name={latestAppt.status === "Pending" ? "time" : "checkmark-circle"} 
+            size={28} 
+            color={latestAppt.status === "Pending" ? "#F59E0B" : COLORS.success} 
+          />
+          <Text style={styles.successTitle}>
+            {latestAppt.status === "Pending" ? "Booking Request Sent!" : "Appointment Confirmed!"}
+          </Text>
         </View>
         <Text style={styles.successSubtitle}>
-          Your appointment has been successfully booked.
+          {latestAppt.status === "Pending" 
+            ? "Your appointment request is pending confirmation from the clinic staff." 
+            : "Your appointment has been successfully booked."}
         </Text>
 
         <View style={styles.divider} />
