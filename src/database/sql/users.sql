@@ -31,7 +31,7 @@ DECLARE
   default_role VARCHAR(50) := 'patient';
 BEGIN
   -- Check for pre-authorized admin/receptionist emails
-  IF new.email = 'nthabiseng06m@gmail.com' THEN
+  IF new.email IN ('nthabiseng06m@gmail.com', 'sigasathulane584@gmail.com') THEN
     default_role := 'receptionist';
   ELSIF new.raw_user_meta_data->>'role' IS NOT NULL THEN
     default_role := new.raw_user_meta_data->>'role';
