@@ -77,6 +77,22 @@ CREATE POLICY "HR and Admins can update clinics"
   USING (public.get_auth_role() IN ('admin', 'hr'));
 
 -- =================================================================================
+-- 3b. NEW POLICIES: CLINIC STAFF
+-- =================================================================================
+DROP POLICY IF EXISTS "Clinic staff viewable by everyone." ON public.clinic_staff;
+DROP POLICY IF EXISTS "Anyone can view clinic staff" ON public.clinic_staff;
+DROP POLICY IF EXISTS "HR and Admins can manage clinic staff" ON public.clinic_staff;
+
+CREATE POLICY "Anyone can view clinic staff"
+  ON public.clinic_staff FOR SELECT
+  USING (true);
+
+CREATE POLICY "HR and Admins can manage clinic staff"
+  ON public.clinic_staff FOR ALL
+  USING (public.get_auth_role() IN ('admin', 'hr'))
+  WITH CHECK (public.get_auth_role() IN ('admin', 'hr'));
+
+-- =================================================================================
 -- 4. NEW POLICIES: APPOINTMENTS
 -- =================================================================================
 -- Patients see own. Staff (admin, hr, receptionist) see all.
