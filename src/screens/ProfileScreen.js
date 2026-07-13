@@ -1,15 +1,26 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated, Platform, Modal } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  ScrollView, 
+  TouchableOpacity, 
+  Animated, 
+  Platform, 
+  Modal, 
+  TextInput, 
+  KeyboardAvoidingView 
+} from 'react-native';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { COLORS, SIZES, LAYOUT } from '../constants/theme';
 import BottomTabBar from '../components/BottomTabBar';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useToast } from '../context/ToastContext';
-import { TextInput, KeyboardAvoidingView } from 'react-native';
 
 const CustomSwitch = ({ value, onValueChange }) => {
   const animatedValue = useRef(new Animated.Value(value ? 1 : 0)).current;
+  const { theme } = useTheme();
 
   useEffect(() => {
     Animated.spring(animatedValue, {
@@ -22,12 +33,12 @@ const CustomSwitch = ({ value, onValueChange }) => {
 
   const translateX = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [2, 20] // adjusted to fit track width 44 and thumb width 20 inside 1px borders
+    outputRange: [2, 20]
   });
 
   const backgroundColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#F1F5F9', '#EFF6FF']
+    outputRange: [theme.background, '#EFF6FF']
   });
 
   const thumbColor = animatedValue.interpolate({
@@ -37,7 +48,7 @@ const CustomSwitch = ({ value, onValueChange }) => {
 
   const borderColor = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: ['#CBD5E1', '#D3E2F2']
+    outputRange: [theme.border, '#D3E2F2']
   });
 
   return (
@@ -60,9 +71,13 @@ export default function ProfileScreen({ navigation }) {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   
   const [isEditModalVisible, setEditModalVisible] = useState(false);
+  const [isQrModalVisible, setQrModalVisible] = useState(false);
+  
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
+
+  const displayUsername = currentUser?.email ? `@${currentUser.email.split('@')[0]}` : '@user';
 
   useEffect(() => {
     if (currentUser) {
@@ -100,17 +115,28 @@ export default function ProfileScreen({ navigation }) {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <View style={styles.headerBrand}>
-            <MaterialCommunityIcons name="shield-plus" size={28} color="#FFFFFF" />
-            <Text style={styles.appTitle}>MedSync</Text>
-          </View>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Settings</Text>
           <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.bellIconContainer}
-              onPress={() => navigation.navigate("Notifications")}
+            <TouchableOpacity 
+              style={styles.headerIconBtn} 
+              onPress={() => showToast("Search features are available in the directory and chat logs.", "info")}
             >
-              <Ionicons name="notifications-outline" size={24} color="#FFFFFF" />
-              <View style={styles.badge} />
+              <Ionicons name="search-outline" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.headerIconBtn} 
+              onPress={() => setEditModalVisible(true)}
+            >
+              <Ionicons name="pencil-outline" size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.headerIconBtn} 
+              onPress={() => setQrModalVisible(true)}
+            >
+              <Ionicons name="qr-code-outline" size={22} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -118,123 +144,204 @@ export default function ProfileScreen({ navigation }) {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         
-        {/* Premium Profile Card */}
-        <View style={[styles.premiumProfileCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={styles.cardTopRow}>
-            <View style={styles.avatarContainer}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {(currentUser?.name || currentUser?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
-                </Text>
-              </View>
-              <View style={styles.verifiedBadge}>
-                <Ionicons name="checkmark" size={12} color="#FFFFFF" />
-              </View>
+        {/* Profile Card Section */}
+        <View style={styles.profileSectionContainer}>
+          {/* Status Bubble */}
+          <View style={[styles.statusBubble, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.statusBubbleText, { color: theme.text }]}>How's your morning?</Text>
+            <View style={[styles.statusBubbleArrow, { borderTopColor: theme.surface }]} />
+          </View>
+
+          {/* Large Avatar */}
+          <View style={styles.avatarWrapper}>
+            <View style={styles.avatarMain}>
+              <Text style={styles.avatarMainText}>
+                {(currentUser?.name || currentUser?.email?.split('@')[0] || 'U').charAt(0).toUpperCase()}
+              </Text>
             </View>
-            
-            <View style={styles.profileMeta}>
-              <Text style={[styles.profileName, { color: theme.text }]}>{currentUser?.name || currentUser?.email?.split('@')[0] || 'User'}</Text>
-              <Text style={[styles.profileEmail, { color: theme.subtext }]}>{currentUser?.email || ''}</Text>
-              
-              <View style={styles.goldBadge}>
-                <Ionicons name="ribbon" size={13} color="#D97706" style={{ marginRight: 4 }} />
-                <Text style={styles.goldBadgeText}>
-                  {currentUser?.role === 'admin' ? 'Clinic Partner' : 'Gold Care Member'}
-                </Text>
-              </View>
+            <View style={styles.verifiedIndicator}>
+              <Ionicons name="checkmark-circle" size={24} color="#10B981" />
             </View>
           </View>
 
-          <TouchableOpacity style={styles.editBtn} onPress={() => setEditModalVisible(true)}>
-            <Text style={styles.editBtnText}>Edit Profile Details</Text>
-            <Ionicons name="create-outline" size={16} color={COLORS.primary} />
-          </TouchableOpacity>
+          {/* Name & Handle */}
+          <Text style={[styles.profileMainName, { color: theme.text }]}>
+            {currentUser?.name || currentUser?.email?.split('@')[0] || 'User'}
+          </Text>
+          <Text style={[styles.profileSubHandle, { color: theme.subtext }]}>
+            {displayUsername}
+          </Text>
         </View>
 
-        {/* Section 1: Account Settings */}
-        <Text style={[styles.sectionHeader, { color: theme.text }]}>ACCOUNT SETTINGS</Text>
-        <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* WhatsApp-Style Informative Menu List */}
+        <View style={[styles.listCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          
+          {/* Account */}
           <TouchableOpacity 
-            style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}
+            style={[styles.menuRow, { borderBottomColor: theme.border }]} 
             onPress={() => setEditModalVisible(true)}
           >
-            <View style={styles.menuIconBox}>
-              <Ionicons name="person-outline" size={20} color={COLORS.primary} />
+            <View style={[styles.menuIconContainer, { backgroundColor: '#EFF6FF' }]}>
+              <Ionicons name="key" size={20} color="#3B82F6" />
             </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Personal Information</Text>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Account</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Personal details, phone number, password updates</Text>
+            </View>
             <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
-        </View>
 
-        {/* Section 2: Preferences */}
-        <Text style={[styles.sectionHeader, { color: theme.text }]}>PREFERENCES</Text>
-        <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <View style={[styles.menuItemNonClickable, { borderBottomColor: theme.border }]}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="notifications-outline" size={20} color={COLORS.primary} />
+          {/* Privacy */}
+          <TouchableOpacity 
+            style={[styles.menuRow, { borderBottomColor: theme.border }]} 
+            onPress={() => navigation.navigate("PrivacyPolicy")}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: '#F0FDF4' }]}>
+              <Ionicons name="lock-closed" size={20} color="#10B981" />
             </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Push Notifications</Text>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Privacy</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Secure medical records, HIPAA policy options</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          {/* Appointments */}
+          <TouchableOpacity 
+            style={[styles.menuRow, { borderBottomColor: theme.border }]} 
+            onPress={() => navigation.navigate("Appointments")}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: '#FAF5FF' }]}>
+              <Ionicons name="calendar" size={20} color="#8B5CF6" />
+            </View>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Appointments</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Active bookings, past histories, date alignments</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          {/* Chats */}
+          <TouchableOpacity 
+            style={[styles.menuRow, { borderBottomColor: theme.border }]} 
+            onPress={() => navigation.navigate("Chats")}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: '#ECFDF5' }]}>
+              <Ionicons name="chatbubble-ellipses" size={20} color="#059669" />
+            </View>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Chats</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Active consultation chats, history storage</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          {/* Notifications */}
+          <View style={[styles.menuRow, { borderBottomColor: theme.border }]}>
+            <View style={[styles.menuIconContainer, { backgroundColor: '#FFF5F5' }]}>
+              <Ionicons name="notifications" size={20} color="#EF4444" />
+            </View>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Notifications</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Clinic updates, doctor messages, status alarms</Text>
+            </View>
             <CustomSwitch 
               value={notificationsEnabled} 
               onValueChange={setNotificationsEnabled} 
             />
           </View>
-          
-          <TouchableOpacity style={[styles.menuItem, { borderBottomColor: theme.border }]}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name="globe-outline" size={20} color={COLORS.primary} />
+
+          {/* App Language */}
+          <View style={[styles.menuRow, { borderBottomColor: theme.border }]}>
+            <View style={[styles.menuIconContainer, { backgroundColor: '#F8FAFC' }]}>
+              <Ionicons name="earth" size={20} color="#64748B" />
             </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Language</Text>
-            <View style={styles.rightValueContainer}>
-              <Text style={styles.rightValueText}>English (SA)</Text>
-              <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>App Language</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>English (device's language)</Text>
             </View>
+            <Text style={[styles.languageValueText, { color: theme.subtext }]}>English (SA)</Text>
+          </View>
+
+          {/* Help Center & FAQ */}
+          <TouchableOpacity 
+            style={[styles.menuRow, { borderBottomColor: theme.border }]} 
+            onPress={() => navigation.navigate("HelpCenter")}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: '#F5F3FF' }]}>
+              <Ionicons name="help-circle" size={20} color="#7C3AED" />
+            </View>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Help and Feedback</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>FAQs, technical support email, support desk</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]} onPress={toggleTheme}>
-            <View style={styles.menuIconBox}>
-              <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={20} color={COLORS.primary} />
+          {/* Terms of Service */}
+          <TouchableOpacity 
+            style={[styles.menuRow, { borderBottomColor: theme.border }]} 
+            onPress={() => navigation.navigate("TermsOfService")}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: '#EFF6FF' }]}>
+              <Ionicons name="document-text" size={20} color="#2563EB" />
             </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Dark Mode</Text>
-            <Text style={styles.rightValueText}>{isDark ? 'ON' : 'OFF'}</Text>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Terms of Service</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Patient consent forms, platform agreements</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
+
+          {/* App Updates */}
+          <TouchableOpacity 
+            style={styles.menuRow} 
+            onPress={() => showToast("MedSync is up to date with the latest preview build!", "success")}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: '#FEF3C7' }]}>
+              <Ionicons name="cloud-download" size={20} color="#D97706" />
+            </View>
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>App Updates</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Check OTA engine updates, updates list</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
           </TouchableOpacity>
         </View>
 
-        {/* Section 3: Support */}
-        <Text style={[styles.sectionHeader, { color: theme.text }]}>HELP & SUPPORT</Text>
-        <View style={[styles.menuSection, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <TouchableOpacity 
-            style={[styles.menuItem, { borderBottomColor: theme.border }]}
-            onPress={() => navigation.navigate("HelpCenter")}
-          >
-            <View style={styles.menuIconBox}>
-              <Ionicons name="help-circle-outline" size={20} color={COLORS.primary} />
+        {/* Theme Preferences Card */}
+        <View style={[styles.themeCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <TouchableOpacity style={styles.themeToggleRow} onPress={toggleTheme}>
+            <View style={[styles.menuIconContainer, { backgroundColor: isDark ? '#FFFBEB' : '#F1F5F9' }]}>
+              <Ionicons name={isDark ? "sunny" : "moon"} size={20} color={isDark ? "#D97706" : "#475569"} />
             </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Help Center & FAQ</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+            <View style={styles.menuTextContainer}>
+              <Text style={[styles.menuTitleText, { color: theme.text }]}>Dark Mode</Text>
+              <Text style={[styles.menuSubtextText, { color: theme.subtext }]}>Toggle dark slate/light theme preference</Text>
+            </View>
+            <Text style={[styles.themeStateValue, { color: COLORS.primary }]}>
+              {isDark ? 'ON' : 'OFF'}
+            </Text>
           </TouchableOpacity>
+        </View>
 
-          <TouchableOpacity 
-            style={[styles.menuItem, { borderBottomColor: theme.border }]}
-            onPress={() => navigation.navigate("TermsOfService")}
-          >
-            <View style={styles.menuIconBox}>
-              <Ionicons name="document-text-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Terms of Service</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-
-          <TouchableOpacity 
-            style={[styles.menuItem, { borderBottomWidth: 0, borderBottomColor: theme.border }]}
-            onPress={() => navigation.navigate("PrivacyPolicy")}
-          >
-            <View style={styles.menuIconBox}>
-              <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
-            </View>
-            <Text style={[styles.menuText, { color: theme.text }]}>Privacy Policy</Text>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
+        {/* Also from Hokmatech */}
+        <View style={styles.metaBrandingSection}>
+          <Text style={[styles.metaSectionTitle, { color: theme.subtext }]}>Also from Hokmatech</Text>
+          <View style={styles.metaIconRow}>
+            {['logo-instagram', 'logo-facebook', 'at', 'globe-outline'].map((iconName, idx) => (
+              <TouchableOpacity 
+                key={iconName} 
+                style={[styles.metaSocialBtn, { backgroundColor: theme.surface, borderColor: theme.border }]}
+                onPress={() => {
+                  const destinations = ["Instagram", "Facebook", "Threads", "Hokmatech Official"];
+                  showToast(`Opening MedSync ${destinations[idx]} page...`, "info");
+                }}
+              >
+                <Ionicons name={iconName} size={20} color={COLORS.primary} />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         {/* Logout Button */}
@@ -243,6 +350,7 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
 
+        <View style={{ height: 20 }} />
       </ScrollView>
       
       <BottomTabBar navigation={navigation} activeTab="Profile" />
@@ -259,59 +367,52 @@ export default function ProfileScreen({ navigation }) {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <TouchableOpacity
-            style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)' }}
+            style={styles.modalOverlay}
             activeOpacity={1}
             onPress={() => setEditModalVisible(false)}
           />
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Personal Information</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Edit Profile Details</Text>
               <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#64748B" />
+                <Ionicons name="close" size={24} color={theme.subtext} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
+            <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Full Name</Text>
+                <Text style={[styles.inputLabel, { color: theme.subtext }]}>Full Name</Text>
                 <TextInput
-                  style={styles.modalInput}
+                  style={[styles.modalInput, { color: theme.text, backgroundColor: theme.background, borderColor: theme.border }]}
                   value={editName}
                   onChangeText={setEditName}
-                  placeholder="Enter full name"
+                  placeholder="Enter your name"
                   placeholderTextColor="#94A3B8"
-                  returnKeyType="next"
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Email Address</Text>
+                <Text style={[styles.inputLabel, { color: theme.subtext }]}>Email Address</Text>
                 <TextInput
-                  style={styles.modalInput}
+                  style={[styles.modalInput, { color: theme.text, backgroundColor: theme.background, borderColor: theme.border }]}
                   value={editEmail}
                   onChangeText={setEditEmail}
                   keyboardType="email-address"
-                  autoCapitalize="none"
                   placeholder="Enter email address"
                   placeholderTextColor="#94A3B8"
-                  returnKeyType="next"
                 />
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Phone Number</Text>
+                <Text style={[styles.inputLabel, { color: theme.subtext }]}>Phone Number</Text>
                 <TextInput
-                  style={styles.modalInput}
+                  style={[styles.modalInput, { color: theme.text, backgroundColor: theme.background, borderColor: theme.border }]}
                   value={editPhone}
                   onChangeText={setEditPhone}
                   keyboardType="phone-pad"
                   placeholder="Enter phone number"
                   placeholderTextColor="#94A3B8"
-                  returnKeyType="done"
                 />
               </View>
 
@@ -323,7 +424,45 @@ export default function ProfileScreen({ navigation }) {
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* QR Code Modal */}
+      <Modal
+        visible={isQrModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setQrModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setQrModalVisible(false)}
+        >
+          <View style={[styles.qrModalContainer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={styles.qrHeader}>
+              <Text style={[styles.qrTitle, { color: theme.text }]}>Patient QR Pass</Text>
+              <TouchableOpacity onPress={() => setQrModalVisible(false)}>
+                <Ionicons name="close" size={24} color={theme.subtext} />
+              </TouchableOpacity>
+            </View>
 
+            {/* QR Scanner Mock Card */}
+            <View style={styles.qrCardBody}>
+              <View style={styles.qrIconWrapper}>
+                <MaterialCommunityIcons name="qrcode-scan" size={160} color={theme.text} />
+              </View>
+              <Text style={[styles.qrPatientName, { color: theme.text }]}>
+                {currentUser?.name || 'User'}
+              </Text>
+              <Text style={[styles.qrPatientLabel, { color: theme.subtext }]}>
+                MedSync Verified Account
+              </Text>
+              <View style={[styles.qrScanBadge, { backgroundColor: '#F0FDF4' }]}>
+                <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                <Text style={styles.qrScanBadgeText}>Scan at Reception Desk</Text>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -331,7 +470,6 @@ export default function ProfileScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
-    backgroundColor: COLORS.background 
   },
   header: { 
     backgroundColor: COLORS.primary,
@@ -345,193 +483,183 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: SIZES.margin,
   },
-  headerBrand: { 
-    flexDirection: 'row', 
-    alignItems: 'center' 
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   headerActions: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: 16,
   },
-  bellIconContainer: {
-    position: 'relative',
+  headerIconBtn: {
     padding: 4,
   },
-  badge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#EF4444',
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  actionButton: {
-    padding: 4,
-  },
-  appTitle: { 
-    color: '#FFFFFF', 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    marginLeft: 10 
-  },
-  content: { 
+  content: {
     padding: SIZES.margin,
-    paddingBottom: 120,
-    gap: 12,
+    gap: 16,
   },
-  premiumProfileCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#EAE8FC',
-    shadowColor: '#0F2C59',
-    shadowOpacity: 0.04,
-    shadowRadius: 10,
-    elevation: 2,
-    marginBottom: 8,
-  },
-  cardTopRow: {
-    flexDirection: 'row',
+  profileSectionContainer: {
     alignItems: 'center',
-    marginBottom: 16,
+    marginVertical: 10,
   },
-  avatarContainer: {
+  statusBubble: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
     position: 'relative',
-    marginRight: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.01,
+    shadowRadius: 3,
+    elevation: 1,
   },
-  avatar: { 
-    width: 68, 
-    height: 68, 
-    borderRadius: 34, 
-    backgroundColor: COLORS.primary, 
-    alignItems: 'center', 
-    justifyContent: 'center', 
+  statusBubbleText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
-  avatarText: { 
-    fontSize: 26, 
-    fontWeight: 'bold', 
-    color: '#FFFFFF' 
-  },
-  verifiedBadge: {
+  statusBubbleArrow: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: 8,
+    borderLeftColor: 'transparent',
+    borderRightWidth: 8,
+    borderRightColor: 'transparent',
+    borderTopWidth: 8,
     position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.success,
+    bottom: -8,
+    left: '50%',
+    marginLeft: -8,
+  },
+  avatarWrapper: {
+    position: 'relative',
+    marginBottom: 14,
+  },
+  avatarMain: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#8B5CF6',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
   },
-  profileMeta: {
-    flex: 1,
-  },
-  profileName: { 
-    fontSize: 18, 
-    fontWeight: 'bold', 
-    color: COLORS.primary, 
-    marginBottom: 2 
-  },
-  profileEmail: { 
-    fontSize: 13, 
-    color: '#64748B', 
-    marginBottom: 6 
-  },
-  goldBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  goldBadgeText: {
-    color: '#D97706',
-    fontSize: 11,
+  avatarMainText: {
+    color: '#FFFFFF',
+    fontSize: 42,
     fontWeight: 'bold',
   },
-  editBtn: { 
-    flexDirection: 'row',
+  verifiedIndicator: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#EFF6FF', 
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 6,
   },
-  editBtnText: { 
-    color: COLORS.primary, 
-    fontSize: 13,
-    fontWeight: 'bold' 
-  },
-  sectionHeader: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#64748B',
-    marginTop: 10,
+  profileMainName: {
+    fontSize: 22,
+    fontWeight: 'bold',
     marginBottom: 4,
-    marginLeft: 4,
-    letterSpacing: 0.8,
   },
-  menuSection: { 
-    backgroundColor: COLORS.surface, 
-    borderRadius: 16, 
-    borderWidth: 1, 
-    borderColor: '#EAE8FC', 
-    paddingVertical: 4, 
-    shadowColor: '#0F2C59',
+  profileSubHandle: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  listCard: {
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    paddingVertical: 4,
+    shadowColor: '#000',
     shadowOpacity: 0.02,
     shadowRadius: 5,
     elevation: 1,
   },
-  menuItem: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1, 
-    borderBottomColor: '#F1F5F9' 
-  },
-  menuItemNonClickable: {
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1, 
-    borderBottomColor: '#F1F5F9'
-  },
-  menuIconBox: { 
-    width: 36, 
-    height: 36, 
-    borderRadius: 18, 
-    backgroundColor: '#EFF6FF',
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginRight: 12 
-  },
-  menuText: { 
-    flex: 1, 
-    fontSize: 14, 
-    color: COLORS.primary, 
-    fontWeight: '600' 
-  },
-  rightValueContainer: {
+  menuRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
   },
-  rightValueText: {
+  menuIconContainer: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  menuTextContainer: {
+    flex: 1,
+    paddingRight: 8,
+  },
+  menuTitleText: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  menuSubtextText: {
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  languageValueText: {
     fontSize: 13,
-    color: '#64748B',
-    marginRight: 2,
+    fontWeight: '500',
+    marginRight: 4,
+  },
+  themeCard: {
+    borderRadius: SIZES.radius,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.02,
+    shadowRadius: 5,
+    elevation: 1,
+  },
+  themeToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  themeStateValue: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginRight: 4,
+  },
+  metaBrandingSection: {
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 4,
+  },
+  metaSectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 12,
+  },
+  metaIconRow: {
+    flexDirection: 'row',
+    gap: 16,
+  },
+  metaSocialBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.01,
+    shadowRadius: 3,
+    elevation: 1,
   },
   logoutBtn: { 
     flexDirection: 'row', 
@@ -542,7 +670,7 @@ const styles = StyleSheet.create({
     borderRadius: 16, 
     borderWidth: 1, 
     borderColor: '#FECACA',
-    marginTop: 16,
+    marginTop: 10,
     gap: 8,
   },
   logoutText: { 
@@ -572,13 +700,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.6)',
     justifyContent: 'flex-end',
-    zIndex: 100,
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -603,7 +729,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.primary,
   },
   inputGroup: {
     marginBottom: 16,
@@ -611,17 +736,13 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#64748B',
     marginBottom: 8,
   },
   modalInput: {
-    backgroundColor: '#F8FAFC',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
     borderRadius: 12,
     padding: 14,
     fontSize: 16,
-    color: COLORS.primary,
   },
   saveModalBtn: {
     backgroundColor: COLORS.primary,
@@ -635,84 +756,63 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-  supportCard: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
+  qrModalContainer: {
+    margin: 32,
+    borderRadius: 24,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    padding: 24,
+    alignSelf: 'center',
+    width: '85%',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 5,
+    marginTop: '30%',
   },
-  supportCardTitle: {
-    fontSize: 15,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginBottom: 4,
-  },
-  supportCardDesc: {
-    fontSize: 13,
-    color: '#64748B',
-    lineHeight: 18,
-  },
-  supportCardEmail: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginTop: 4,
-  },
-  modalSubheading: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginBottom: 12,
-  },
-  faqItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    paddingVertical: 14,
-  },
-  faqQuestionRow: {
+  qrHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
   },
-  faqQuestionText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#1E293B',
-    flex: 1,
-    marginRight: 12,
-  },
-  faqAnswerContainer: {
-    marginTop: 10,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 8,
-    padding: 12,
-  },
-  faqAnswerText: {
-    fontSize: 13,
-    lineHeight: 20,
-    color: '#475569',
-  },
-  policyTitle: {
-    fontSize: 16,
+  qrTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.primary,
-    marginBottom: 12,
   },
-  policySectionHeader: {
-    fontSize: 14,
+  qrCardBody: {
+    alignItems: 'center',
+    gap: 12,
+  },
+  qrIconWrapper: {
+    backgroundColor: '#FFFFFF',
+    padding: 16,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+    marginBottom: 8,
+  },
+  qrPatientName: {
+    fontSize: 18,
     fontWeight: 'bold',
-    color: '#334155',
-    marginTop: 12,
-    marginBottom: 6,
   },
-  policyText: {
+  qrPatientLabel: {
     fontSize: 13,
-    lineHeight: 20,
-    color: '#64748B',
-    marginBottom: 10,
+    fontWeight: '500',
+  },
+  qrScanBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  qrScanBadgeText: {
+    fontSize: 12,
+    color: '#10B981',
+    fontWeight: '700',
   },
 });
