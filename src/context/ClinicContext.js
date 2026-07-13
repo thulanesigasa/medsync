@@ -41,7 +41,7 @@ export const ClinicProvider = ({ children }) => {
           rating,
           reviews_count,
           clinics (name),
-          profiles (full_name, avatar_url)
+          profiles (full_name, avatar_url, email)
         `);
       if (error) throw error;
       
@@ -52,7 +52,8 @@ export const ClinicProvider = ({ children }) => {
           name: d.profiles?.full_name || 'Unknown Doctor',
           specialty: d.title,
           clinic: d.clinics?.name,
-          avatarText: (d.profiles?.full_name || 'D').replace("Dr. ", "").charAt(0),
+          email: d.profiles?.email || '',
+          avatarText: (d.profiles?.full_name || 'D').replace("Dr. ", "")?.charAt(0) || 'D',
           rating: d.rating,
           reviews: d.reviews_count,
           shifts: { Mon: true, Tue: true, Wed: true, Thu: true, Fri: true, Sat: false, Sun: false }
@@ -128,13 +129,13 @@ export const ClinicProvider = ({ children }) => {
         .from('profiles')
         .select('id')
         .eq('role', 'doctor')
-        .ilike('full_name', `%${newDoc.name}%`)
+        .eq('email', newDoc.email)
         .limit(1);
 
       let doctorProfileId = profile && profile.length > 0 ? profile[0].id : null;
 
       if (!doctorProfileId) {
-         console.log("Could not find registered profile for doctor name. They must sign up first.");
+         console.log("Could not find registered profile for doctor email. They must sign up first.");
          return;
       }
 

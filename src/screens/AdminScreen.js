@@ -30,6 +30,7 @@ export default function AdminScreen({ navigation }) {
 
   // Doctor Form State
   const [docName, setDocName] = useState('');
+  const [docEmail, setDocEmail] = useState('');
   const [docSpecialty, setDocSpecialty] = useState('');
   const [selectedDoctorIdForShifts, setSelectedDoctorIdForShifts] = useState(null);
 
@@ -117,16 +118,22 @@ export default function AdminScreen({ navigation }) {
       Alert.alert('Required Field', 'Please enter doctor name');
       return;
     }
+    if (!docEmail.trim() || !docEmail.includes('@')) {
+      Alert.alert('Required Field', 'Please enter a valid doctor email address');
+      return;
+    }
     if (!docSpecialty.trim()) {
       Alert.alert('Required Field', 'Please enter doctor specialty');
       return;
     }
     addDoctor({
       name: docName.startsWith('Dr. ') ? docName.trim() : `Dr. ${docName.trim()}`,
+      email: docEmail.trim().toLowerCase(),
       specialty: docSpecialty.trim(),
       clinic: activeClinicInfo?.name || clinicName
     });
     setDocName('');
+    setDocEmail('');
     setDocSpecialty('');
     Alert.alert('Success', 'New doctor added to directories.');
   };
@@ -690,6 +697,15 @@ export default function AdminScreen({ navigation }) {
                 onChangeText={setDocName}
                 style={styles.textInputStyle}
                 placeholderTextColor="#94A3B8"
+              />
+              <TextInput 
+                placeholder="Doctor Email Address (unique registered email)"
+                value={docEmail}
+                onChangeText={setDocEmail}
+                style={styles.textInputStyle}
+                placeholderTextColor="#94A3B8"
+                autoCapitalize="none"
+                keyboardType="email-address"
               />
               <TextInput 
                 placeholder="Specialty (e.g. Cardiologist, Dentist)"

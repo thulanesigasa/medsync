@@ -130,6 +130,9 @@ export default function AllDoctorsScreen({ navigation, route }) {
                   </View>
 
                   <Text style={[styles.doctorClinic, { color: theme.subtext }]}>{doctor.clinic}</Text>
+                  {doctor.email ? (
+                    <Text style={[styles.doctorClinic, { color: theme.subtext, fontSize: 11, marginTop: 2 }]}>{doctor.email}</Text>
+                  ) : null}
                 </View>
 
                 <View style={styles.actionContainer}>

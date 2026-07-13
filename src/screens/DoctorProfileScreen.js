@@ -25,6 +25,9 @@ export default function DoctorProfileScreen({ navigation, route }) {
              <Text style={styles.avatarText}>{doctor.name?.replace('Dr. ', '')?.charAt(0) || 'D'}</Text>
           </View>
           <Text style={styles.doctorName}>{doctor.name}</Text>
+          {doctor.email ? (
+            <Text style={[styles.specialty, { fontSize: 13, marginBottom: 8 }]}>{doctor.email}</Text>
+          ) : null}
           <Text style={styles.specialty}>{doctor.specialty}</Text>
           
           <View style={styles.statsRow}>
