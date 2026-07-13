@@ -198,7 +198,7 @@ export default function HomeScreen({ navigation }) {
         {/* Specialties */}
         <View style={styles.sectionHeader}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Specialties</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Clinics")}>
+          <TouchableOpacity onPress={() => navigation.navigate("AllDoctors", { selectedSpecialty: "All" })}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
         </View>
@@ -344,7 +344,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={[styles.sectionTitle, { color: theme.text }]}>
             {searchQuery ? "Search Results" : "Top Doctors"}
           </Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Clinics")}>
+          <TouchableOpacity onPress={() => navigation.navigate("AllDoctors")}>
             <Text style={styles.seeAllText}>See all</Text>
           </TouchableOpacity>
         </View>
