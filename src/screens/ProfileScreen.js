@@ -354,23 +354,43 @@ export default function ProfileScreen({ navigation }) {
               {[
                 {
                   q: "How do I book an appointment?",
-                  a: "Go to the Home tab, search/select your preferred doctor, choose the associated clinic, select a date and time slot, and tap 'Confirm Booking'."
+                  a: "Go to the Home tab, search or select your preferred doctor, choose the associated clinic, select an available date and time slot from the calendar, and tap 'Confirm Booking'. Your request will be sent to the clinic administrative staff for review and confirmation."
                 },
                 {
                   q: "Can I cancel or reschedule my appointment?",
-                  a: "Yes. You can view all bookings in the 'Appointments' tab and cancel them directly. To reschedule, simply cancel the current slot and book a new one."
+                  a: "Yes. You can view all your active bookings in the 'Appointments' tab. Tap 'Cancel' on the appointment card to cancel the slot. To reschedule, simply cancel the current slot and book a new one. We request cancellations to be made at least 2 hours in advance."
                 },
                 {
-                  q: "What is Telehealth and how does it work?",
-                  a: "Telehealth lets you consult with your doctor via a secure video call. If your appointment type is virtual, a 'Join Call' button will appear under the appointment on the schedule tab when it is time."
+                  q: "What is Telehealth and how do I join a call?",
+                  a: "Telehealth allows you to consult with your physician remotely via secure, end-to-end encrypted video and audio sessions. If your appointment is scheduled as a virtual consultation, a green 'Join Call' button will dynamically appear on your appointment card in the Appointments tab when the appointment time becomes active."
                 },
                 {
-                  q: "How do I view my medical records and updates?",
-                  a: "Go to the 'Records' tab. There you will find your secure medical records, active prescriptions, and updates/bulletins posted by your clinics."
+                  q: "Who reviews and confirms my appointment request?",
+                  a: "When you submit an appointment booking request, it is set to 'Pending' status. The clinic's administrative staff, receptionist, or HR team reviews your request. Once confirmed, you will receive a notification and the status will update to 'Confirmed' in your Appointments tab."
                 },
                 {
-                  q: "Is my medical and personal data secure?",
-                  a: "Yes. MedSync complies fully with national health privacy regulations (POPIA and HIPAA) using row-level security policy encryption for all database records."
+                  q: "How do I view my medical records?",
+                  a: "Go to the 'Records' tab in the bottom navigation. Your official diagnoses, physician visit details, and prescriptions uploaded by your clinic will be securely displayed. You can download individual records in PDF/text format by clicking the download icon."
+                },
+                {
+                  q: "How do I request a prescription refill?",
+                  a: "Under the 'Records' tab, locate the 'Active Prescriptions' section. Tap the 'Refill' button next to any prescription. A request will automatically be sent to your clinic's pharmacy department for verification and preparation. You will be notified when it is ready for collection."
+                },
+                {
+                  q: "Is my personal and medical data secure?",
+                  a: "Absolutely. MedSync utilizes rigorous Row-Level Security (RLS) policies on a fully encrypted database. Your medical history, personal information, and chat messages are encrypted and only accessible by yourself and authorized medical staff at the clinic you consult with."
+                },
+                {
+                  q: "What should I do if the app is throwing a network connection error?",
+                  a: "Ensure your device has an active internet connection (WiFi or mobile data). If you are on a restricted corporate WiFi network, certain database ports might be blocked—try switching to mobile data (LTE/5G). Also, check that your device's date and time are set to 'Automatic' to avoid secure connection handshake failures."
+                },
+                {
+                  q: "Can I update my phone number or email address?",
+                  a: "Yes. Go to the 'Profile' tab, scroll to 'Account Details,' and select 'Personal Information.' You can edit your full name, email, and phone number, then tap 'Save Changes' to sync the details with your database profile instantly."
+                },
+                {
+                  q: "How do I reset my account password?",
+                  a: "If you forget your password or need to reset it, log out of the application and click the 'Forgot Password' link on the Login screen. Enter your registered email, and reset instructions will be sent to you. If you encounter email rate limit errors, wait a few minutes or contact support at support@hokmatech.com."
                 }
               ].map((faq, index) => {
                 const isOpen = activeFaq === index;
@@ -426,35 +446,58 @@ export default function ProfileScreen({ navigation }) {
 
             <ScrollView showsVerticalScrollIndicator={false}>
               <Text style={styles.policyTitle}>1. Terms of Service</Text>
-              <Text style={styles.policySectionHeader}>Acceptance of Terms</Text>
+              
+              <Text style={styles.policySectionHeader}>Section 1.1: Acceptance of the Agreement</Text>
               <Text style={styles.policyText}>
-                By accessing or using the MedSync application, you agree to comply with and be bound by these terms. If you do not agree, please do not use the service.
+                Welcome to MedSync. By downloading, installing, accessing, or using the MedSync mobile application (\"Service\"), you signify that you have read, understood, and agree to be bound by this Terms of Service Agreement (\"Agreement\"). If you do not agree to these terms, you are prohibited from using the Service.
               </Text>
               
-              <Text style={styles.policySectionHeader}>Medical Disclaimer</Text>
+              <Text style={styles.policySectionHeader}>Section 1.2: Medical Services & Emergency Disclaimer</Text>
               <Text style={styles.policyText}>
-                MedSync is a platform designed to facilitate bookings, telehealth consulting, and health record organization. MedSync is NOT a medical care provider. In the event of a medical emergency, please dial emergency services immediately.
+                MedSync is a software platform designed to facilitate appointment booking, telehealth consultations, messaging, and health record management between patients and healthcare professionals. MedSync is NOT a licensed healthcare provider, medical clinic, or emergency response service. The software does not provide medical diagnoses, treatment, or advice. IN THE EVENT OF A MEDICAL EMERGENCY, DO NOT USE MEDSYNC. IMMEDIATELY CALL YOUR LOCAL EMERGENCY SERVICES HOTLINE OR VISIT THE NEAREST CLINIC/EMERGENCY ROOM.
               </Text>
               
-              <Text style={styles.policySectionHeader}>Account Responsibility</Text>
+              <Text style={styles.policySectionHeader}>Section 1.3: User Accounts & Account Security</Text>
               <Text style={styles.policyText}>
-                You are responsible for keeping your login credentials confidential and secure. All activities occurring under your account are your sole responsibility.
+                To access features, you must register for an account. You agree to provide accurate, current, and complete registration details (including first name, surname, email, and phone). You are entirely responsible for maintaining the confidentiality of your password. Any unauthorized use of your account must be reported immediately to support@hokmatech.com.
+              </Text>
+
+              <Text style={styles.policySectionHeader}>Section 1.4: Code of Conduct & Permitted Use</Text>
+              <Text style={styles.policyText}>
+                You agree to use the Service only for lawful purposes. You are prohibited from uploading offensive content, harassing medical staff, transmitting spam/malware, attempting to reverse engineer the application, or violating the privacy rights of other users. Violation of user conduct terms will result in immediate account termination.
+              </Text>
+
+              <Text style={styles.policySectionHeader}>Section 1.5: Limitation of Liability</Text>
+              <Text style={styles.policyText}>
+                To the maximum extent permitted by applicable law, MedSync and its developers (Hokmatech) shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or data, arising out of or related to your use of or inability to use the Service.
+
               </Text>
 
               <Text style={[styles.policyTitle, { marginTop: 24 }]}>2. Privacy Policy</Text>
-              <Text style={styles.policySectionHeader}>Data Collection</Text>
+              
+              <Text style={styles.policySectionHeader}>Section 2.1: Information We Collect</Text>
               <Text style={styles.policyText}>
-                We collect personal registration details (name, email address, phone number) and medical information uploaded by authorized healthcare clinic personnel to link appointments and manage records.
+                We collect information you provide directly during registration (first name, surname, email address, phone number) and booking metadata. We also store medical records, diagnoses, and prescriptions uploaded on your behalf by authorized medical practitioners. Technical device information (IP address, operating system, and push notification tokens) may be collected to ensure operational stability.
               </Text>
               
-              <Text style={styles.policySectionHeader}>How We Use Data</Text>
+              <Text style={styles.policySectionHeader}>Section 2.2: How We Use Your Information</Text>
               <Text style={styles.policyText}>
-                Your data is exclusively used to facilitate healthcare services, video telehealth consultations, notifications, and appointment management. We do not sell, distribute, or expose your data to third parties.
+                Your personal and medical data is exclusively used to: (a) facilitate appointments and clinic bookings, (b) secure video/audio telehealth consultations, (c) manage prescription refill requests, (d) deliver critical clinic bulletins and reminders, and (e) authenticate your profile. We do not sell or monetize your data.
               </Text>
               
-              <Text style={styles.policySectionHeader}>POPIA Compliance (South Africa)</Text>
+              <Text style={styles.policySectionHeader}>Section 2.3: Information Sharing & Disclosure</Text>
               <Text style={styles.policyText}>
-                MedSync is designed in full compliance with the Protection of Personal Information Act (POPIA). Your information is stored securely in encrypted databases, and you retain full rights to request correction or removal of your details.
+                Your data is kept strictly confidential. It is only shared with the specific clinics and healthcare professionals you explicitly choose to book appointments or consult with through the application. We will only disclose your data to third parties if required by law or in compliance with a valid legal warrant.
+              </Text>
+
+              <Text style={styles.policySectionHeader}>Section 2.4: Data Retention & Security Controls</Text>
+              <Text style={styles.policyText}>
+                We employ advanced encryption algorithms (AES-256) for data storage and secure transport layer protection (SSL/TLS) for data in transit. Access controls are strictly defined via database Row-Level Security (RLS) policies. Your records are retained for as long as your account remains active or as required by national health record preservation laws.
+              </Text>
+
+              <Text style={styles.policySectionHeader}>Section 2.5: Compliance with POPIA & HIPAA</Text>
+              <Text style={styles.policyText}>
+                MedSync fully complies with the Protection of Personal Information Act (POPIA) in South Africa and adheres to HIPAA guidelines for medical data handling. You hold the legal right to access your stored data, request corrections, or delete your account details. To exercise these rights, please contact our privacy office.
               </Text>
 
               <View style={{ height: 20 }} />
