@@ -298,7 +298,7 @@ export default function HomeScreen({ navigation }) {
               ]}
             >
               <View style={styles.scheduleHeader}>
-                <View style={[styles.scheduleDoctor, { flex: 1, marginRight: 12 }]}>
+                <View style={[styles.scheduleDoctor, { marginRight: 12 }]}>
                   <View style={styles.doctorAvatarMini}>
                     <Text style={styles.doctorAvatarMiniText}>
                       {currentUser?.role === 'doctor'
@@ -614,6 +614,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    width: "100%",
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255, 255, 255, 0.15)",
     paddingBottom: 14,
@@ -622,6 +623,8 @@ const styles = StyleSheet.create({
   scheduleDoctor: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
+    flexShrink: 1,
   },
   doctorAvatarMini: {
     width: 40,

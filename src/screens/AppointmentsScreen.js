@@ -428,6 +428,10 @@ export default function AppointmentsScreen({ navigation }) {
           >
             {getWeekDates().map((item) => {
               const isActive = selectedDate === item.dateString;
+              const hasAppts = appointments.some(
+                appt => appt.date === item.dateString && 
+                (appt.status === "Confirmed" || appt.status === "Pending")
+              );
               return (
                 <TouchableOpacity
                   key={item.dateString}
@@ -453,6 +457,12 @@ export default function AppointmentsScreen({ navigation }) {
                   >
                     {item.weekday}
                   </Text>
+                  {hasAppts && (
+                    <View style={[
+                      styles.activeDot,
+                      isActive && styles.activeDotActive
+                    ]} />
+                  )}
                 </TouchableOpacity>
               );
             })}
@@ -680,6 +690,17 @@ const styles = StyleSheet.create({
   calendarDayBtnActive: {
     backgroundColor: COLORS.primary,
     borderColor: COLORS.primary,
+  },
+  activeDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: COLORS.primary,
+    marginTop: 4,
+    alignSelf: 'center',
+  },
+  activeDotActive: {
+    backgroundColor: '#FFFFFF',
   },
   calendarDayText: {
     fontSize: 18,

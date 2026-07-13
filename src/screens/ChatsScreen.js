@@ -134,96 +134,98 @@ export default function ChatsScreen({ navigation }) {
         transparent={true}
         onRequestClose={() => setActiveClinicName(null)}
       >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={[styles.chatModalContainer, { backgroundColor: theme.background }]}
-          >
-            {/* Modal Header */}
-            <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
-              <TouchableOpacity 
-                style={styles.modalBackBtn}
-                onPress={() => setActiveClinicName(null)}
-              >
-                <Ionicons name="chevron-back" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-              <View style={styles.modalHeaderTitleBox}>
-                <Text style={[styles.modalTitle, { color: theme.text }]} numberOfLines={1}>{activeClinicName}</Text>
-                <Text style={[styles.modalSubtitle, { color: theme.subtext }]}>Support Live Chat</Text>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.chatModalContainer, { backgroundColor: theme.background }]}>
+              {/* Modal Header */}
+              <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+                <TouchableOpacity 
+                  style={styles.modalBackBtn}
+                  onPress={() => setActiveClinicName(null)}
+                >
+                  <Ionicons name="chevron-back" size={24} color={COLORS.primary} />
+                </TouchableOpacity>
+                <View style={styles.modalHeaderTitleBox}>
+                  <Text style={[styles.modalTitle, { color: theme.text }]} numberOfLines={1}>{activeClinicName}</Text>
+                  <Text style={[styles.modalSubtitle, { color: theme.subtext }]}>Support Live Chat</Text>
+                </View>
+                <TouchableOpacity style={styles.phoneBtn}>
+                  <Ionicons name="call-outline" size={20} color={COLORS.primary} />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.phoneBtn}>
-                <Ionicons name="call-outline" size={20} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
 
-            {/* Message logs */}
-            <ScrollView 
-              contentContainerStyle={styles.chatMessageScroll}
-              showsVerticalScrollIndicator={false}
-              ref={ref => { if (ref) ref.scrollToEnd({ animated: true }); }}
-            >
-              {activeClinicName && messages.filter(
-                  m => m.clinicName === activeClinicName && m.patientName === patientName
-                ).length === 0 ? (
-                  <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 100 }}>
-                    <EmptyChatsSVG width={140} height={140} />
-                    <Text style={{ color: '#94A3B8', marginTop: 16, fontSize: 16 }}>No messages yet</Text>
-                  </View>
-                ) : activeClinicName && messages
-                .filter(
-                  m => m.clinicName === activeClinicName && m.patientName === patientName
-                )
-                .map((msg) => {
-                  const isPatient = msg.sender === 'patient';
-                  return (
-                    <View 
-                      key={msg.id} 
-                      style={[
-                        styles.messageBubbleContainer, 
-                        isPatient ? styles.bubbleContainerRight : styles.bubbleContainerLeft
-                      ]}
-                    >
-                      <View style={[
-                        styles.messageBubble, 
-                        isPatient ? styles.bubbleRight : styles.bubbleLeft
-                      ]}>
-                        <Text style={[
-                          styles.messageText, 
-                          isPatient ? styles.messageTextRight : styles.messageTextLeft
-                        ]}>
-                          {msg.text}
-                        </Text>
-                        <Text style={[
-                          styles.messageTimeText, 
-                          isPatient ? styles.messageTimeRight : styles.messageTimeLeft
-                        ]}>
-                          {msg.time}
-                        </Text>
-                      </View>
+              {/* Message logs */}
+              <ScrollView 
+                contentContainerStyle={styles.chatMessageScroll}
+                showsVerticalScrollIndicator={false}
+                ref={ref => { if (ref) ref.scrollToEnd({ animated: true }); }}
+              >
+                {activeClinicName && messages.filter(
+                    m => m.clinicName === activeClinicName && m.patientName === patientName
+                  ).length === 0 ? (
+                    <View style={{ alignItems: 'center', justifyContent: 'center', marginTop: 100 }}>
+                      <EmptyChatsSVG width={140} height={140} />
+                      <Text style={{ color: '#94A3B8', marginTop: 16, fontSize: 16 }}>No messages yet</Text>
                     </View>
-                  );
-                })
-              }
-            </ScrollView>
+                  ) : activeClinicName && messages
+                  .filter(
+                    m => m.clinicName === activeClinicName && m.patientName === patientName
+                  )
+                  .map((msg) => {
+                    const isPatient = msg.sender === 'patient';
+                    return (
+                      <View 
+                        key={msg.id} 
+                        style={[
+                          styles.messageBubbleContainer, 
+                          isPatient ? styles.bubbleContainerRight : styles.bubbleContainerLeft
+                        ]}
+                      >
+                        <View style={[
+                          styles.messageBubble, 
+                          isPatient ? styles.bubbleRight : styles.bubbleLeft
+                        ]}>
+                          <Text style={[
+                            styles.messageText, 
+                            isPatient ? styles.messageTextRight : styles.messageTextLeft
+                          ]}>
+                            {msg.text}
+                          </Text>
+                          <Text style={[
+                            styles.messageTimeText, 
+                            isPatient ? styles.messageTimeRight : styles.messageTimeLeft
+                          ]}>
+                            {msg.time}
+                          </Text>
+                        </View>
+                      </View>
+                    );
+                  })
+                }
+              </ScrollView>
 
-            {/* Input Row */}
-            <View style={[styles.chatInputRow, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
-              <TouchableOpacity accessibilityLabel="attach-button" style={styles.chatAttachBtn} onPress={handleSendAttachment}>
-                <Ionicons name="add" size={24} color="#94A3B8" />
-              </TouchableOpacity>
-              <TextInput
-                placeholder="Type your message..."
-                value={chatText}
-                onChangeText={setChatText}
-                style={[styles.chatInputField, { color: theme.text, backgroundColor: theme.background, borderColor: theme.border }]}
-                placeholderTextColor="#94A3B8"
-              />
-              <TouchableOpacity accessibilityLabel="send-button" style={styles.chatSendBtn} onPress={handleSendChatMessage}>
-                <Ionicons name="send" size={18} color="#FFFFFF" />
-              </TouchableOpacity>
+              {/* Input Row */}
+              <View style={[styles.chatInputRow, { backgroundColor: theme.surface, borderTopColor: theme.border }]}>
+                <TouchableOpacity accessibilityLabel="attach-button" style={styles.chatAttachBtn} onPress={handleSendAttachment}>
+                  <Ionicons name="add" size={24} color="#94A3B8" />
+                </TouchableOpacity>
+                <TextInput
+                  placeholder="Type your message..."
+                  value={chatText}
+                  onChangeText={setChatText}
+                  style={[styles.chatInputField, { color: theme.text, backgroundColor: theme.background, borderColor: theme.border }]}
+                  placeholderTextColor="#94A3B8"
+                />
+                <TouchableOpacity accessibilityLabel="send-button" style={styles.chatSendBtn} onPress={handleSendChatMessage}>
+                  <Ionicons name="send" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Tab bar */}

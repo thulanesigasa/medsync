@@ -1060,81 +1060,83 @@ export default function AdminScreen({ navigation }) {
         transparent={true}
         onRequestClose={() => setActiveChatApptId(null)}
       >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.chatModalContainer}
-          >
-            {/* Modal Header */}
-            <View style={styles.modalHeader}>
-              <View>
-                <Text style={styles.modalTitle}>Patient Live Chat Support</Text>
-                <Text style={styles.modalSubtitle}>Appt ID: {activeChatApptId}</Text>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.chatModalContainer}>
+              {/* Modal Header */}
+              <View style={styles.modalHeader}>
+                <View>
+                  <Text style={styles.modalTitle}>Patient Live Chat Support</Text>
+                  <Text style={styles.modalSubtitle}>Appt ID: {activeChatApptId}</Text>
+                </View>
+                <TouchableOpacity 
+                  style={styles.modalCloseBtn}
+                  onPress={() => setActiveChatApptId(null)}
+                >
+                  <Ionicons name="close" size={24} color={COLORS.primary} />
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity 
-                style={styles.modalCloseBtn}
-                onPress={() => setActiveChatApptId(null)}
+
+              {/* Message logs */}
+              <ScrollView 
+                contentContainerStyle={styles.chatMessageScroll}
+                showsVerticalScrollIndicator={false}
+                ref={ref => { if (ref) ref.scrollToEnd({ animated: true }); }}
               >
-                <Ionicons name="close" size={24} color={COLORS.primary} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Message logs */}
-            <ScrollView 
-              contentContainerStyle={styles.chatMessageScroll}
-              showsVerticalScrollIndicator={false}
-              ref={ref => { if (ref) ref.scrollToEnd({ animated: true }); }}
-            >
-              {messages
-                .filter(m => m.apptId === activeChatApptId)
-                .map((msg) => {
-                  const isAdmin = msg.sender === 'admin';
-                  return (
-                    <View 
-                      key={msg.id} 
-                      style={[
-                        styles.messageBubbleContainer, 
-                        isAdmin ? styles.bubbleContainerRight : styles.bubbleContainerLeft
-                      ]}
-                    >
-                      <View style={[
-                        styles.messageBubble, 
-                        isAdmin ? styles.bubbleRight : styles.bubbleLeft
-                      ]}>
-                        <Text style={[
-                          styles.messageText, 
-                          isAdmin ? styles.messageTextRight : styles.messageTextLeft
+                {messages
+                  .filter(m => m.apptId === activeChatApptId)
+                  .map((msg) => {
+                    const isAdmin = msg.sender === 'admin';
+                    return (
+                      <View 
+                        key={msg.id} 
+                        style={[
+                          styles.messageBubbleContainer, 
+                          isAdmin ? styles.bubbleContainerRight : styles.bubbleContainerLeft
+                        ]}
+                      >
+                        <View style={[
+                          styles.messageBubble, 
+                          isAdmin ? styles.bubbleRight : styles.bubbleLeft
                         ]}>
-                          {msg.text}
-                        </Text>
-                        <Text style={[
-                          styles.messageTimeText, 
-                          isAdmin ? styles.messageTimeRight : styles.messageTimeLeft
-                        ]}>
-                          {msg.time}
-                        </Text>
+                          <Text style={[
+                            styles.messageText, 
+                            isAdmin ? styles.messageTextRight : styles.messageTextLeft
+                          ]}>
+                            {msg.text}
+                          </Text>
+                          <Text style={[
+                            styles.messageTimeText, 
+                            isAdmin ? styles.messageTimeRight : styles.messageTimeLeft
+                          ]}>
+                            {msg.time}
+                          </Text>
+                        </View>
                       </View>
-                    </View>
-                  );
-                })
-              }
-            </ScrollView>
+                    );
+                  })
+                }
+              </ScrollView>
 
-            {/* Input Row */}
-            <View style={styles.chatInputRow}>
-              <TextInput
-                placeholder="Type your reply message..."
-                value={chatText}
-                onChangeText={setChatText}
-                style={styles.chatInputField}
-                placeholderTextColor="#94A3B8"
-              />
-              <TouchableOpacity style={styles.chatSendBtn} onPress={handleSendChatMessage}>
-                <Ionicons name="send" size={18} color="#FFFFFF" />
-              </TouchableOpacity>
+              {/* Input Row */}
+              <View style={styles.chatInputRow}>
+                <TextInput
+                  placeholder="Type your reply message..."
+                  value={chatText}
+                  onChangeText={setChatText}
+                  style={styles.chatInputField}
+                  placeholderTextColor="#94A3B8"
+                />
+                <TouchableOpacity style={styles.chatSendBtn} onPress={handleSendChatMessage}>
+                  <Ionicons name="send" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             </View>
-          </KeyboardAvoidingView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
       </View>
     </KeyboardAvoidingView>
