@@ -200,7 +200,7 @@ export default function AppointmentsScreen({ navigation }) {
           }}
         >
           <Text style={styles.doctorBadgeText}>
-            {appt.doctorName?.replace("Dr. ", "").charAt(0) || "D"}
+            {appt.doctorName?.replace("Dr. ", "")?.charAt(0) || "D"}
           </Text>
         </TouchableOpacity>
 

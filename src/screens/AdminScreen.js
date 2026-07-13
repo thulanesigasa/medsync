@@ -186,12 +186,75 @@ export default function AdminScreen({ navigation }) {
 
   const screenWidth = Dimensions.get('window').width;
 
-  const pieData = [
-    { name: "General", population: 45, color: COLORS.primary, legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "Dental", population: 28, color: COLORS.accent, legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "Cardio", population: 15, color: COLORS.success, legendFontColor: "#7F7F7F", legendFontSize: 12 },
-    { name: "Pediatrics", population: 12, color: "#8B5CF6", legendFontColor: "#7F7F7F", legendFontSize: 12 }
-  ];
+  // Calculate average rating of clinic doctors
+  const averageRating = clinicDoctors.length > 0
+    ? (clinicDoctors.reduce((sum, doc) => sum + (parseFloat(doc.rating) || 0), 0) / clinicDoctors.length).toFixed(1)
+    : '5.0';
+
+  // Get monthly appointments data for LineChart
+  const getMonthlyData = () => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const last6Months = [];
+    const currentDate = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      last6Months.push({
+        name: months[d.getMonth()],
+        year: d.getFullYear(),
+        monthNum: d.getMonth(),
+        count: 0
+      });
+    }
+
+    clinicAppointments.forEach(appt => {
+      if (!appt.date) return;
+      const apptDate = new Date(appt.date);
+      if (isNaN(apptDate.getTime())) return;
+      const apptMonth = apptDate.getMonth();
+      const apptYear = apptDate.getFullYear();
+      
+      const bucket = last6Months.find(m => m.monthNum === apptMonth && m.year === apptYear);
+      if (bucket) {
+        bucket.count++;
+      }
+    });
+
+    const dataPoints = last6Months.map(m => m.count);
+    return {
+      labels: last6Months.map(m => m.name),
+      datasets: [{ data: dataPoints }]
+    };
+  };
+
+  const lineChartData = getMonthlyData();
+
+  // Get specialties distribution of clinic doctors for PieChart
+  const getSpecialtiesDistribution = () => {
+    const counts = {};
+    clinicDoctors.forEach(doc => {
+      const spec = doc.specialty || 'General';
+      counts[spec] = (counts[spec] || 0) + 1;
+    });
+
+    const colors = [COLORS.primary, COLORS.accent, COLORS.success, '#8B5CF6', '#F59E0B', '#EC4899', '#10B981'];
+    const data = Object.keys(counts).map((spec, index) => ({
+      name: spec,
+      population: counts[spec],
+      color: colors[index % colors.length],
+      legendFontColor: "#7F7F7F",
+      legendFontSize: 12
+    }));
+
+    if (data.length === 0) {
+      return [
+        { name: "General", population: 1, color: COLORS.primary, legendFontColor: "#7F7F7F", legendFontSize: 12 }
+      ];
+    }
+    return data;
+  };
+
+  const pieData = getSpecialtiesDistribution();
 
   return (
     <View style={styles.container}>
@@ -237,22 +300,19 @@ export default function AdminScreen({ navigation }) {
                 <Text style={styles.gridLabel}>Confirmed</Text>
               </View>
               <View style={styles.gridItem}>
-                <Text style={[styles.gridValue, { color: '#F59E0B' }]}>4.9★</Text>
+                <Text style={[styles.gridValue, { color: '#F59E0B' }]}>{averageRating}★</Text>
                 <Text style={styles.gridLabel}>Rating</Text>
               </View>
             </View>
 
             {/* Performance Line Chart */}
             <View style={styles.card}>
-              <Text style={styles.cardHeaderTitle}>Monthly Traffic Analytics</Text>
+              <Text style={styles.cardHeaderTitle}>Monthly Booking Volume</Text>
               <LineChart
-                data={{
-                  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
-                  datasets: [{ data: [20, 45, 28, 80, 99, 43] }]
-                }}
+                data={lineChartData}
                 width={screenWidth - 64}
                 height={220}
-                yAxisSuffix="k"
+                yAxisSuffix=""
                 chartConfig={{
                   backgroundColor: COLORS.surface,
                   backgroundGradientFrom: COLORS.surface,
@@ -270,7 +330,7 @@ export default function AdminScreen({ navigation }) {
 
             {/* Specialties Pie Chart */}
             <View style={styles.card}>
-              <Text style={styles.cardHeaderTitle}>Patient Distribution</Text>
+              <Text style={styles.cardHeaderTitle}>Doctor Specialties Distribution</Text>
               <PieChart
                 data={pieData}
                 width={screenWidth - 64}
@@ -329,7 +389,7 @@ export default function AdminScreen({ navigation }) {
                     <View key={appt.id} style={styles.bookingCard}>
                       <View style={styles.bookingCardHeader}>
                         <View style={styles.avatarCircle}>
-                          <Text style={styles.avatarCircleText}>{appt.patientName.charAt(0)}</Text>
+                          <Text style={styles.avatarCircleText}>{appt.patientName?.charAt(0) || 'P'}</Text>
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={styles.bookingPatientName}>{appt.patientName}</Text>
@@ -391,7 +451,7 @@ export default function AdminScreen({ navigation }) {
                   <View key={appt.id} style={styles.bookingCard}>
                     <View style={styles.bookingCardHeader}>
                       <View style={styles.avatarCircle}>
-                        <Text style={styles.avatarCircleText}>{appt.patientName.charAt(0)}</Text>
+                        <Text style={styles.avatarCircleText}>{appt.patientName?.charAt(0) || 'P'}</Text>
                       </View>
                       <View style={{ flex: 1 }}>
                         <Text style={styles.bookingPatientName}>{appt.patientName}</Text>
@@ -478,7 +538,7 @@ export default function AdminScreen({ navigation }) {
                             onPress={() => setSelectedChatPatientName(patName)}
                           >
                             <View style={styles.patientTabAvatar}>
-                              <Text style={styles.patientTabAvatarText}>{patName.charAt(0)}</Text>
+                              <Text style={styles.patientTabAvatarText}>{patName?.charAt(0) || 'P'}</Text>
                             </View>
                             <View style={{ marginLeft: 8, maxWidth: 120 }}>
                               <Text style={[styles.patientTabName, isSelected && styles.patientTabNameActive]} numberOfLines={1}>
@@ -676,7 +736,7 @@ export default function AdminScreen({ navigation }) {
                           onPress={() => setSelectedPatientId(isSelected ? null : pat.id)}
                         >
                           <View style={styles.patientAvatarBox}>
-                            <Text style={styles.patientAvatarBoxText}>{pat.name.charAt(0)}</Text>
+                            <Text style={styles.patientAvatarBoxText}>{pat.name?.charAt(0) || 'U'}</Text>
                           </View>
                           <View style={{ flex: 1 }}>
                             <Text style={styles.patientListName}>{pat.name}</Text>

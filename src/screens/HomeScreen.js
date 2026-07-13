@@ -297,7 +297,7 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.scheduleDoctor}>
                   <View style={styles.doctorAvatarMini}>
                     <Text style={styles.doctorAvatarMiniText}>
-                      {upcomingAppt.doctorName?.replace("Dr. ", "").charAt(0) ||
+                      {upcomingAppt.doctorName?.replace("Dr. ", "")?.charAt(0) ||
                         "D"}
                     </Text>
                   </View>
@@ -373,7 +373,7 @@ export default function HomeScreen({ navigation }) {
                 <View style={styles.doctorAvatarLarge}>
                   <Text style={styles.doctorAvatarTextLarge}>
                     {doctor.avatarText ||
-                      doctor.name?.replace("Dr. ", "").charAt(0) ||
+                      doctor.name?.replace("Dr. ", "")?.charAt(0) ||
                       "D"}
                   </Text>
                 </View>

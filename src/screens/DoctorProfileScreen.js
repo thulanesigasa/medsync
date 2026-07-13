@@ -22,7 +22,7 @@ export default function DoctorProfileScreen({ navigation, route }) {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.profileHeader}>
           <View style={styles.avatarLarge}>
-             <Text style={styles.avatarText}>{doctor.name?.replace('Dr. ', '').charAt(0)}</Text>
+             <Text style={styles.avatarText}>{doctor.name?.replace('Dr. ', '')?.charAt(0) || 'D'}</Text>
           </View>
           <Text style={styles.doctorName}>{doctor.name}</Text>
           <Text style={styles.specialty}>{doctor.specialty}</Text>

@@ -38,20 +38,6 @@ export const AppointmentProvider = ({ children }) => {
 
         const formatted = data.map((appt, index) => {
           let finalDateStr = appt.appointment_date;
-          if (appt.appointment_date) {
-            const originalDate = new Date(appt.appointment_date);
-            originalDate.setHours(0, 0, 0, 0);
-            if (originalDate < todayStart) {
-              const alignedDate = new Date();
-              if (index % 2 === 1) {
-                alignedDate.setDate(todayStart.getDate() + 1);
-              } else {
-                alignedDate.setDate(todayStart.getDate());
-              }
-              finalDateStr = alignedDate.toISOString().split('T')[0];
-            }
-          }
-
           return {
             id: appt.id,
             patientName: appt.profiles?.full_name || 'Patient',
