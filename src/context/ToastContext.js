@@ -2,12 +2,14 @@ import React, { createContext, useState, useContext, useEffect, useRef } from 'r
 import { View, Text, Animated, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
+import { useTheme } from './ThemeContext';
 
 const ToastContext = createContext();
 
 export const ToastProvider = ({ children }) => {
   const [toast, setToast] = useState(null);
   const translateY = useRef(new Animated.Value(-100)).current;
+  const { theme } = useTheme();
 
   const showToast = (message, type = 'success', title = null) => {
     setToast({ message, type, title });
@@ -33,6 +35,8 @@ export const ToastProvider = ({ children }) => {
     }
   }, [toast]);
 
+  const typeColor = toast?.type === 'error' ? '#EF4444' : (toast?.type === 'info' ? '#3B82F6' : '#10B981');
+
   return (
     <ToastContext.Provider value={{ showToast }}>
       {children}
@@ -40,20 +44,24 @@ export const ToastProvider = ({ children }) => {
         <Animated.View
           style={[
             styles.toastContainer,
-            { transform: [{ translateY }] },
-            toast.type === 'error' ? styles.errorBg : (toast.type === 'info' ? styles.infoBg : styles.successBg)
+            { 
+              transform: [{ translateY }],
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              borderLeftColor: typeColor
+            }
           ]}
         >
           <View style={styles.iconContainer}>
             <Ionicons 
               name={toast.type === 'error' ? 'alert-circle' : (toast.type === 'info' ? 'information-circle' : 'checkmark-circle')} 
-              size={28} 
-              color="#fff" 
+              size={24} 
+              color={typeColor} 
             />
           </View>
           <View style={styles.textContainer}>
-            {toast.title && <Text style={styles.toastTitle}>{toast.title}</Text>}
-            <Text style={styles.toastText}>{toast.message}</Text>
+            {toast.title && <Text style={[styles.toastTitle, { color: theme.text }]}>{toast.title}</Text>}
+            <Text style={[styles.toastText, { color: theme.subtext }]}>{toast.message}</Text>
           </View>
         </Animated.View>
       )}
@@ -73,37 +81,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderRadius: 12,
+    borderWidth: 1,
+    borderLeftWidth: 6,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
     zIndex: 9999,
-  },
-  successBg: {
-    backgroundColor: '#10B981',
-  },
-  errorBg: {
-    backgroundColor: '#EF4444',
-  },
-  infoBg: {
-    backgroundColor: '#3B82F6',
   },
   iconContainer: {
     marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   textContainer: {
     flex: 1,
   },
   toastTitle: {
-    color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: 'bold',
     marginBottom: 2,
   },
   toastText: {
-    color: '#fff',
-    fontSize: 14,
-    opacity: 0.9,
+    fontSize: 13,
+    lineHeight: 18,
   }
 });
