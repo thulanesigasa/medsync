@@ -51,7 +51,7 @@ export default function AdminScreen({ navigation }) {
 
   // Clinic Association Details
   const clinicName = currentUser?.clinic || 'Dawn Park Clinic';
-  const activeClinicInfo = clinics.find(c => c.name.toLowerCase().includes(clinicName.toLowerCase())) || clinics[0];
+  const activeClinicInfo = clinics.find(c => c.name?.toLowerCase().includes(clinicName?.toLowerCase())) || clinics[0];
 
   // Form State for Settings Editor
   const [settingsAddress, setSettingsAddress] = useState(activeClinicInfo?.address || '');
@@ -72,15 +72,15 @@ export default function AdminScreen({ navigation }) {
 
   // Filter lists for current clinic
   const clinicAppointments = appointments.filter(
-    appt => appt.clinicName.toLowerCase().includes(clinicName.toLowerCase())
+    appt => appt.clinicName?.toLowerCase().includes(clinicName?.toLowerCase())
   );
 
   const clinicDoctors = doctors.filter(
-    doc => doc.clinic.toLowerCase().includes(clinicName.toLowerCase())
+    doc => doc.clinic?.toLowerCase().includes(clinicName?.toLowerCase())
   );
 
   const clinicUpdates = updates.filter(
-    up => up.clinic.toLowerCase().includes(clinicName.toLowerCase())
+    up => up.clinic?.toLowerCase().includes(clinicName?.toLowerCase())
   );
 
   const handleLogout = () => {
