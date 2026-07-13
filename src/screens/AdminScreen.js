@@ -274,7 +274,11 @@ export default function AdminScreen({ navigation }) {
   const pieData = getSpecialtiesDistribution();
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
+      <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
@@ -1132,7 +1136,8 @@ export default function AdminScreen({ navigation }) {
           </KeyboardAvoidingView>
         </View>
       </Modal>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
