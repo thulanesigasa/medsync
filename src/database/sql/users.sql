@@ -7,6 +7,7 @@ CREATE TABLE public.profiles (
   full_name VARCHAR(255),
   avatar_url TEXT,
   phone_number VARCHAR(20),
+  email VARCHAR(255),
   address TEXT,
   id_number VARCHAR(50),
   insurance_provider VARCHAR(255),
@@ -37,13 +38,14 @@ BEGIN
     default_role := new.raw_user_meta_data->>'role';
   END IF;
 
-  INSERT INTO public.profiles (id, role, full_name, avatar_url, phone_number)
+  INSERT INTO public.profiles (id, role, full_name, avatar_url, phone_number, email)
   VALUES (
     new.id, 
     default_role, 
     new.raw_user_meta_data->>'full_name', 
     new.raw_user_meta_data->>'avatar_url',
-    new.raw_user_meta_data->>'phone_number'
+    new.raw_user_meta_data->>'phone_number',
+    new.email
   );
   RETURN new;
 END;
