@@ -187,39 +187,45 @@ export default function AppointmentsScreen({ navigation }) {
     return { day, month, weekday };
   };
 
-  const renderAppointmentCard = (appt) => (
-    <View key={appt.id} style={[styles.premiumCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-      <View style={styles.cardHeader}>
-        <TouchableOpacity 
-          style={styles.doctorBadge}
-          onPress={() => {
-            const doctorObj = doctors.find(d => d.name?.toLowerCase() === appt.doctorName?.toLowerCase());
-            if (doctorObj) {
-              navigation.navigate("DoctorProfile", { doctor: doctorObj });
-            }
-          }}
-        >
-          <Text style={styles.doctorBadgeText}>
-            {appt.doctorName?.replace("Dr. ", "")?.charAt(0) || "D"}
-          </Text>
-        </TouchableOpacity>
+  const renderAppointmentCard = (appt) => {
+    const isDoctor = currentUser?.role === 'doctor';
+    return (
+      <View key={appt.id} style={[styles.premiumCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={styles.cardHeader}>
+          <TouchableOpacity 
+            style={styles.doctorBadge}
+            disabled={isDoctor}
+            onPress={() => {
+              const doctorObj = doctors.find(d => d.name?.toLowerCase() === appt.doctorName?.toLowerCase());
+              if (doctorObj) {
+                navigation.navigate("DoctorProfile", { doctor: doctorObj });
+              }
+            }}
+          >
+            <Text style={styles.doctorBadgeText}>
+              {isDoctor 
+                ? (appt.patientName?.charAt(0) || "P")
+                : (appt.doctorName?.replace("Dr. ", "")?.charAt(0) || "D")}
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity 
-          style={styles.doctorMeta}
-          onPress={() => {
-            const doctorObj = doctors.find(d => d.name?.toLowerCase() === appt.doctorName?.toLowerCase());
-            if (doctorObj) {
-              navigation.navigate("DoctorProfile", { doctor: doctorObj });
-            }
-          }}
-        >
-          <Text style={[styles.doctorNameText, { color: theme.text }]}>
-            {appt.doctorName || "Doctor"}
-          </Text>
-          <Text style={[styles.doctorSpecText, { color: theme.subtext }]}>
-            {appt.doctorTitle || appt.type || "Specialist"}
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.doctorMeta}
+            disabled={isDoctor}
+            onPress={() => {
+              const doctorObj = doctors.find(d => d.name?.toLowerCase() === appt.doctorName?.toLowerCase());
+              if (doctorObj) {
+                navigation.navigate("DoctorProfile", { doctor: doctorObj });
+              }
+            }}
+          >
+            <Text style={[styles.doctorNameText, { color: theme.text }]}>
+              {isDoctor ? (appt.patientName || "Patient") : (appt.doctorName || "Doctor")}
+            </Text>
+            <Text style={[styles.doctorSpecText, { color: theme.subtext }]}>
+              {isDoctor ? (appt.type || "Appointment") : (appt.doctorTitle || appt.type || "Specialist")}
+            </Text>
+          </TouchableOpacity>
 
         <View style={[styles.statusBadge, getStatusStyle(appt.status)]}>
           <Text
@@ -327,7 +333,9 @@ export default function AppointmentsScreen({ navigation }) {
                 style={styles.detailIcon}
               />
               <Text style={styles.detailText}>
-                {appt.doctorName || "Doctor"} - {appt.type || "Appointment"}
+                {currentUser?.role === 'doctor'
+                  ? `${appt.patientName || "Patient"} - ${appt.type || "Appointment"}`
+                  : `${appt.doctorName || "Doctor"} - ${appt.type || "Appointment"}`}
               </Text>
             </View>
 

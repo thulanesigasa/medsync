@@ -11,6 +11,22 @@ export const AppointmentProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthLoaded && currentUser) {
       fetchAppointments();
+
+      // Subscribe to real-time appointment updates
+      const channel = supabase
+        .channel('public:appointments')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'appointments' },
+          (payload) => {
+            fetchAppointments();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [isAuthLoaded, currentUser]);
 

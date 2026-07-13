@@ -95,12 +95,17 @@ CREATE POLICY "HR and Admins can manage clinic staff"
 -- =================================================================================
 -- 4. NEW POLICIES: APPOINTMENTS
 -- =================================================================================
--- Patients see own. Staff (admin, hr, receptionist) see all.
+-- Patients see own. Staff (admin, hr, receptionist) see all. Doctors see their own assigned bookings.
 CREATE POLICY "Appointments read access"
   ON public.appointments FOR SELECT
   USING (
     auth.uid() = patient_id 
     OR public.get_auth_role() IN ('admin', 'hr', 'receptionist')
+    OR EXISTS (
+      SELECT 1 FROM public.clinic_staff 
+      WHERE clinic_staff.id = appointments.doctor_id 
+      AND clinic_staff.profile_id = auth.uid()
+    )
   );
 
 -- Patients create own. Staff create all.
@@ -111,12 +116,17 @@ CREATE POLICY "Appointments insert access"
     OR public.get_auth_role() IN ('admin', 'hr', 'receptionist')
   );
 
--- Patients update own. Staff update all.
+-- Patients update own. Staff update all. Doctors update their own assigned bookings.
 CREATE POLICY "Appointments update access"
   ON public.appointments FOR UPDATE
   USING (
     auth.uid() = patient_id 
     OR public.get_auth_role() IN ('admin', 'hr', 'receptionist')
+    OR EXISTS (
+      SELECT 1 FROM public.clinic_staff 
+      WHERE clinic_staff.id = appointments.doctor_id 
+      AND clinic_staff.profile_id = auth.uid()
+    )
   );
 
 -- =================================================================================

@@ -82,8 +82,12 @@ export default function HomeScreen({ navigation }) {
       const appointmentDate = new Date(appt.date);
       appointmentDate.setHours(0, 0, 0, 0);
 
+      const matchesUser = currentUser?.role === 'doctor'
+        ? appt.doctorName === currentUser?.name
+        : appt.patientName === currentUser?.name;
+
       return (
-        appt.patientName === currentUser?.name &&
+        matchesUser &&
         appointmentDate >= today &&
         (appt.status === "Confirmed" || appt.status === "Pending")
       );
@@ -294,20 +298,25 @@ export default function HomeScreen({ navigation }) {
               ]}
             >
               <View style={styles.scheduleHeader}>
-                <View style={styles.scheduleDoctor}>
+                <View style={[styles.scheduleDoctor, { flex: 1, marginRight: 12 }]}>
                   <View style={styles.doctorAvatarMini}>
                     <Text style={styles.doctorAvatarMiniText}>
-                      {upcomingAppt.doctorName?.replace("Dr. ", "")?.charAt(0) ||
-                        "D"}
+                      {currentUser?.role === 'doctor'
+                        ? (upcomingAppt.patientName?.charAt(0) || "P")
+                        : (upcomingAppt.doctorName?.replace("Dr. ", "")?.charAt(0) || "D")}
                     </Text>
                   </View>
 
                   <View style={{ flex: 1, marginRight: 8 }}>
                     <Text style={styles.scheduleDoctorName}>
-                      {upcomingAppt.doctorName}
+                      {currentUser?.role === 'doctor'
+                        ? upcomingAppt.patientName
+                        : upcomingAppt.doctorName}
                     </Text>
                     <Text style={styles.scheduleDoctorTitle} numberOfLines={1}>
-                      {upcomingAppt.doctorTitle || "Specialist"} •{" "}
+                      {currentUser?.role === 'doctor'
+                        ? (upcomingAppt.type || "Appointment")
+                        : (upcomingAppt.doctorTitle || "Specialist")} •{" "}
                       {upcomingAppt.clinicName}
                     </Text>
                   </View>
