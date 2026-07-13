@@ -77,11 +77,11 @@ export const AppointmentProvider = ({ children }) => {
       return;
     }
     try {
-      let clinicId = null;
-      let doctorId = null;
+      let clinicId = newAppt.clinicId || null;
+      let doctorId = newAppt.doctorId || null;
 
-      // 1. Resolve clinicId
-      if (newAppt.clinicName) {
+      // 1. Resolve clinicId if not provided directly
+      if (!clinicId && newAppt.clinicName) {
         const { data: clinic } = await supabase
           .from('clinics')
           .select('id')
@@ -92,12 +92,13 @@ export const AppointmentProvider = ({ children }) => {
         }
       }
 
-      // 2. Resolve doctorId (clinic_staff.id)
-      if (newAppt.doctorName) {
+      // 2. Resolve doctorId if not provided directly
+      if (!doctorId && newAppt.doctorName) {
+        const queryName = newAppt.doctorName.replace(/^Dr\.\s+/i, '');
         const { data: profile } = await supabase
           .from('profiles')
           .select('id')
-          .ilike('full_name', `%${newAppt.doctorName}%`)
+          .ilike('full_name', `%${queryName}%`)
           .limit(1);
         if (profile && profile.length > 0) {
           const { data: staff } = await supabase

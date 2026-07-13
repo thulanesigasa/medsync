@@ -65,6 +65,8 @@ export default function BookingScreen({ navigation, route }) {
         date: selectedDate,
         time: selectedTime,
         status: "Pending",
+        doctorId: doctor.id,
+        clinicId: doctor.clinicId,
       };
 
       addAppointment(appointment);

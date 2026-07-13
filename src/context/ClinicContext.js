@@ -36,6 +36,7 @@ export const ClinicProvider = ({ children }) => {
         .from('clinic_staff')
         .select(`
           id,
+          clinic_id,
           title,
           rating,
           reviews_count,
@@ -47,6 +48,7 @@ export const ClinicProvider = ({ children }) => {
       if (data) {
         const formattedDoctors = data.map(d => ({
           id: d.id,
+          clinicId: d.clinic_id,
           name: d.profiles?.full_name || 'Unknown Doctor',
           specialty: d.title,
           clinic: d.clinics?.name,
