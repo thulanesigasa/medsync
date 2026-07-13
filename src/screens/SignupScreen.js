@@ -21,10 +21,12 @@ export default function SignupScreen({ navigation, route }) {
   const { addPatient } = useClinic();
   const defaultRole = route.params?.defaultRole || 'patient';
   const [role, setRole] = useState(defaultRole);
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [selectedClinic, setSelectedClinic] = useState('Dawn Park Clinic');
   const [showClinicDropdown, setShowClinicDropdown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,10 +36,33 @@ export default function SignupScreen({ navigation, route }) {
     'Benoni Health Centre',
     'Unjani Clinic Germiston',
   ];
+
+  const getPasswordStrength = (pass) => {
+    if (!pass) return { score: 0, label: '', color: '#E2E8F0' };
+    if (pass.length < 6) return { score: 1, label: 'Too Short (Min 6 characters)', color: '#EF4444' };
+    
+    let strength = 0;
+    if (/[a-z]/.test(pass)) strength += 1;
+    if (/[A-Z]/.test(pass)) strength += 1;
+    if (/[0-9]/.test(pass)) strength += 1;
+    if (/[^a-zA-Z0-9]/.test(pass)) strength += 1;
+
+    if (strength <= 1) return { score: 2, label: 'Weak', color: '#F97316' };
+    if (strength === 2) return { score: 3, label: 'Medium', color: '#EAB308' };
+    if (strength === 3) return { score: 4, label: 'Strong', color: '#10B981' };
+    return { score: 5, label: 'Very Strong', color: '#059669' };
+  };
+
   const handleSignup = async () => {
-    if (!name && role === 'patient') {
-      showToast('Please enter your full name', 'error');
-      return;
+    if (role === 'patient') {
+      if (!firstName.trim()) {
+        showToast('Please enter your name', 'error');
+        return;
+      }
+      if (!surname.trim()) {
+        showToast('Please enter your surname', 'error');
+        return;
+      }
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
@@ -55,8 +80,10 @@ export default function SignupScreen({ navigation, route }) {
     
     setIsLoading(true);
 
+    const fullName = role === 'patient' ? `${firstName.trim()} ${surname.trim()}` : `${selectedClinic} Admin`;
+
     const result = await signup(
-      name,
+      fullName,
       email,
       phone,
       password,
@@ -74,7 +101,7 @@ export default function SignupScreen({ navigation, route }) {
     showToast('Signup successful!', 'success');
     
     if (role === 'patient') {
-      addPatient({ name, email, phone });
+      addPatient({ name: fullName, email, phone });
     }
     if (role === 'admin') {
       navigation.replace('Admin');
@@ -149,23 +176,40 @@ export default function SignupScreen({ navigation, route }) {
               </Text>
             </TouchableOpacity>
           </View>
-          {/* Name Field */}
+          {/* Name & Surname Fields */}
           {role === 'patient' && (
-            <View style={styles.inputContainer}>
-              <Ionicons
-                name="person-outline"
-                size={20}
-                color="#94A3B8"
-                style={styles.inputIcon}
-              />
-              <TextInput
-                placeholder="Full Name"
-                value={name}
-                onChangeText={setName}
-                style={styles.input}
-                placeholderTextColor="#94A3B8"
-              />
-            </View>
+            <>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color="#94A3B8"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  placeholder="First Name"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  style={styles.input}
+                  placeholderTextColor="#94A3B8"
+                />
+              </View>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="person-outline"
+                  size={20}
+                  color="#94A3B8"
+                  style={styles.inputIcon}
+                />
+                <TextInput
+                  placeholder="Surname"
+                  value={surname}
+                  onChangeText={setSurname}
+                  style={styles.input}
+                  placeholderTextColor="#94A3B8"
+                />
+              </View>
+            </>
           )}
           {/* Email */}
           <View style={styles.inputContainer}>
@@ -214,11 +258,45 @@ export default function SignupScreen({ navigation, route }) {
               placeholder="Password"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={!showPassword}
               style={styles.input}
               placeholderTextColor="#94A3B8"
             />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+              <Ionicons
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
+                size={20}
+                color="#94A3B8"
+              />
+            </TouchableOpacity>
           </View>
+          
+          {/* Password Strength Progress Bar */}
+          {password.length > 0 && (
+            <View style={styles.strengthContainer}>
+              <View style={styles.strengthBarRow}>
+                {[1, 2, 3, 4].map((index) => {
+                  const strengthInfo = getPasswordStrength(password);
+                  let isFilled = false;
+                  if (strengthInfo.score === 1 && index === 1) isFilled = true; // Too short: 1 red segment
+                  else if (strengthInfo.score >= 2 && index <= (strengthInfo.score - 1)) isFilled = true;
+                  
+                  return (
+                    <View 
+                      key={index} 
+                      style={[
+                        styles.strengthSegment, 
+                        { backgroundColor: isFilled ? strengthInfo.color : '#E2E8F0' }
+                      ]} 
+                    />
+                  );
+                })}
+              </View>
+              <Text style={[styles.strengthText, { color: getPasswordStrength(password).color }]}>
+                {getPasswordStrength(password).label}
+              </Text>
+            </View>
+          )}
           {/* Clinic Dropdown */}
           {role === 'admin' && (
             <View style={{ position: 'relative', zIndex: 10 }}>
@@ -460,5 +538,26 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     textAlign: 'center',
     marginTop: 10,
+  },
+  strengthContainer: {
+    marginTop: -4,
+    marginBottom: 14,
+    paddingHorizontal: 4,
+  },
+  strengthBarRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 6,
+    marginBottom: 6,
+  },
+  strengthSegment: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+  },
+  strengthText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'right',
   },
 });
