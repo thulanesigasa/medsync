@@ -137,6 +137,21 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
+      // Immediately set currentUser so screens show the correct name/email
+      // without waiting for onAuthStateChange + profile fetch race condition
+      if (data.user) {
+        setCurrentUser({
+          id: data.user.id,
+          email: cleanEmail,
+          name: role === 'admin' ? `${clinic} Admin` : name,
+          role: role,
+          clinic: role === 'admin' ? clinic : '',
+          phone: phone,
+          isMock: false,
+        });
+        setIsAuthLoaded(true);
+      }
+
       return { success: true, user: data.user };
     } catch (error) {
       console.log("Signup Error:", error.message);

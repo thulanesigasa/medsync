@@ -237,19 +237,28 @@ export default function ProfileScreen({ navigation }) {
         animationType="slide"
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={{ width: '100%' }}
-          >
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Personal Information</Text>
-                <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="#64748B" />
-                </TouchableOpacity>
-              </View>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableOpacity
+            style={{ flex: 1, backgroundColor: 'rgba(15, 23, 42, 0.6)' }}
+            activeOpacity={1}
+            onPress={() => setEditModalVisible(false)}
+          />
+          <View style={styles.modalContent}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Personal Information</Text>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#64748B" />
+              </TouchableOpacity>
+            </View>
 
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Full Name</Text>
                 <TextInput
@@ -257,6 +266,8 @@ export default function ProfileScreen({ navigation }) {
                   value={editName}
                   onChangeText={setEditName}
                   placeholder="Enter full name"
+                  placeholderTextColor="#94A3B8"
+                  returnKeyType="next"
                 />
               </View>
 
@@ -267,7 +278,10 @@ export default function ProfileScreen({ navigation }) {
                   value={editEmail}
                   onChangeText={setEditEmail}
                   keyboardType="email-address"
+                  autoCapitalize="none"
                   placeholder="Enter email address"
+                  placeholderTextColor="#94A3B8"
+                  returnKeyType="next"
                 />
               </View>
 
@@ -279,15 +293,17 @@ export default function ProfileScreen({ navigation }) {
                   onChangeText={setEditPhone}
                   keyboardType="phone-pad"
                   placeholder="Enter phone number"
+                  placeholderTextColor="#94A3B8"
+                  returnKeyType="done"
                 />
               </View>
 
               <TouchableOpacity style={styles.saveModalBtn} onPress={handleSaveProfile}>
                 <Text style={styles.saveModalBtnText}>Save Changes</Text>
               </TouchableOpacity>
-            </View>
-          </KeyboardAvoidingView>
-        </View>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -547,7 +563,17 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 28,
+    maxHeight: '90%',
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 16,
   },
   modalHeader: {
     flexDirection: 'row',
