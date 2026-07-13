@@ -135,8 +135,7 @@ export const ClinicProvider = ({ children }) => {
       let doctorProfileId = profile && profile.length > 0 ? profile[0].id : null;
 
       if (!doctorProfileId) {
-         console.log("Could not find registered profile for doctor email. They must sign up first.");
-         return;
+         return { success: false, message: `Could not find registered profile for doctor email ${newDoc.email}. Make sure they signed up and are promoted to the doctor role first.` };
       }
 
       const { data: clinic } = await supabase
@@ -146,21 +145,30 @@ export const ClinicProvider = ({ children }) => {
         .limit(1);
       
       const clinicId = clinic && clinic.length > 0 ? clinic[0].id : null;
-
-      if (clinicId && doctorProfileId) {
-        const { error } = await supabase
-          .from('clinic_staff')
-          .insert([{
-            profile_id: doctorProfileId,
-            clinic_id: clinicId,
-            title: newDoc.specialty
-          }]);
-        if (!error) {
-          fetchDoctors();
-        }
+      if (!clinicId) {
+         return { success: false, message: `Clinic ${newDoc.clinic} not found.` };
       }
+
+      const { error } = await supabase
+        .from('clinic_staff')
+        .insert([{
+          profile_id: doctorProfileId,
+          clinic_id: clinicId,
+          title: newDoc.specialty
+        }]);
+      
+      if (error) {
+        if (error.code === '23505') {
+          return { success: false, message: 'This doctor is already registered to this clinic practice.' };
+        }
+        throw error;
+      }
+      
+      fetchDoctors();
+      return { success: true };
     } catch (error) {
       console.log("Error adding doctor staff:", error.message);
+      return { success: false, message: error.message };
     }
   };
 
