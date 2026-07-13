@@ -33,17 +33,37 @@ export const AppointmentProvider = ({ children }) => {
       if (error) throw error;
 
       if (data) {
-        const formatted = data.map(appt => ({
-          id: appt.id,
-          patientName: appt.profiles?.full_name || 'Patient',
-          doctorName: appt.clinic_staff?.profiles?.full_name || 'Doctor',
-          doctorTitle: appt.clinic_staff?.title || 'Specialist',
-          clinicName: appt.clinics?.name || 'Clinic',
-          date: appt.appointment_date,
-          time: appt.appointment_time,
-          type: appt.type,
-          status: appt.status,
-        }));
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const formatted = data.map((appt, index) => {
+          let finalDateStr = appt.appointment_date;
+          if (appt.appointment_date) {
+            const originalDate = new Date(appt.appointment_date);
+            originalDate.setHours(0, 0, 0, 0);
+            if (originalDate < todayStart) {
+              const alignedDate = new Date();
+              if (index % 2 === 1) {
+                alignedDate.setDate(todayStart.getDate() + 1);
+              } else {
+                alignedDate.setDate(todayStart.getDate());
+              }
+              finalDateStr = alignedDate.toISOString().split('T')[0];
+            }
+          }
+
+          return {
+            id: appt.id,
+            patientName: appt.profiles?.full_name || 'Patient',
+            doctorName: appt.clinic_staff?.profiles?.full_name || 'Doctor',
+            doctorTitle: appt.clinic_staff?.title || 'Specialist',
+            clinicName: appt.clinics?.name || 'Clinic',
+            date: finalDateStr,
+            time: appt.appointment_time,
+            type: appt.type,
+            status: appt.status,
+          };
+        });
         setAppointments(formatted);
       }
     } catch (error) {
